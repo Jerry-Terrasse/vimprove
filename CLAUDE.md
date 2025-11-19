@@ -6,7 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Vimprove 是一个交互式 Vim 学习网站。核心功能是通过浏览器中的"迷你 Vim 编辑器 + 关卡式练习"来教用户实际操作 Vim 命令。
 
-**当前状态**: 项目处于重构阶段。原型代码在 `vimprove.html` 中，需要拆分为模块化的 React + TypeScript 项目。
+**当前状态**: ✅ 重构完成。项目已从单文件原型（`tmp/vimprove.html`）重构为模块化的 React + TypeScript 架构。
+
+**版本**: v0.1.0 Alpha（版本管理在 `src/version.ts`）
 
 ## Development Commands
 
@@ -121,56 +123,88 @@ import { LESSONS } from '@/data';
 import { useVimEngine } from '@/hooks/useVimEngine';
 ```
 
-## Refactoring Guide
+## Vim Engine Capabilities
 
-原型代码 `vimprove.html` 的映射关系（参考 `tmp/refactor-plan.md`）：
+### ✅ 已支持的命令
 
-- **L52-328**: Vim 引擎核心 → `src/core/`
-  - L52-58: INITIAL_VIM_STATE
-  - L61-132: getMotionTarget → `motions.ts`
-  - L135-328: vimReducer
-  - L204-267: Operator 处理逻辑 → `operators.ts`
+**Normal Mode 移动**:
+- `h`, `j`, `k`, `l` - 基础移动（左下上右）
+- `w`, `b` - 单词移动（word）
+- `0`, `$` - 行首/行尾
 
-- **L332-443**: 课程数据 → `src/data/`
-  - L332-335: CATEGORIES
-  - L338-376: moving-hjkl lesson
-  - L377-402: word-motion lesson
-  - L403-423: deletion lesson
-  - L424-443: insert-mode lesson
+**编辑命令**:
+- `x` - 删除字符
+- `dd` - 删除行
+- `d{motion}` - 删除到 motion 位置（如 `dw`, `d$`）
+- `c{motion}` - 修改到 motion 位置（删除后进入 Insert 模式）
 
-- **L449-755**: 组件 → `src/components/`
-  - L449-458: MarkdownBlock
-  - L461-476: KeyListBlock
-  - L479-674: VimChallenge
-  - L677-719: LessonView
-  - L722-755: HomeView
+**模式切换**:
+- `i`, `a` - 在光标前/后进入 Insert 模式
+- `I`, `A` - 在行首/行尾进入 Insert 模式
+- `o`, `O` - 在下方/上方新建行并进入 Insert 模式
+- `Escape` - 回到 Normal 模式
+
+**Insert Mode**:
+- 可见字符输入
+- `Backspace` - 删除前一个字符
+- `Enter` - 换行
+
+### ❌ 尚未支持
+
+- 数字前缀（`3w`, `5dd`）
+- Text Objects（`iw`, `aw`, `i"`, `a{`）
+- 查找命令（`f`, `t`, `F`, `T`, `;`, `,`）
+- `e`, `E`, `W`, `B` 等高级移动
+- Visual Mode、Yank/Paste、Undo/Redo
+- 搜索和替换（`/`, `:s`）
+
+**扩展引擎**: 如需添加新命令，修改 `src/core/motions.ts` 或 `src/core/operators.ts`
 
 ## Adding New Lessons
 
-新增课程步骤：
+### 快速开始
 
-1. 在 `src/data/lessons/{category}/` 创建文件：
+1. **复制模板**: `tmp/lesson-template.ts` 包含完整的课程文件模板
+2. **创建课程文件**: `src/data/lessons/{category}/{slug}.ts`
+3. **导入到索引**: 在 `src/data/index.ts` 添加导入
+
+### 详细指南
+
+**完整的课程编写文档**: `tmp/course-creation-guide.md`
+- 包含所有技术规格、validator 编写技巧、常用模式
+- 适合课程内容生成 AI 使用
+
+**技术支持能力**: `tmp/tech-support-capabilities.md`
+- 说明技术 AI 可以提供的支持（命令扩展、调试等）
+
+**协作总览**: `tmp/README-COURSE-COLLAB.md`
+- 课程 AI 和技术 AI 的协作流程
+
+### 课程文件示例
+
 ```typescript
 // src/data/lessons/basics/new-lesson.ts
-import { Lesson } from '@/core/types';
+import type { Lesson } from '@/core/types';
 
 export const newLesson: Lesson = {
   slug: 'new-lesson',
   title: 'Lesson Title',
   categoryId: 'basics',
-  shortDescription: '...',
+  shortDescription: 'Brief description',
   contentBlocks: [
-    { type: 'markdown', content: '...' },
-    { type: 'key-list', keys: [...] },
+    { type: 'markdown', content: '## Title\n\nContent...' },
+    { type: 'key-list', keys: [
+      { chars: ['h'], desc: 'Move left' }
+    ]},
     { type: 'challenge', config: {
-      initialBuffer: ['...'],
+      initialBuffer: ['Line 1', 'Line 2'],
       initialCursor: { line: 0, col: 0 },
       enabledCommands: ['h','j','k','l'],
       goals: [{
         id: 'goal-1',
         type: 'move',
-        description: '...',
-        validator: (prev, next) => next.cursor.line === 3
+        description: 'Move to line 2',
+        validator: (prev, next) => next.cursor.line === 1
       }],
       goalsRequired: 1
     }}
@@ -178,9 +212,13 @@ export const newLesson: Lesson = {
 };
 ```
 
-2. 在 `src/data/lessons/index.ts` 导入并添加到 LESSONS 数组
+然后在 `src/data/index.ts` 添加：
+```typescript
+import { newLesson } from './lessons/basics/new-lesson';
+export const LESSONS: Lesson[] = [..., newLesson];
+```
 
-无需修改任何其他代码，新课程自动出现在侧边栏和路由中。
+**无需修改其他代码**，新课程自动出现在侧边栏和路由中。
 
 ## Important Constraints
 
@@ -211,4 +249,60 @@ export const newLesson: Lesson = {
 
 - 使用 Tailwind CSS 3.x（**不要用 4.x**）
 - 配置已包含自定义动画和 stone-950 颜色
-- 样式入口: `src/styles/index.css`
+- 样式入口: `src/index.css`（已配置 Tailwind directives）
+- 主题色: Stone 色系（深色主题）
+- Logo: `tmp/vimprove.png`（已设置为网站图标）
+
+## Quick Start（新会话开始时）
+
+### 项目现状检查
+
+```bash
+# 启动开发服务器
+npm run dev
+# 访问 http://localhost:3000
+
+# 检查项目结构
+ls src/
+# 应看到: core/ data/ hooks/ components/ pages/ i18n/ version.ts
+
+# 查看现有课程
+ls src/data/lessons/basics/
+ls src/data/lessons/edits/
+```
+
+### 当前已完成
+
+- ✅ 模块化架构（Core/Data/Hooks/Components）
+- ✅ 4 个基础课程（moving-hjkl, word-motion, deletion, insert-mode）
+- ✅ 完整的 Vim 引擎（支持基础命令）
+- ✅ Challenge 系统（目标验证、计时）
+- ✅ 版本管理（v0.1.0 Alpha）
+- ✅ 网站图标和 PWA 支持
+- ✅ 课程编写协作文档（`tmp/` 目录）
+
+### 下一步任务（参考）
+
+**课程扩展**:
+1. 添加更多 Vim 命令（`e`, `W`, `B`, `f`, `t` 等）
+2. 创建更多课程（参考 `tmp/course-creation-guide.md`）
+3. 添加新分类（如 `motions`, `text-objects`, `advanced`）
+
+**功能增强**:
+1. 进度统计和展示（`useProgress` hook 已实现，但 UI 未完成）
+2. 成就系统
+3. 多语言支持（i18n 基础已搭建）
+
+**优化**:
+1. 添加单元测试（尤其是 Vim 引擎）
+2. 性能优化
+3. 移动端适配
+
+### 重要文件位置
+
+- **课程协作文档**: `tmp/README-COURSE-COLLAB.md`（协作总览）
+- **课程编写指南**: `tmp/course-creation-guide.md`（给课程 AI）
+- **技术支持说明**: `tmp/tech-support-capabilities.md`（给技术 AI）
+- **课程模板**: `tmp/lesson-template.ts`（快速创建新课程）
+- **版本管理**: `src/version.ts` + `tmp/version-management.md`
+- **原型参考**: `tmp/vimprove.html`（已完成重构，仅供参考）

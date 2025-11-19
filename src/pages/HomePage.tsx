@@ -1,4 +1,5 @@
 import { Terminal, Play, Keyboard, Trophy, Code2 } from 'lucide-react';
+import { VERSION, VERSION_LABEL } from '@/version';
 
 type HomePageProps = {
   onStart: () => void;
@@ -47,6 +48,10 @@ export const HomePage = ({ onStart }: HomePageProps) => (
           <p className="text-sm text-stone-500">{feat.desc}</p>
         </div>
       ))}
+    </div>
+
+    <div className="mt-16 text-xs text-stone-700 font-mono">
+      v{VERSION} {VERSION_LABEL}
     </div>
   </div>
 );

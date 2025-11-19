@@ -1,6 +1,7 @@
-import { Terminal, ChevronRight, Home as HomeIcon } from 'lucide-react';
+import { Terminal, ChevronRight, Home as HomeIcon, Code2 } from 'lucide-react';
 import { CATEGORIES } from '@/data';
 import type { Lesson } from '@/core/types';
+import { VERSION, VERSION_LABEL } from '@/version';
 
 type SidebarProps = {
   lessons: Lesson[];
@@ -23,6 +24,7 @@ export const Sidebar = ({
     <div
       className={`
         fixed inset-y-0 left-0 z-50 w-72 bg-stone-900 border-r border-stone-800 transform transition-transform duration-300 ease-in-out
+        flex flex-col
         ${!isVisible ? '-translate-x-full' : isOpen ? 'translate-x-0' : '-translate-x-full'}
         md:relative md:translate-x-0
         ${!isVisible ? 'md:hidden' : ''}
@@ -32,7 +34,8 @@ export const Sidebar = ({
         <Terminal className="text-green-400" size={24} />
         <span className="font-bold text-lg tracking-tight">Vimprove</span>
       </div>
-      <div className="p-4 overflow-y-auto h-[calc(100vh-80px)]">
+
+      <div className="flex-1 p-4 overflow-y-auto">
         {CATEGORIES.map(cat => (
           <div key={cat.id} className="mb-8">
             <h3 className="text-xs font-bold text-stone-500 uppercase tracking-widest mb-3 pl-2">
@@ -69,6 +72,16 @@ export const Sidebar = ({
         >
           <HomeIcon size={16} /> Back to Home
         </button>
+      </div>
+
+      <div className="border-t border-stone-800 px-4 py-3 bg-stone-950/50">
+        <div className="flex items-center justify-between text-xs text-stone-600">
+          <div className="flex items-center gap-2">
+            <Code2 size={12} className="text-stone-700" />
+            <span className="font-mono">v{VERSION}</span>
+          </div>
+          <span className="text-stone-700">{VERSION_LABEL}</span>
+        </div>
       </div>
     </div>
   );
