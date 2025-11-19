@@ -3,6 +3,7 @@ import { CheckCircle2, RotateCcw, Clock, Keyboard, Trophy } from 'lucide-react';
 import type { ChallengeConfig } from '@/core/types';
 import { useVimEngine } from '@/hooks/useVimEngine';
 import { useChallenge } from '@/hooks/useChallenge';
+import { tokenizeLine, getTokenClassName } from '@/core/syntaxHighlight';
 
 type VimChallengeProps = {
   config: ChallengeConfig;
@@ -50,42 +51,54 @@ export const VimChallenge = ({ config, onComplete }: VimChallengeProps) => {
   };
 
   const renderBuffer = () => {
-    return state.buffer.map((line, r) => (
-      <div key={r} className="relative min-h-[1.5rem] whitespace-pre font-mono text-lg">
-        <span className="absolute -left-8 text-stone-600 text-xs top-1 select-none">
-          {r + 1}
-        </span>
-        {line.split('').map((char, c) => {
-          const isCursor = state.cursor.line === r && state.cursor.col === c;
-          const isBlock = state.mode === 'normal';
-          return (
+    return state.buffer.map((line, r) => {
+      const tokens = tokenizeLine(line);
+      let charIndex = 0;
+
+      return (
+        <div key={r} className="relative min-h-[1.5rem] whitespace-pre font-mono text-lg">
+          <span className="absolute -left-8 text-stone-600 text-xs top-1 select-none">
+            {r + 1}
+          </span>
+          {tokens.map((token, tokenIdx) => {
+            const tokenChars = token.content.split('');
+            const tokenColor = getTokenClassName(token.type);
+
+            return tokenChars.map((char, localIdx) => {
+              const c = charIndex++;
+              const isCursor = state.cursor.line === r && state.cursor.col === c;
+              const isBlock = state.mode === 'normal';
+
+              return (
+                <span
+                  key={`${tokenIdx}-${localIdx}`}
+                  className={`${tokenColor} ${
+                    isCursor
+                      ? isBlock
+                        ? 'bg-stone-200 text-stone-900'
+                        : 'border-l-2 border-stone-200'
+                      : ''
+                  }`}
+                >
+                  {char}
+                </span>
+              );
+            });
+          })}
+          {state.cursor.line === r && state.cursor.col === line.length && (
             <span
-              key={c}
               className={`${
-                isCursor
-                  ? isBlock
-                    ? 'bg-stone-200 text-stone-900'
-                    : 'border-l-2 border-stone-200'
-                  : ''
+                state.mode === 'normal'
+                  ? 'bg-stone-200 text-stone-900 opacity-50 inline-block w-2.5 h-5 align-middle'
+                  : 'border-l-2 border-stone-200 inline-block h-5 align-middle'
               }`}
             >
-              {char}
+              &nbsp;
             </span>
-          );
-        })}
-        {state.cursor.line === r && state.cursor.col === line.length && (
-          <span
-            className={`${
-              state.mode === 'normal'
-                ? 'bg-stone-200 text-stone-900 opacity-50 inline-block w-2.5 h-5 align-middle'
-                : 'border-l-2 border-stone-200 inline-block h-5 align-middle'
-            }`}
-          >
-            &nbsp;
-          </span>
-        )}
-      </div>
-    ));
+          )}
+        </div>
+      );
+    });
   };
 
   return (
