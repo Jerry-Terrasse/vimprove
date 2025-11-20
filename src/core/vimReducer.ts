@@ -7,12 +7,13 @@ export const INITIAL_VIM_STATE: VimState = {
   cursor: { line: 0, col: 0 },
   mode: 'normal',
   pendingOperator: null,
+  pendingReplace: false,
   lastCommand: null,
 };
 
 export const vimReducer = (state: VimState, action: VimAction): VimState => {
   const { type, payload } = action;
-  const { buffer, cursor, mode, pendingOperator } = state;
+  const { buffer, cursor, mode, pendingOperator, pendingReplace } = state;
 
   if (!buffer.length) return { ...state, buffer: [''] };
 
@@ -75,7 +76,26 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
       // NORMAL MODE
       if (mode === 'normal') {
         if (key === 'Escape') {
-          return { ...state, pendingOperator: null };
+          return { ...state, pendingOperator: null, pendingReplace: false };
+        }
+
+        // Handle pending replace
+        if (pendingReplace) {
+          if (key.length === 1 && !ctrlKey) {
+            const lineText = buffer[cursor.line];
+            if (cursor.col < lineText.length) {
+              const newLine = lineText.slice(0, cursor.col) + key + lineText.slice(cursor.col + 1);
+              const newBuffer = [...buffer];
+              newBuffer[cursor.line] = newLine;
+              return {
+                ...state,
+                buffer: newBuffer,
+                pendingReplace: false,
+                lastCommand: { type: 'delete-char' }
+              };
+            }
+          }
+          return { ...state, pendingReplace: false };
         }
 
         // Handle Pending Operator
@@ -98,7 +118,7 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
           }
 
           // Operator + Motion
-          if (['h', 'j', 'k', 'l', 'w', 'b', '0', '$'].includes(key)) {
+          if (['h', 'j', 'k', 'l', 'w', 'b', 'e', '0', '$', '^', 'W', 'B', 'E'].includes(key)) {
             if (pendingOperator === 'd' || pendingOperator === 'c') {
               return applyOperatorWithMotion(state, pendingOperator, key as Motion);
             }
@@ -108,7 +128,7 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
         }
 
         // Navigation
-        if (['h', 'j', 'k', 'l', 'w', 'b', '0', '$'].includes(key)) {
+        if (['h', 'j', 'k', 'l', 'w', 'b', 'e', '0', '$', '^', 'W', 'B', 'E'].includes(key)) {
           const newPos = getMotionTarget(state, key as Motion);
           return { ...state, cursor: newPos, lastCommand: { type: 'move', motion: key as Motion } };
         }
@@ -135,6 +155,28 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
             };
           }
           return state;
+        }
+
+        // Substitute char (delete and enter insert)
+        if (key === 's') {
+          const lineText = buffer[cursor.line];
+          if (lineText.length > 0) {
+            const newLine = lineText.slice(0, cursor.col) + lineText.slice(cursor.col + 1);
+            const newBuffer = [...buffer];
+            newBuffer[cursor.line] = newLine;
+            return {
+              ...state,
+              mode: 'insert',
+              buffer: newBuffer,
+              lastCommand: { type: 'delete-char' }
+            };
+          }
+          return { ...state, mode: 'insert', lastCommand: { type: 'enter-insert' } };
+        }
+
+        // Replace char
+        if (key === 'r') {
+          return { ...state, pendingReplace: true };
         }
 
         // Mode Switching

@@ -7,7 +7,7 @@ export type Mode = 'normal' | 'insert';
 
 export type Operator = 'd' | 'c' | 'y';
 
-export type Motion = 'h' | 'j' | 'k' | 'l' | 'w' | 'b' | '0' | '$';
+export type Motion = 'h' | 'j' | 'k' | 'l' | 'w' | 'b' | 'e' | '0' | '$' | '^' | 'W' | 'B' | 'E';
 
 export type Command = {
   type: 'move' | 'delete-char' | 'delete-line' | 'delete-range' | 'enter-insert' | 'open-line' | 'open-line-above' | 'mode-switch';
@@ -21,6 +21,7 @@ export type VimState = {
   cursor: Cursor;
   mode: Mode;
   pendingOperator: Operator | null;
+  pendingReplace: boolean;
   lastCommand: Command | null;
 };
 
