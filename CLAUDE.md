@@ -296,14 +296,15 @@ ls src/data/lessons/chapter3/
 
 - ✅ 模块化架构（Core/Data/Hooks/Components）
 - ✅ 14 个课程（Chapter 1-3 完成，包括 basics 和 edits）
-- ✅ 完整的 Vim 引擎（支持 w/b/e/W/B/E/s/r/f/t/F/T/;/,/y/p/P/u/Ctrl-r 等命令）
+- ✅ 完整的 Vim 引擎（支持 w/b/e/W/B/E/s/r/f/t/F/T/;/,/y/p/P/u/Ctrl-r/. 等命令）
 - ✅ Undo/Redo 系统
 - ✅ Yank/Paste 功能
 - ✅ 数字前缀（Count Multiplier）
 - ✅ 查找字符（f/F/t/T/;/,）
+- ✅ `.` 命令（重复上次修改操作）
+- ✅ 完整的单元测试系统（Vitest，176 个测试用例）
 - ✅ Challenge 系统（目标验证、计时）
 - ✅ Run Example 可播放示例（`src/components/example/RunExamplePlayer.tsx`）
-- ✅ 版本管理（v0.3.0 Alpha）
 - ✅ 网站图标和 PWA 支持
 - ✅ 课程编写协作文档（`tmp/` 目录）
 
@@ -320,20 +321,31 @@ ls src/data/lessons/chapter3/
 3. 多语言支持（i18n 基础已搭建）
 
 **优化**:
-1. 添加单元测试（尤其是 Vim 引擎）
-2. 性能优化
-3. 移动端适配
+1. 性能优化
+2. 移动端适配
+3. 提高测试覆盖率（当前 86%+）
 
 ### 重要文件位置
 
+**课程相关**:
 - **课程协作文档**: `tmp/README-COURSE-COLLAB.md`（协作总览）
 - **课程编写指南**: `tmp/course-creation-guide.md`（给课程 AI）
 - **技术支持说明**: `tmp/tech-support-capabilities.md`（给技术 AI）
 - **课程模板**: `tmp/lesson-template.ts`（快速创建新课程）
 - **Run Example 模板**: `tmp/run-example-template.md`（可播放示例编写指南）
+
+**技术文档**:
 - **Motion 修复记录**: `tmp/motion-fixes-summary.md`（w/b/e/W/B/E 的实现细节）
+- **Dot 命令测试**: `tmp/dot-command-test.md`（`.` 命令测试指南）
+- **测试总结**: `tmp/test-summary.md`（单元测试覆盖和统计）
 - **版本管理**: `src/version.ts` + `tmp/version-management.md`
 - **原型参考**: `tmp/vimprove.html`（已完成重构，仅供参考）
+
+**测试文件**:
+- `src/core/motions.test.ts` - 移动命令测试
+- `src/core/operators.test.ts` - 操作符测试
+- `src/core/vimReducer.test.ts` - 核心 reducer 测试
+- `src/core/dot-command.test.ts` - Dot 命令测试
 
 ## CLAUDE.md 更新规则
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { applyOperatorWithMotion } from './operators';
-import type { VimState, Operator, Motion } from './types';
+import type { VimState } from './types';
 import { INITIAL_VIM_STATE } from './vimReducer';
 
 // Helper function to create test VimState

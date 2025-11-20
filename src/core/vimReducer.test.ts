@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { vimReducer, INITIAL_VIM_STATE } from './vimReducer';
-import type { VimState, VimAction } from './types';
+import type { VimState } from './types';
 
 // Helper to dispatch a key
 const pressKey = (state: VimState, key: string, ctrlKey = false): VimState => {
