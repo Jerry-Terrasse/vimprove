@@ -1,12 +1,91 @@
-import type { VimState, VimAction, Motion, KeyPress } from './types';
+import type { VimState, VimAction, Motion, KeyPress, Operator, OperatorMotion, TextObject } from './types';
 import { getMotionTarget, findCharOnLine } from './motions';
 import { applyOperatorWithMotion } from './operators';
-import { isWhitespace } from './utils';
+import { isWhitespace, isWordChar } from './utils';
 
 // Helper: get count value (default 1)
 const getCount = (state: VimState): number => {
   const count = parseInt(state.count) || 1;
   return Math.max(1, Math.min(count, 999)); // Limit to 1-999
+};
+
+const buildTextObjectMotion = (prefix: 'i' | 'a', key: string): TextObject | null => {
+  const mapping: Record<string, string> = {
+    'w': 'w',
+    'p': 'p',
+    '(': '(',
+    ')': '(',
+    '{': '{',
+    '}': '{',
+    '[': '[',
+    ']': '[',
+    '"': '"',
+    "'": "'",
+    '`': '`'
+  };
+  const mapped = mapping[key];
+  if (!mapped) return null;
+  return `${prefix}${mapped}` as TextObject;
+};
+
+const findPatternFromCursor = (
+  buffer: string[],
+  pattern: string,
+  cursor: { line: number; col: number },
+  direction: 'forward' | 'backward'
+): { line: number; col: number } | null => {
+  if (!pattern) return null;
+
+  if (direction === 'forward') {
+    for (let line = cursor.line; line < buffer.length; line++) {
+      const lineText = buffer[line];
+      const startCol = line === cursor.line ? cursor.col + 1 : 0;
+      const idx = lineText.indexOf(pattern, startCol);
+      if (idx !== -1) return { line, col: idx };
+    }
+  } else {
+    for (let line = cursor.line; line >= 0; line--) {
+      const lineText = buffer[line];
+      const startCol = line === cursor.line ? Math.max(0, cursor.col - 1) : lineText.length - 1;
+      if (startCol < 0) continue;
+      const segment = lineText.slice(0, startCol + 1);
+      const idx = segment.lastIndexOf(pattern);
+      if (idx !== -1) return { line, col: idx };
+    }
+  }
+
+  return null;
+};
+
+const getWordUnderCursor = (buffer: string[], cursor: { line: number; col: number }): { word: string; startCol: number } | null => {
+  const lineText = buffer[cursor.line] ?? '';
+  if (!lineText.length) return null;
+  let idx = Math.min(cursor.col, Math.max(0, lineText.length - 1));
+
+  if (isWhitespace(lineText[idx])) return null;
+
+  const targetIsWord = isWordChar(lineText[idx]);
+  let start = idx;
+  while (start > 0) {
+    const char = lineText[start - 1];
+    if (isWhitespace(char)) break;
+    const charIsWord = isWordChar(char);
+    if (charIsWord !== targetIsWord) break;
+    start--;
+  }
+
+  let end = idx;
+  while (end < lineText.length) {
+    const char = lineText[end];
+    if (isWhitespace(char)) break;
+    const charIsWord = isWordChar(char);
+    if (charIsWord !== targetIsWord) break;
+    end++;
+  }
+
+  const word = lineText.slice(start, end);
+  if (!word.length) return null;
+  return { word, startCol: start };
 };
 
 // Helper: find the start of the current word (or last non-whitespace run) from a column
@@ -62,6 +141,23 @@ const finishRecording = (state: VimState): VimState => {
   };
 };
 
+const applyOperatorMotion = (state: VimState, operator: Operator, motion: OperatorMotion): VimState => {
+  const count = getCount(state);
+  let resultState = state;
+  for (let i = 0; i < count; i++) {
+    resultState = applyOperatorWithMotion(resultState, operator, motion);
+    if (operator === 'y') break;
+  }
+
+  if (operator === 'd') {
+    resultState = finishRecording(resultState);
+  } else if (operator === 'y') {
+    resultState = { ...resultState, changeRecording: null, recordingCount: null };
+  }
+
+  return { ...resultState, count: '', pendingTextObject: null };
+};
+
 // Helper: replay keys for . command
 const replayKeys = (state: VimState, keys: KeyPress[], countForChange: number): VimState => {
   let currentState = { ...state, count: countForChange > 1 ? String(countForChange) : '' };
@@ -97,6 +193,9 @@ const createSnapshot = (state: VimState): VimState => {
     pendingOperator: state.pendingOperator,
     pendingReplace: state.pendingReplace,
     pendingFind: state.pendingFind,
+    pendingTextObject: state.pendingTextObject,
+    pendingSearch: state.pendingSearch,
+    lastSearch: state.lastSearch,
     lastCommand: state.lastCommand,
     history: [],
     historyIndex: -1,
@@ -140,6 +239,9 @@ export const INITIAL_VIM_STATE: VimState = {
   pendingOperator: null,
   pendingReplace: false,
   pendingFind: null,
+  pendingTextObject: null,
+  pendingSearch: null,
+  lastSearch: null,
   lastCommand: null,
   history: [],
   historyIndex: -1,
@@ -246,12 +348,49 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
             pendingOperator: null,
             pendingReplace: false,
             pendingFind: null,
+            pendingTextObject: null,
+            pendingSearch: null,
             count: '',
             changeRecording: null,
             recordingCount: null,
             recordingExitCursor: null,
             recordingInsertCursor: null
           };
+        }
+
+        if (state.pendingSearch) {
+          if (key === 'Escape') {
+            return { ...state, pendingSearch: null, count: '' };
+          }
+
+          if (key === 'Backspace') {
+            const pattern = state.pendingSearch.pattern.slice(0, -1);
+            return { ...state, pendingSearch: { ...state.pendingSearch, pattern } };
+          }
+
+          if (key === 'Enter') {
+            const pattern = state.pendingSearch.pattern;
+            const direction = state.pendingSearch.direction;
+            const match = findPatternFromCursor(buffer, pattern, cursor, direction);
+            const lastSearch = { pattern, direction };
+            if (match) {
+              return {
+                ...state,
+                cursor: match,
+                pendingSearch: null,
+                lastSearch,
+                count: '',
+                lastCommand: { type: 'move' }
+              };
+            }
+            return { ...state, pendingSearch: null, lastSearch, count: '' };
+          }
+
+          if (key && key.length === 1 && !ctrlKey) {
+            return { ...state, pendingSearch: { ...state.pendingSearch, pattern: state.pendingSearch.pattern + key } };
+          }
+
+          return state;
         }
 
         // Dot command - repeat last change
@@ -322,6 +461,39 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
         // Capture count prefix (1-9)
         if (!pendingOperator && !pendingReplace && !state.pendingFind && /^[1-9]$/.test(key)) {
           return { ...state, count: state.count + key };
+        }
+
+        if (key === '/' || key === '?') {
+          return {
+            ...state,
+            pendingSearch: { direction: key === '/' ? 'forward' : 'backward', pattern: '' },
+            count: ''
+          };
+        }
+
+        if ((key === '*' || key === '#') && !pendingOperator && !pendingReplace) {
+          const wordInfo = getWordUnderCursor(buffer, cursor);
+          if (!wordInfo) return state;
+          const direction = key === '*' ? 'forward' : 'backward';
+          const match = findPatternFromCursor(buffer, wordInfo.word, cursor, direction);
+          const lastSearch = { pattern: wordInfo.word, direction };
+          if (match) {
+            return { ...state, cursor: match, lastSearch, count: '', lastCommand: { type: 'move' } };
+          }
+          return { ...state, lastSearch, count: '' };
+        }
+
+        if ((key === 'n' || key === 'N') && state.lastSearch) {
+          const direction = key === 'n'
+            ? state.lastSearch.direction
+            : state.lastSearch.direction === 'forward'
+              ? 'backward'
+              : 'forward';
+          const match = findPatternFromCursor(buffer, state.lastSearch.pattern, cursor, direction);
+          if (match) {
+            return { ...state, cursor: match, count: '', lastCommand: { type: 'move' } };
+          }
+          return { ...state, count: '' };
         }
 
         // Undo
@@ -395,6 +567,8 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
 
         // Handle Pending Operator
         if (pendingOperator) {
+          const operator = pendingOperator;
+
           // dd/yy - Delete/Yank line(s)
           if ((pendingOperator === 'd' || pendingOperator === 'y') && key === pendingOperator) {
             const count = getCount(state);
@@ -409,6 +583,7 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
                 ...state,
                 register: yankedText,
                 pendingOperator: null,
+                pendingTextObject: null,
                 count: '',
                 lastCommand: { type: 'yank' },
                 changeRecording: null,
@@ -432,6 +607,7 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
                 buffer: newBuffer,
                 cursor: { line: newLineIdx, col: 0 },
                 pendingOperator: null,
+                pendingTextObject: null,
                 register: yankedText,
                 count: '',
                 lastCommand: { type: 'delete-line' }
@@ -439,36 +615,47 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
             }
           }
 
-          // Operator + Motion
-          if (['h', 'j', 'k', 'l', 'w', 'b', 'e', '0', '$', '^', '_', 'W', 'B', 'E'].includes(key)) {
-            if (pendingOperator === 'd' || pendingOperator === 'c' || pendingOperator === 'y') {
-              const count = getCount(state);
-
-              // Record the motion key
-              let resultState = recordKey(state, key, ctrlKey || false);
-
-              // Apply operator+motion count times
-              for (let i = 0; i < count; i++) {
-                resultState = applyOperatorWithMotion(resultState, pendingOperator, key as Motion);
-                // For yank, don't repeat (first yank is enough)
-                if (pendingOperator === 'y') break;
-              }
-
-              // For delete operations, finish recording immediately
-              // For change operations, keep recording until exit insert mode
-              if (pendingOperator === 'd') {
-                resultState = finishRecording(resultState);
-              } else if (pendingOperator === 'y') {
-                // Yank is not a change, cancel recording
-                resultState = { ...resultState, changeRecording: null, recordingCount: null };
-              }
-              // For 'c', keep recording (it switches to insert mode)
-
-              return { ...resultState, count: '' };
+          if (state.pendingTextObject) {
+            const textObjectMotion = buildTextObjectMotion(state.pendingTextObject, key);
+            if (textObjectMotion) {
+              const recorded = recordKey(state, key, ctrlKey || false);
+              const resultState = applyOperatorMotion(recorded, operator, textObjectMotion);
+              return { ...resultState, pendingOperator: null };
             }
+            return {
+              ...state,
+              pendingOperator: null,
+              pendingTextObject: null,
+              count: '',
+              changeRecording: null,
+              recordingCount: null,
+              recordingExitCursor: null,
+              recordingInsertCursor: null
+            };
           }
 
-          return { ...state, pendingOperator: null, count: '', changeRecording: null, recordingCount: null, recordingExitCursor: null, recordingInsertCursor: null };
+          if (key === 'i' || key === 'a') {
+            const recorded = recordKey(state, key, ctrlKey || false);
+            return { ...recorded, pendingTextObject: key as 'i' | 'a' };
+          }
+
+          // Operator + Motion
+          if (['h', 'j', 'k', 'l', 'w', 'b', 'e', '0', '$', '^', '_', 'W', 'B', 'E'].includes(key)) {
+            const recorded = recordKey(state, key, ctrlKey || false);
+            const resultState = applyOperatorMotion(recorded, operator, key as Motion);
+            return { ...resultState, pendingOperator: null };
+          }
+
+          return {
+            ...state,
+            pendingOperator: null,
+            pendingTextObject: null,
+            count: '',
+            changeRecording: null,
+            recordingCount: null,
+            recordingExitCursor: null,
+            recordingInsertCursor: null
+          };
         }
 
         // Navigation
@@ -534,13 +721,13 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
         // Operators (only d and c are changes, y is not)
         if (key === 'd') {
           const stateWithRecording = startRecording(state, key, ctrlKey || false);
-          return { ...stateWithRecording, pendingOperator: 'd' };
+          return { ...stateWithRecording, pendingOperator: 'd', pendingTextObject: null };
         }
         if (key === 'c') {
           const stateWithRecording = startRecording(state, key, ctrlKey || false);
-          return { ...stateWithRecording, pendingOperator: 'c' };
+          return { ...stateWithRecording, pendingOperator: 'c', pendingTextObject: null };
         }
-        if (key === 'y') return { ...state, pendingOperator: 'y' };
+        if (key === 'y') return { ...state, pendingOperator: 'y', pendingTextObject: null };
 
         // Paste
         if (key === 'p') {

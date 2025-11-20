@@ -3,7 +3,7 @@ import type { Lesson } from '@/core/types';
 export const yankPaste: Lesson = {
   slug: 'yank-paste',
   title: '复制粘贴',
-  categoryId: 'edits',
+  categoryId: 'chapter3',
   shortDescription: '学习 Vim 的 yank 和 paste 命令',
   contentBlocks: [
     {

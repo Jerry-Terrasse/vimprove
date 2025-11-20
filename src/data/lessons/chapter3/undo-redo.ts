@@ -3,7 +3,7 @@ import type { Lesson } from '@/core/types';
 export const undoRedo: Lesson = {
   slug: 'undo-redo',
   title: '撤销与重做',
-  categoryId: 'edits',
+  categoryId: 'chapter3',
   shortDescription: '学习 Vim 的撤销和重做命令',
   contentBlocks: [
     {

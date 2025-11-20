@@ -3,7 +3,7 @@ import type { Lesson } from '@/core/types';
 export const comboOperators: Lesson = {
   slug: 'combo-operators',
   title: '组合操作符',
-  categoryId: 'edits',
+  categoryId: 'chapter3',
   shortDescription: '学习 Vim 的"操作符+移动"模式',
   contentBlocks: [
     {

@@ -8,7 +8,9 @@ Vimprove 是一个交互式 Vim 学习网站。核心功能是通过浏览器中
 
 **当前状态**: ✅ 重构完成。项目已从单文件原型（`tmp/vimprove.html`）重构为模块化的 React + TypeScript 架构。
 
-**版本管理**: 版本号在 `src/version.ts` 和 `package.json` 中维护，CHANGELOG 见 `README.md`
+**课程范围**: 已完成 Chapter 1-6（基础、进阶编辑、行内 find/till、文本对象、搜索/重构），共 27 节课。
+
+**版本管理**: 版本号在 `src/version.ts` 和 `package.json` 中维护，CHANGELOG 见 `README.md`（当前 0.6.0）
 
 ## Development Commands
 
@@ -17,6 +19,9 @@ npm run dev      # Start dev server at http://localhost:3000
 npm run build    # Build for production
 npm run preview  # Preview production build
 npm run lint     # Run ESLint
+npm run test     # Run tests
+# For Codex, you are in a sandbox thus you should use:
+npx vitest run --pool=threads
 ```
 
 ## Architecture
@@ -43,7 +48,10 @@ src/
 │   └── lessons/      # 每个课程一个文件（按章节组织）
 │       ├── chapter1/ # 模式与基础移动（4课）
 │       ├── chapter2/ # 单词移动与小编辑（5课）
-│       └── chapter3/ # 高级编辑（5课）
+│       ├── chapter3/ # 高级编辑（5课）
+│       ├── chapter4/ # 行内 find/till 精准编辑（4课）
+│       ├── chapter5/ # 文本对象（5课）
+│       └── chapter6/ # 搜索与重构（4课）
 │
 ├── hooks/             # 自定义 hooks（业务逻辑封装）
 │   ├── useVimEngine.ts    # 封装 vimReducer
@@ -161,6 +169,17 @@ import { useVimEngine } from '@/hooks/useVimEngine';
 - `t{char}`, `T{char}` - 向前/向后查找到字符前
 - `;`, `,` - 重复/反向重复上次查找
 
+**搜索**:
+- `/pattern`, `?pattern` - 正向/反向搜索
+- `n`, `N` - 按搜索方向跳转到下一个/上一个匹配
+- `*`, `#` - 以当前单词为模式搜索正向/反向
+
+**文本对象**:
+- 词与段落：`iw/aw`, `ip/ap`
+- 括号：`i(`/`a(`，`i{`/`a{`，`i[`/`a[`
+- 引号：`i"`/`a"`, `i'`/`a'`, `i\``/`a\``
+- 可与 `d/c/y` 组合使用
+
 **其他命令**:
 - `u` - 撤销（undo）
 - `Ctrl-r` - 重做（redo）
@@ -169,9 +188,7 @@ import { useVimEngine } from '@/hooks/useVimEngine';
 
 ### ❌ 尚未支持
 
-- Text Objects（`iw`, `aw`, `i"`, `a{`）
 - Visual Mode
-- 搜索和替换（`/`, `:s`）
 - 寄存器选择（`"a`, `"b` 等）
 
 **扩展引擎**: 如需添加新命令，修改 `src/core/motions.ts` 或 `src/core/operators.ts`
@@ -295,14 +312,14 @@ ls src/data/lessons/chapter3/
 ### 当前已完成
 
 - ✅ 模块化架构（Core/Data/Hooks/Components）
-- ✅ 14 个课程（Chapter 1-3 完成，包括 basics 和 edits）
-- ✅ 完整的 Vim 引擎（支持 w/b/e/W/B/E/s/r/f/t/F/T/;/,/y/p/P/u/Ctrl-r/. 等命令）
+- ✅ 27 个课程（Chapter 1-6：基础、进阶、文本对象、搜索重构）
+- ✅ 完整的 Vim 引擎（支持文本对象、搜索 `/ ? n N * #`、find/till、`.` 等命令）
 - ✅ Undo/Redo 系统
 - ✅ Yank/Paste 功能
 - ✅ 数字前缀（Count Multiplier）
-- ✅ 查找字符（f/F/t/T/;/,）
+- ✅ 查找/搜索（f/F/t/T/;/,/ / ? * # n N）
 - ✅ `.` 命令（重复上次修改操作）
-- ✅ 完整的单元测试系统（Vitest，176 个测试用例）
+- ✅ 完整的单元测试系统（Vitest，覆盖核心功能与新增命令）
 - ✅ Challenge 系统（目标验证、计时）
 - ✅ Run Example 可播放示例（`src/components/example/RunExamplePlayer.tsx`）
 - ✅ 网站图标和 PWA 支持
@@ -311,9 +328,9 @@ ls src/data/lessons/chapter3/
 ### 下一步任务（参考）
 
 **课程扩展**:
-1. 添加更多 Vim 命令（`e`, `W`, `B`, `f`, `t` 等）
-2. 创建更多课程（参考 `tmp/course-creation-guide.md`）
-3. 添加新分类（如 `motions`, `text-objects`, `advanced`）
+1. Visual 模式相关课程与命令支持
+2. 更多高级命令或篇章（如寄存器、多文件场景）
+3. 多语言或 i18n 课程
 
 **功能增强**:
 1. 进度统计和展示（`useProgress` hook 已实现，但 UI 未完成）

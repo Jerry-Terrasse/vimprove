@@ -21,6 +21,25 @@ import { undoRedo } from './lessons/chapter3/undo-redo';
 import { countMultiplier } from './lessons/chapter3/count-multiplier';
 import { repeatDot } from './lessons/chapter3/repeat-dot';
 
+// Chapter 4: In-line Find/Till & Precise Edits
+import { findChar } from './lessons/chapter4/find-char';
+import { deleteWithFind } from './lessons/chapter4/delete-with-find';
+import { changeWithFind } from './lessons/chapter4/change-with-find';
+import { inLinePrecisionReview } from './lessons/chapter4/in-line-precision-review';
+
+// Chapter 5: Text Objects
+import { textobjectsWords } from './lessons/chapter5/textobjects-words';
+import { textobjectsParagraphs } from './lessons/chapter5/textobjects-paragraphs';
+import { textobjectsBrackets } from './lessons/chapter5/textobjects-brackets';
+import { textobjectsQuotes } from './lessons/chapter5/textobjects-quotes';
+import { textobjectsMegaReview } from './lessons/chapter5/textobjects-mega-review';
+
+// Chapter 6: Search & Refactor
+import { searchBasic } from './lessons/chapter6/search-basic';
+import { searchWithOperators } from './lessons/chapter6/search-with-operators';
+import { realworldCleanup1 } from './lessons/chapter6/realworld-cleanup-1';
+import { speedrunChallenge } from './lessons/chapter6/speedrun-challenge';
+
 export { CATEGORIES };
 
 export const LESSONS: Lesson[] = [
@@ -40,5 +59,24 @@ export const LESSONS: Lesson[] = [
   yankPaste,
   undoRedo,
   countMultiplier,
-  repeatDot
+  repeatDot,
+
+  // Chapter 4: In-line Find/Till & Precise Edits
+  findChar,
+  deleteWithFind,
+  changeWithFind,
+  inLinePrecisionReview,
+
+  // Chapter 5: Text Objects
+  textobjectsWords,
+  textobjectsParagraphs,
+  textobjectsBrackets,
+  textobjectsQuotes,
+  textobjectsMegaReview,
+
+  // Chapter 6: Search & Refactor
+  searchBasic,
+  searchWithOperators,
+  realworldCleanup1,
+  speedrunChallenge
 ];

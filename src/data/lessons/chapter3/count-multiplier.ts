@@ -3,7 +3,7 @@ import type { Lesson } from '@/core/types';
 export const countMultiplier: Lesson = {
   slug: 'count-multiplier',
   title: '数字前缀',
-  categoryId: 'edits',
+  categoryId: 'chapter3',
   shortDescription: '学习使用数字前缀来重复命令',
   contentBlocks: [
     {

@@ -3,7 +3,7 @@ import type { Lesson } from '@/core/types';
 export const repeatDot: Lesson = {
   slug: 'repeat-dot',
   title: '重复命令',
-  categoryId: 'edits',
+  categoryId: 'chapter3',
   shortDescription: '学习使用点命令重复上一次修改',
   contentBlocks: [
     {

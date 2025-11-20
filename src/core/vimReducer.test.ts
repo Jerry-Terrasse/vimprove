@@ -328,6 +328,85 @@ describe('vimReducer', () => {
     });
   });
 
+  describe('Text objects', () => {
+    it('should change inner word with ciw', () => {
+      const initial: VimState = { ...INITIAL_VIM_STATE, buffer: ['int totalCount = 42;'], cursor: { line: 0, col: 4 } };
+      const state = typeKeys(initial, 'ciwvalue<Esc>');
+
+      expect(state.buffer[0]).toBe('int value = 42;');
+    });
+
+    it('should delete an inner paragraph with dip', () => {
+      const initial: VimState = {
+        ...INITIAL_VIM_STATE,
+        buffer: ['// comment line 1', '// comment line 2', '', 'int main() {}'],
+        cursor: { line: 0, col: 0 }
+      };
+
+      const state = typeKeys(initial, 'dip');
+      const joined = state.buffer.join('\\n');
+
+      expect(joined).not.toContain('comment line');
+      expect(joined).toContain('int main() {}');
+    });
+
+    it('should change inside braces with ci{', () => {
+      const initial: VimState = {
+        ...INITIAL_VIM_STATE,
+        buffer: ['int main() {', '    int x = 1;', '    int y = 2;', '}'],
+        cursor: { line: 1, col: 4 }
+      };
+
+      const state = typeKeys(initial, 'ci{return 42;<Esc>');
+      const joined = state.buffer.join('\\n');
+
+      expect(joined).toContain('{return 42;}');
+      expect(joined).not.toContain('int x = 1;');
+      expect(joined).not.toContain('int y = 2;');
+    });
+
+    it('should change inside quotes with ci"', () => {
+      const initial: VimState = {
+        ...INITIAL_VIM_STATE,
+        buffer: ['std::string message = "Hello";'],
+        cursor: { line: 0, col: 22 }
+      };
+
+      const state = typeKeys(initial, 'ci"Hi<Esc>');
+      expect(state.buffer[0]).toBe('std::string message = "Hi";');
+    });
+  });
+
+  describe('Search', () => {
+    it('should search forward with / and move cursor to match', () => {
+      const initial: VimState = {
+        ...INITIAL_VIM_STATE,
+        buffer: ['foo bar foo', 'foo'],
+        cursor: { line: 0, col: 0 }
+      };
+
+      const state = typeKeys(initial, '/foo<CR>');
+      expect(state.cursor).toEqual({ line: 0, col: 8 });
+    });
+
+    it('should repeat search with * and n/N', () => {
+      const initial: VimState = {
+        ...INITIAL_VIM_STATE,
+        buffer: ['value value', 'value'],
+        cursor: { line: 0, col: 0 }
+      };
+
+      let state = typeKeys(initial, '*');
+      expect(state.cursor).toEqual({ line: 0, col: 6 });
+
+      state = pressKey(state, 'n');
+      expect(state.cursor).toEqual({ line: 1, col: 0 });
+
+      state = pressKey(state, 'N');
+      expect(state.cursor).toEqual({ line: 0, col: 6 });
+    });
+  });
+
   describe('Undo/Redo', () => {
     it('should undo with u', () => {
       let state = { ...INITIAL_VIM_STATE, buffer: ['hello'], cursor: { line: 0, col: 5 } };

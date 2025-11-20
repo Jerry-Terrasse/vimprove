@@ -9,9 +9,22 @@ export type Operator = 'd' | 'c' | 'y';
 
 export type Motion = 'h' | 'j' | 'k' | 'l' | 'w' | 'b' | 'e' | '0' | '$' | '^' | '_' | 'W' | 'B' | 'E';
 
+export type TextObject =
+  | 'iw' | 'aw'
+  | 'ip' | 'ap'
+  | 'i(' | 'a(' | 'i)' | 'a)' | 'i{' | 'a{' | 'i}' | 'a}' | 'i[' | 'a[' | 'i]' | 'a]'
+  | 'i"' | 'a"' | "i'" | "a'" | 'i`' | 'a`';
+
+export type OperatorMotion = Motion | TextObject;
+
+export type SearchState = {
+  pattern: string;
+  direction: 'forward' | 'backward';
+};
+
 export type Command = {
   type: 'move' | 'delete-char' | 'delete-line' | 'delete-range' | 'enter-insert' | 'open-line' | 'open-line-above' | 'mode-switch' | 'yank' | 'paste';
-  motion?: Motion;
+  motion?: OperatorMotion;
   operator?: Operator;
   to?: Mode;
 };
@@ -28,6 +41,9 @@ export type VimState = {
   pendingOperator: Operator | null;
   pendingReplace: boolean;
   pendingFind: 'f' | 'F' | 't' | 'T' | null;
+  pendingTextObject: 'i' | 'a' | null;
+  pendingSearch: SearchState | null;
+  lastSearch: SearchState | null;
   lastCommand: Command | null;
 
   // Undo/Redo support
