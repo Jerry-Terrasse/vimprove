@@ -32,7 +32,7 @@ export const findCharOnLine = (
   return null;
 };
 
-export const getMotionTarget = (state: VimState, motion: Motion): Cursor => {
+export const getMotionTarget = (state: VimState, motion: Motion, forOperator = false): Cursor => {
   const { buffer, cursor } = state;
   const { line, col } = cursor;
   const currentLine = buffer[line] || '';
@@ -117,8 +117,14 @@ export const getMotionTarget = (state: VimState, motion: Motion): Cursor => {
         c++;
       }
 
-      if (r >= buffer.length) return cursor;
-      return { line: r, col: Math.min(c, Math.max(0, buffer[r].length - 1)) };
+      if (r >= buffer.length) {
+        if (!forOperator) return cursor;
+        const lastLine = Math.max(0, buffer.length - 1);
+        const fallbackCol = buffer[lastLine].length;
+        return { line: lastLine, col: fallbackCol };
+      }
+      const maxCol = forOperator ? buffer[r].length : Math.max(0, buffer[r].length - 1);
+      return { line: r, col: Math.min(c, maxCol) };
     }
 
     case 'b': {

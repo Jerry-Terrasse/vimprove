@@ -330,7 +330,7 @@ describe('vimReducer', () => {
 
   describe('Undo/Redo', () => {
     it('should undo with u', () => {
-      let state = { ...INITIAL_VIM_STATE, buffer: ['hello'] };
+      let state = { ...INITIAL_VIM_STATE, buffer: ['hello'], cursor: { line: 0, col: 5 } };
       state = pressKey(state, 'i');
       state = typeKeys(state, ' world<Esc>');
       expect(state.buffer[0]).toBe('hello world');
@@ -340,7 +340,7 @@ describe('vimReducer', () => {
     });
 
     it('should redo with Ctrl-r', () => {
-      let state = { ...INITIAL_VIM_STATE, buffer: ['hello'] };
+      let state = { ...INITIAL_VIM_STATE, buffer: ['hello'], cursor: { line: 0, col: 5 } };
       state = pressKey(state, 'i');
       state = typeKeys(state, ' world<Esc>');
       state = pressKey(state, 'u');

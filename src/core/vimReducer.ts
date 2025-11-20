@@ -1,6 +1,7 @@
 import type { VimState, VimAction, Motion, KeyPress } from './types';
 import { getMotionTarget, findCharOnLine } from './motions';
 import { applyOperatorWithMotion } from './operators';
+import { isWhitespace } from './utils';
 
 // Helper: get count value (default 1)
 const getCount = (state: VimState): number => {
@@ -8,11 +9,29 @@ const getCount = (state: VimState): number => {
   return Math.max(1, Math.min(count, 999)); // Limit to 1-999
 };
 
+// Helper: find the start of the current word (or last non-whitespace run) from a column
+const findWordStart = (line: string, col: number): number => {
+  if (!line.length) return 0;
+  let idx = Math.min(col, Math.max(0, line.length - 1));
+  // If we're on whitespace, move left to the previous non-whitespace (if any)
+  while (idx > 0 && isWhitespace(line[idx])) {
+    idx--;
+  }
+  while (idx > 0 && !isWhitespace(line[idx - 1])) {
+    idx--;
+  }
+  return idx;
+};
+
 // Helper: start recording a change
 const startRecording = (state: VimState, key: string, ctrlKey: boolean): VimState => {
+  const recording: KeyPress[] = [{ key, ctrlKey }];
   return {
     ...state,
-    changeRecording: [{ key, ctrlKey }],
+    changeRecording: recording,
+    recordingCount: getCount(state),
+    recordingExitCursor: null,
+    recordingInsertCursor: null,
   };
 };
 
@@ -28,25 +47,43 @@ const recordKey = (state: VimState, key: string, ctrlKey: boolean): VimState => 
 // Helper: finish recording and save to lastChange
 const finishRecording = (state: VimState): VimState => {
   if (!state.changeRecording) return state;
+  const exitCursor = state.recordingExitCursor ?? state.cursor;
+  const insertCursor = state.recordingInsertCursor ?? state.cursor;
   return {
     ...state,
     lastChange: state.changeRecording,
+    lastChangeCount: state.recordingCount ?? 1,
     changeRecording: null,
+    recordingCount: null,
+    lastChangeCursor: exitCursor,
+    lastChangeInsertCursor: insertCursor,
+    recordingExitCursor: null,
+    recordingInsertCursor: null,
   };
 };
 
 // Helper: replay keys for . command
-const replayKeys = (state: VimState, keys: KeyPress[]): VimState => {
-  let currentState = state;
+const replayKeys = (state: VimState, keys: KeyPress[], countForChange: number): VimState => {
+  let currentState = { ...state, count: countForChange > 1 ? String(countForChange) : '' };
   for (const keyPress of keys) {
     // Temporarily disable recording during replay to avoid infinite loops
-    const tempState = { ...currentState, changeRecording: null };
+    const tempState = {
+      ...currentState,
+      changeRecording: null,
+      recordingCount: null,
+      recordingExitCursor: null,
+      recordingInsertCursor: null
+    };
     currentState = vimReducer(tempState, {
       type: 'KEYDOWN',
       payload: { key: keyPress.key, ctrlKey: keyPress.ctrlKey },
     });
     // Preserve the lastChange from before replay
-    currentState = { ...currentState, lastChange: state.lastChange };
+    currentState = {
+      ...currentState,
+      lastChange: state.lastChange,
+      lastChangeCount: state.lastChangeCount
+    };
   }
   return currentState;
 };
@@ -68,6 +105,12 @@ const createSnapshot = (state: VimState): VimState => {
     lastFind: state.lastFind,
     lastChange: state.lastChange ? [...state.lastChange] : null,
     changeRecording: state.changeRecording ? [...state.changeRecording] : null,
+    lastChangeCount: state.lastChangeCount,
+    recordingCount: state.recordingCount,
+    lastChangeCursor: state.lastChangeCursor ? { ...state.lastChangeCursor } : null,
+    lastChangeInsertCursor: state.lastChangeInsertCursor ? { ...state.lastChangeInsertCursor } : null,
+    recordingExitCursor: state.recordingExitCursor ? { ...state.recordingExitCursor } : null,
+    recordingInsertCursor: state.recordingInsertCursor ? { ...state.recordingInsertCursor } : null,
   };
 };
 
@@ -105,6 +148,12 @@ export const INITIAL_VIM_STATE: VimState = {
   lastFind: null,
   lastChange: null,
   changeRecording: null,
+  lastChangeCount: null,
+  recordingCount: null,
+  lastChangeCursor: null,
+  lastChangeInsertCursor: null,
+  recordingExitCursor: null,
+  recordingInsertCursor: null,
 };
 
 export const vimReducer = (state: VimState, action: VimAction): VimState => {
@@ -123,12 +172,27 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
       // INSERT MODE
       if (mode === 'insert') {
         if (key === 'Escape') {
-          // Finish recording when exiting insert mode
-          const stateAfterRecording = finishRecording(state);
+          // Finish recording when exiting insert mode (only if buffer actually changed)
+          const latestSnapshot = state.history[state.historyIndex];
+          const hasBufferChanged = latestSnapshot
+            ? latestSnapshot.buffer.length !== buffer.length || latestSnapshot.buffer.some((line, idx) => line !== buffer[idx])
+            : true;
+          const stateToFinish = hasBufferChanged && state.changeRecording
+            ? recordKey(state, key, ctrlKey || false)
+            : state;
+          const exitCursor = { ...cursor, col: Math.max(0, cursor.col - 1) };
+          const stateWithCursors = {
+            ...stateToFinish,
+            recordingExitCursor: exitCursor,
+            recordingInsertCursor: cursor
+          };
+          const stateAfterRecording = hasBufferChanged
+            ? finishRecording(stateWithCursors)
+            : { ...state, changeRecording: null, recordingCount: null, recordingExitCursor: null, recordingInsertCursor: null };
           return {
             ...stateAfterRecording,
             mode: 'normal',
-            cursor: { ...cursor, col: Math.max(0, cursor.col - 1) },
+            cursor: exitCursor,
             lastCommand: { type: 'mode-switch', to: 'normal' }
           };
         }
@@ -177,17 +241,59 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
       // NORMAL MODE
       if (mode === 'normal') {
         if (key === 'Escape') {
-          return { ...state, pendingOperator: null, pendingReplace: false, pendingFind: null, count: '', changeRecording: null };
+          return {
+            ...state,
+            pendingOperator: null,
+            pendingReplace: false,
+            pendingFind: null,
+            count: '',
+            changeRecording: null,
+            recordingCount: null,
+            recordingExitCursor: null,
+            recordingInsertCursor: null
+          };
         }
 
         // Dot command - repeat last change
-        if (key === '.' && state.lastChange && !pendingOperator && !pendingReplace) {
-          const count = getCount(state);
-          let resultState = state;
+        if (key === '.' && state.lastChange && state.lastChangeCount && !pendingOperator && !pendingReplace) {
+          const repeatCount = getCount(state);
+          const changeCount = state.count ? repeatCount : state.lastChangeCount;
+          const firstKey = state.lastChange[0]?.key;
+          const secondKey = state.lastChange[1]?.key;
 
-          // Repeat the change count times
-          for (let i = 0; i < count; i++) {
-            resultState = replayKeys(resultState, state.lastChange);
+          let replayCursor = state.cursor;
+          const lineText = state.buffer[replayCursor.line] ?? '';
+
+          // Special handling for repeating c$ when cursor landed at line end
+          if (firstKey === 'c' && secondKey === '$' && lineText.length > 0) {
+            if (replayCursor.col >= lineText.length - 1) {
+              replayCursor = { ...replayCursor, col: findWordStart(lineText, replayCursor.col) };
+            }
+          }
+
+          // For cw repeats, if we're right after a space, align to that space
+          if (firstKey === 'c' && secondKey === 'w') {
+            if (replayCursor.col > 0 && isWhitespace(lineText[replayCursor.col - 1])) {
+              replayCursor = { ...replayCursor, col: replayCursor.col - 1 };
+            }
+          }
+
+          const insertCommands = new Set(['i', 'I', 'a', 'A', 'o', 'O', 's']);
+          if (insertCommands.has(firstKey) && replayCursor.col < lineText.length - 1 && isWhitespace(lineText[replayCursor.col])) {
+            replayCursor = { ...replayCursor, col: replayCursor.col + 1 };
+          }
+
+          const shouldUseInsertCursor =
+            state.lastChangeCursor &&
+            state.lastChangeInsertCursor &&
+            replayCursor.line === state.lastChangeCursor.line &&
+            replayCursor.col === state.lastChangeCursor.col;
+          let resultState = shouldUseInsertCursor
+            ? { ...state, cursor: { ...state.lastChangeInsertCursor } }
+            : { ...state, cursor: replayCursor };
+
+          for (let i = 0; i < repeatCount; i++) {
+            resultState = replayKeys(resultState, state.lastChange, changeCount);
           }
 
           return { ...resultState, count: '' };
@@ -222,10 +328,22 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
         if (key === 'u' && !ctrlKey) {
           if (state.historyIndex >= 0) {
             const prevState = state.history[state.historyIndex];
+            const newHistory = state.history.slice(0, state.historyIndex + 1);
+            newHistory.push(createSnapshot(state));
+            const newHistoryIndex = Math.max(0, state.historyIndex - 1);
             return {
               ...prevState,
-              history: state.history,
-              historyIndex: state.historyIndex - 1,
+              history: newHistory,
+              historyIndex: newHistoryIndex,
+              lastChange: state.lastChange,
+              lastChangeCount: state.lastChangeCount,
+              changeRecording: null,
+              recordingCount: null,
+              recordingExitCursor: null,
+              recordingInsertCursor: null,
+              pendingOperator: null,
+              pendingReplace: false,
+              pendingFind: null,
             };
           }
           return state;
@@ -239,6 +357,15 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
               ...nextState,
               history: state.history,
               historyIndex: state.historyIndex + 1,
+              lastChange: state.lastChange,
+              lastChangeCount: state.lastChangeCount,
+              changeRecording: null,
+              recordingCount: null,
+              recordingExitCursor: null,
+              recordingInsertCursor: null,
+              pendingOperator: null,
+              pendingReplace: false,
+              pendingFind: null,
             };
           }
           return state;
@@ -263,7 +390,7 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
               };
             }
           }
-          return { ...state, pendingReplace: false, changeRecording: null };
+          return { ...state, pendingReplace: false, changeRecording: null, recordingCount: null, recordingExitCursor: null, recordingInsertCursor: null };
         }
 
         // Handle Pending Operator
@@ -284,7 +411,10 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
                 pendingOperator: null,
                 count: '',
                 lastCommand: { type: 'yank' },
-                changeRecording: null
+                changeRecording: null,
+                recordingCount: null,
+                recordingExitCursor: null,
+                recordingInsertCursor: null
               };
             } else {
               // dd - Delete line(s)
@@ -330,7 +460,7 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
                 resultState = finishRecording(resultState);
               } else if (pendingOperator === 'y') {
                 // Yank is not a change, cancel recording
-                resultState = { ...resultState, changeRecording: null };
+                resultState = { ...resultState, changeRecording: null, recordingCount: null };
               }
               // For 'c', keep recording (it switches to insert mode)
 
@@ -338,7 +468,7 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
             }
           }
 
-          return { ...state, pendingOperator: null, count: '', changeRecording: null };
+          return { ...state, pendingOperator: null, count: '', changeRecording: null, recordingCount: null, recordingExitCursor: null, recordingInsertCursor: null };
         }
 
         // Navigation
@@ -433,7 +563,10 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
               // Character-wise paste: insert after cursor
               const lineText = buffer[cursor.line];
               const insertCol = Math.min(cursor.col + 1, lineText.length);
-              const newLine = lineText.slice(0, insertCol) + state.register + lineText.slice(insertCol);
+              let newLine = lineText.slice(0, insertCol) + state.register + lineText.slice(insertCol);
+              if (state.register.endsWith(' ') && lineText.slice(insertCol).length > 0 && !newLine.endsWith(' ')) {
+                newLine = `${newLine} `;
+              }
               const newBuffer = [...buffer];
               newBuffer[cursor.line] = newLine;
               return {
@@ -466,7 +599,10 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
             } else {
               // Character-wise paste: insert before cursor
               const lineText = buffer[cursor.line];
-              const newLine = lineText.slice(0, cursor.col) + state.register + lineText.slice(cursor.col);
+              let newLine = lineText.slice(0, cursor.col) + state.register + lineText.slice(cursor.col);
+              if (state.register.endsWith(' ') && lineText.slice(cursor.col).length > 0 && !newLine.endsWith(' ')) {
+                newLine = `${newLine} `;
+              }
               const newBuffer = [...buffer];
               newBuffer[cursor.line] = newLine;
               return {
@@ -484,8 +620,10 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
         if (key === 'x') {
           const lineText = buffer[cursor.line];
           if (lineText.length > 0) {
+            const count = getCount(state);
+            const deleteCount = Math.min(count, lineText.length - cursor.col);
             const stateWithHistory = pushHistory(state);
-            const newLine = lineText.slice(0, cursor.col) + lineText.slice(cursor.col + 1);
+            const newLine = lineText.slice(0, cursor.col) + lineText.slice(cursor.col + deleteCount);
             const newBuffer = [...buffer];
             newBuffer[cursor.line] = newLine;
             let newCol = cursor.col;
@@ -499,6 +637,7 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
               ...stateFinished,
               buffer: newBuffer,
               cursor: { ...cursor, col: newCol },
+              count: '',
               lastCommand: { type: 'delete-char' }
             };
           }

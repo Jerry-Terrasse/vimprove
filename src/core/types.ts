@@ -46,8 +46,18 @@ export type VimState = {
   // Last change action (for . repeat)
   lastChange: KeyPress[] | null;
 
+  // Count used for last change (for . repeat)
+  lastChangeCount: number | null;
+  lastChangeCursor: Cursor | null;
+  lastChangeInsertCursor: Cursor | null;
+
   // Currently recording change for . command
   changeRecording: KeyPress[] | null;
+
+  // Count captured when recording a change
+  recordingCount: number | null;
+  recordingExitCursor: Cursor | null;
+  recordingInsertCursor: Cursor | null;
 };
 
 export type VimAction = {
