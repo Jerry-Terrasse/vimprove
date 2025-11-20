@@ -44,7 +44,10 @@ export type VimState = {
   lastFind: FindMotion | null;
 
   // Last change action (for . repeat)
-  lastChange: VimAction | null;
+  lastChange: KeyPress[] | null;
+
+  // Currently recording change for . command
+  changeRecording: KeyPress[] | null;
 };
 
 export type VimAction = {
@@ -56,6 +59,11 @@ export type VimAction = {
     cursor?: Cursor;
     [key: string]: unknown;
   };
+};
+
+export type KeyPress = {
+  key: string;
+  ctrlKey: boolean;
 };
 
 export type ChallengeGoalType = 'move' | 'delete' | 'change' | 'insert' | 'custom';

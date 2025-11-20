@@ -9,13 +9,15 @@ const createSnapshot = (state: VimState): VimState => {
     mode: state.mode,
     pendingOperator: state.pendingOperator,
     pendingReplace: state.pendingReplace,
+    pendingFind: state.pendingFind,
     lastCommand: state.lastCommand,
     history: [],
     historyIndex: -1,
     register: state.register,
     count: state.count,
     lastFind: state.lastFind,
-    lastChange: state.lastChange,
+    lastChange: state.lastChange ? [...state.lastChange] : null,
+    changeRecording: state.changeRecording ? [...state.changeRecording] : null,
   };
 };
 

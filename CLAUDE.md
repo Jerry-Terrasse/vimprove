@@ -8,7 +8,7 @@ Vimprove 是一个交互式 Vim 学习网站。核心功能是通过浏览器中
 
 **当前状态**: ✅ 重构完成。项目已从单文件原型（`tmp/vimprove.html`）重构为模块化的 React + TypeScript 架构。
 
-**版本**: v0.3.0 Alpha（版本管理在 `src/version.ts` 和 `package.json`）
+**版本**: v0.4.0 Alpha（版本管理在 `src/version.ts` 和 `package.json`）
 
 ## Development Commands
 
@@ -142,6 +142,8 @@ import { useVimEngine } from '@/hooks/useVimEngine';
 - `dd` - 删除行
 - `d{motion}` - 删除到 motion 位置（如 `dw`, `d$`）
 - `c{motion}` - 修改到 motion 位置（删除后进入 Insert 模式）
+- `y{motion}`, `yy` - 复制（yank）文本
+- `p`, `P` - 在光标后/前粘贴
 
 **模式切换**:
 - `i`, `a` - 在光标前/后进入 Insert 模式
@@ -154,13 +156,23 @@ import { useVimEngine } from '@/hooks/useVimEngine';
 - `Backspace` - 删除前一个字符
 - `Enter` - 换行
 
+**查找命令**:
+- `f{char}`, `F{char}` - 向前/向后查找字符
+- `t{char}`, `T{char}` - 向前/向后查找到字符前
+- `;`, `,` - 重复/反向重复上次查找
+
+**其他命令**:
+- `u` - 撤销（undo）
+- `Ctrl-r` - 重做（redo）
+- `.` - 重复上次修改操作
+- 数字前缀（`3w`, `5dd`, `2.`）- 重复命令 n 次
+
 ### ❌ 尚未支持
 
-- 数字前缀（`3w`, `5dd`）
 - Text Objects（`iw`, `aw`, `i"`, `a{`）
-- 查找命令（`f`, `t`, `F`, `T`, `;`, `,`）
-- Visual Mode、Yank/Paste、Undo/Redo
+- Visual Mode
 - 搜索和替换（`/`, `:s`）
+- 寄存器选择（`"a`, `"b` 等）
 
 **扩展引擎**: 如需添加新命令，修改 `src/core/motions.ts` 或 `src/core/operators.ts`
 
@@ -347,15 +359,12 @@ ls src/data/lessons/chapter3/
 **更新文件**：
 - `src/version.ts` - 应用内版本显示
 - `package.json` - 包版本号
-- `CLAUDE.md` - 项目版本状态
+- `README.md` - CHANGELOG 版本记录
 
 **何时更新版本**：
 - 添加新章节（如 Chapter 4）→ MINOR++
-- 添加新核心功能（如 undo/redo、yank/paste）→ MINOR++
+- 添加新核心功能（如 undo/redo、yank/paste、dot command）→ MINOR++
 - 修复 Bug → PATCH++
 - 每次提交前检查是否需要更新版本
 
-**版本历史**：
-- v0.1.0: 项目初始化、框架搭建
-- v0.2.0: Chapter 1-2、run-example、Markdown 渲染
-- v0.3.0: Chapter 3、undo/redo、yank/paste、数字前缀、f/F/t/T 查找
+**版本历史详见 README.md 的 CHANGELOG 部分**
