@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import type { VimState, ChallengeConfig } from '@/core/types';
 
 export const useChallenge = (
@@ -37,6 +37,7 @@ export const useChallenge = (
     });
 
     if (changed) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setGoalsStatus(newStatus);
       if (!startTime) setStartTime(Date.now());
 

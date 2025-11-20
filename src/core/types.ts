@@ -10,7 +10,7 @@ export type Operator = 'd' | 'c' | 'y';
 export type Motion = 'h' | 'j' | 'k' | 'l' | 'w' | 'b' | 'e' | '0' | '$' | '^' | '_' | 'W' | 'B' | 'E';
 
 export type Command = {
-  type: 'move' | 'delete-char' | 'delete-line' | 'delete-range' | 'enter-insert' | 'open-line' | 'open-line-above' | 'mode-switch';
+  type: 'move' | 'delete-char' | 'delete-line' | 'delete-range' | 'enter-insert' | 'open-line' | 'open-line-above' | 'mode-switch' | 'yank' | 'paste';
   motion?: Motion;
   operator?: Operator;
   to?: Mode;
@@ -49,7 +49,13 @@ export type VimState = {
 
 export type VimAction = {
   type: 'RESET' | 'KEYDOWN';
-  payload?: any;
+  payload?: {
+    key?: string;
+    ctrlKey?: boolean;
+    buffer?: string[];
+    cursor?: Cursor;
+    [key: string]: unknown;
+  };
 };
 
 export type ChallengeGoalType = 'move' | 'delete' | 'change' | 'insert' | 'custom';

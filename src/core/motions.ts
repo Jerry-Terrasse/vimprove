@@ -1,4 +1,4 @@
-import type { VimState, Cursor, Motion, FindMotion } from './types';
+import type { VimState, Cursor, Motion } from './types';
 import { isWhitespace, isWordChar } from './utils';
 
 // Find character on current line
@@ -218,10 +218,6 @@ export const getMotionTarget = (state: VimState, motion: Motion): Cursor => {
         c = buffer[r].length - 1;
       }
 
-      const startChar = buffer[r][c];
-      const startIsWhite = isWhitespace(startChar);
-      const startIsWord = isWordChar(startChar);
-
       // Move forward one position first
       c++;
       if (c >= buffer[r].length) {
@@ -258,9 +254,6 @@ export const getMotionTarget = (state: VimState, motion: Motion): Cursor => {
           if (r >= buffer.length) break;
           continue;
         }
-
-        const char = buffer[r][c];
-        const charIsWord = isWordChar(char);
 
         // Check next character
         const nextC = c + 1;

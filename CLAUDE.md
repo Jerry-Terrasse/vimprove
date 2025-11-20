@@ -40,9 +40,10 @@ src/
 │
 ├── data/              # 课程数据（只依赖 core/types）
 │   ├── categories.ts # 课程分类定义
-│   └── lessons/      # 每个课程一个文件
-│       ├── basics/   # 基础章节
-│       └── edits/    # 编辑章节
+│   └── lessons/      # 每个课程一个文件（按章节组织）
+│       ├── chapter1/ # 模式与基础移动（4课）
+│       ├── chapter2/ # 单词移动与小编辑（5课）
+│       └── chapter3/ # 高级编辑（5课）
 │
 ├── hooks/             # 自定义 hooks（业务逻辑封装）
 │   ├── useVimEngine.ts    # 封装 vimReducer
@@ -274,8 +275,9 @@ ls src/
 # 应看到: core/ data/ hooks/ components/ pages/ i18n/ version.ts
 
 # 查看现有课程
-ls src/data/lessons/basics/
-ls src/data/lessons/edits/
+ls src/data/lessons/chapter1/
+ls src/data/lessons/chapter2/
+ls src/data/lessons/chapter3/
 ```
 
 ### 当前已完成

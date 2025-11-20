@@ -1,4 +1,4 @@
-import type { VimState, Cursor, Operator, Motion } from './types';
+import type { VimState, Operator, Motion } from './types';
 import { getMotionTarget } from './motions';
 
 // Helper: create snapshot for history
@@ -62,7 +62,7 @@ export const applyOperatorWithMotion = (
         ...state,
         register: yankedText,
         pendingOperator: null,
-        lastCommand: { type: 'custom' as any }
+        lastCommand: { type: 'yank' }
       };
     }
 

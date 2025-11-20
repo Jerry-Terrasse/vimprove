@@ -1,21 +1,25 @@
 import type { Lesson } from '@/core/types';
 import { CATEGORIES } from './categories';
-import { modesBasics } from './lessons/basics/modes-basics';
-import { motionsHjkl } from './lessons/basics/motions-hjkl';
-import { motionsLineBounds } from './lessons/basics/motions-line-bounds';
-import { modesMovementMiniReview } from './lessons/basics/modes-movement-mini-review';
-import { motionsWords } from './lessons/basics/motions-words';
-import { wordsFixSmallThings } from './lessons/basics/words-fix-small-things';
-import { motionsWORDs } from './lessons/basics/motions-WORDs';
-import { smallEditsChars } from './lessons/basics/small-edits-chars';
-import { wordsMiniReview } from './lessons/basics/words-mini-review';
+
+// Chapter 1: Modes & Basic Movement
+import { modesBasics } from './lessons/chapter1/modes-basics';
+import { motionsHjkl } from './lessons/chapter1/motions-hjkl';
+import { motionsLineBounds } from './lessons/chapter1/motions-line-bounds';
+import { modesMovementMiniReview } from './lessons/chapter1/modes-movement-mini-review';
+
+// Chapter 2: Words & Small Edits
+import { motionsWords } from './lessons/chapter2/motions-words';
+import { wordsFixSmallThings } from './lessons/chapter2/words-fix-small-things';
+import { motionsWORDs } from './lessons/chapter2/motions-WORDs';
+import { smallEditsChars } from './lessons/chapter2/small-edits-chars';
+import { wordsMiniReview } from './lessons/chapter2/words-mini-review';
 
 // Chapter 3: Advanced Editing
-import { comboOperators } from './lessons/edits/combo-operators';
-import { yankPaste } from './lessons/edits/yank-paste';
-import { undoRedo } from './lessons/edits/undo-redo';
-import { countMultiplier } from './lessons/edits/count-multiplier';
-import { repeatDot } from './lessons/edits/repeat-dot';
+import { comboOperators } from './lessons/chapter3/combo-operators';
+import { yankPaste } from './lessons/chapter3/yank-paste';
+import { undoRedo } from './lessons/chapter3/undo-redo';
+import { countMultiplier } from './lessons/chapter3/count-multiplier';
+import { repeatDot } from './lessons/chapter3/repeat-dot';
 
 export { CATEGORIES };
 

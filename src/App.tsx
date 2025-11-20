@@ -9,7 +9,7 @@ type View = 'home' | 'lesson';
 const App = () => {
   const [currentView, setCurrentView] = useState<View>('home');
   const [currentLessonSlug, setCurrentLessonSlug] = useState(LESSONS[0].slug);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen] = useState(true);
 
   const currentLessonIdx = LESSONS.findIndex(l => l.slug === currentLessonSlug);
   const currentLesson = LESSONS[currentLessonIdx];

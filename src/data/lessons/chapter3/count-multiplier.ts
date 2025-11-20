@@ -126,7 +126,6 @@ export const countMultiplier: Lesson = {
             type: 'move',
             description: 'Move to the last line and use 3w to move 3 words forward',
             validator: (prev, next) => {
-              const lastLine = next.buffer[next.buffer.length - 1];
               return next.cursor.line === next.buffer.length - 1 &&
                      next.cursor.col > 10;
             }

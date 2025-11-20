@@ -90,7 +90,7 @@ Vim 会记录你的每一次修改（不是每一次按键）。一次"修改"�
             id: 'delete-and-undo',
             type: 'custom',
             description: 'Delete the first line with dd, then undo it with u',
-            validator: (prev, next, lastCmd) => {
+            validator: (prev, next) => {
               return next.buffer.length === 3 &&
                      next.buffer[0].includes('int a = 1');
             }

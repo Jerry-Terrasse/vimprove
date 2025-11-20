@@ -1,4 +1,4 @@
-import type { VimState, VimAction, Motion, Operator } from './types';
+import type { VimState, VimAction, Motion } from './types';
 import { getMotionTarget, findCharOnLine } from './motions';
 import { applyOperatorWithMotion } from './operators';
 
@@ -218,7 +218,7 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
                 register: yankedText,
                 pendingOperator: null,
                 count: '',
-                lastCommand: { type: 'custom' as any }
+                lastCommand: { type: 'yank' }
               };
             } else {
               // dd - Delete line(s)
@@ -341,7 +341,7 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
                 ...stateWithHistory,
                 buffer: newBuffer,
                 cursor: { line: cursor.line + 1, col: 0 },
-                lastCommand: { type: 'custom' as any }
+                lastCommand: { type: 'yank' }
               };
             } else {
               // Character-wise paste: insert after cursor
@@ -354,7 +354,7 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
                 ...stateWithHistory,
                 buffer: newBuffer,
                 cursor: { ...cursor, col: insertCol + state.register.length - 1 },
-                lastCommand: { type: 'custom' as any }
+                lastCommand: { type: 'yank' }
               };
             }
           }
@@ -375,7 +375,7 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
                 ...stateWithHistory,
                 buffer: newBuffer,
                 cursor: { line: cursor.line, col: 0 },
-                lastCommand: { type: 'custom' as any }
+                lastCommand: { type: 'yank' }
               };
             } else {
               // Character-wise paste: insert before cursor
@@ -387,7 +387,7 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
                 ...stateWithHistory,
                 buffer: newBuffer,
                 cursor: { ...cursor, col: cursor.col + state.register.length - 1 },
-                lastCommand: { type: 'custom' as any }
+                lastCommand: { type: 'yank' }
               };
             }
           }
