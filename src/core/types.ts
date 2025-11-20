@@ -47,10 +47,31 @@ export type ChallengeConfig = {
   goals: ChallengeGoal[];
 };
 
+export type RunExampleStep = {
+  key: string;
+  description: string;
+  cursorIndex?: number;
+};
+
+export type RunExampleTrack = {
+  label: string;
+  keys: string[];
+  color?: string;
+};
+
+export type RunExampleConfig = {
+  initialBuffer: string[];
+  initialCursor: Cursor;
+  tracks: RunExampleTrack[];
+  steps: RunExampleStep[];
+  autoPlaySpeed?: number;
+};
+
 export type ContentBlock =
   | { type: 'markdown'; content: string }
   | { type: 'key-list'; keys: KeyItem[] }
-  | { type: 'challenge'; config: ChallengeConfig };
+  | { type: 'challenge'; config: ChallengeConfig }
+  | { type: 'run-example'; config: RunExampleConfig };
 
 export type KeyItem = {
   chars: string[];

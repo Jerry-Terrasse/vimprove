@@ -3,6 +3,7 @@ import type { Lesson } from '@/core/types';
 import { MarkdownBlock } from '@/components/common/MarkdownBlock';
 import { KeyListBlock } from '@/components/common/KeyListBlock';
 import { VimChallenge } from '@/components/challenge/VimChallenge';
+import { RunExamplePlayer } from '@/components/example/RunExamplePlayer';
 
 type LessonViewProps = {
   lesson: Lesson;
@@ -24,6 +25,13 @@ export const LessonView = ({ lesson, onNext, onPrev }: LessonViewProps) => {
         }
         if (block.type === 'key-list') {
           return <KeyListBlock key={idx} keys={block.keys} />;
+        }
+        if (block.type === 'run-example') {
+          return (
+            <div key={idx} className="my-12">
+              <RunExamplePlayer config={block.config} />
+            </div>
+          );
         }
         if (block.type === 'challenge') {
           return (

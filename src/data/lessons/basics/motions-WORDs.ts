@@ -32,28 +32,46 @@ A WORD is "anything until the next space".`
       type: 'markdown',
       content: `## Playable example: two cursors race
 
-Use this line:
+Watch how **w** (lowercase) and **W** (uppercase) behave differently on symbol-heavy code.
 
-\`\`\`js
-t = Math.max(i, 4200), Math.min(j, 4900);
-\`\`\`
+The **blue cursor** uses \`w\` (stops at punctuation).
+The **green cursor** uses \`W\` (treats everything between spaces as one chunk).`
+    },
+    {
+      type: 'run-example',
+      config: {
+        initialBuffer: ['t = Math.max(i, 4200), Math.min(j, 4900);'],
+        initialCursor: { line: 0, col: 0 },
+        autoPlaySpeed: 800,
+        tracks: [
+          { label: 'Using w', keys: [], color: 'bg-blue-500' },
+          { label: 'Using W', keys: [], color: 'bg-green-500' }
+        ],
+        steps: [
+          { key: 'w', description: 'Cursor A (w): jumps to "="', cursorIndex: 0 },
+          { key: 'W', description: 'Cursor B (W): jumps to "Math.max(i,"', cursorIndex: 1 },
+          { key: 'w', description: 'Cursor A (w): jumps to "Math"', cursorIndex: 0 },
+          { key: 'w', description: 'Cursor A (w): jumps to "."', cursorIndex: 0 },
+          { key: 'W', description: 'Cursor B (W): jumps to "4200),"', cursorIndex: 1 },
+          { key: 'w', description: 'Cursor A (w): jumps to "max"', cursorIndex: 0 },
+          { key: 'w', description: 'Cursor A (w): jumps to "("', cursorIndex: 0 },
+          { key: 'W', description: 'Cursor B (W): jumps to "Math.min(j,"', cursorIndex: 1 },
+          { key: 'w', description: 'Cursor A (w): jumps to "i"', cursorIndex: 0 },
+          { key: 'w', description: 'Cursor A (w): jumps to ","', cursorIndex: 0 },
+          { key: 'W', description: 'Cursor B (W): jumps to "4900);"', cursorIndex: 1 },
+          { key: 'w', description: 'Cursor A (w): jumps to "4200"', cursorIndex: 0 },
+          { key: 'w', description: 'Cursor A (w): jumps to ")"', cursorIndex: 0 },
+          { key: 'w', description: 'Cursor A (w): jumps to ","', cursorIndex: 0 },
+          { key: 'w', description: 'Cursor A (w): jumps to "Math" (2nd)', cursorIndex: 0 },
+          { key: 'w', description: 'Cursor A (w): jumps to "." (2nd)', cursorIndex: 0 },
+          { key: 'w', description: 'Cursor A (w): jumps to "min"', cursorIndex: 0 }
+        ]
+      }
+    },
+    {
+      type: 'markdown',
+      content: `Notice how **W** reaches the end in just 4 jumps, while **w** needs many more steps!
 
-Imagine two cursors starting on the \`t\`:
-
-- Cursor A uses **w**.
-- Cursor B uses **W**.
-
-Step through:
-
-1. Both press their motion repeatedly.
-2. Cursor A stops at \`=\`, then at \`Math\`, then at \`.\`, then at \`max\`, then at \`(\`, etc.
-3. Cursor B goes:
-   - 1st \`W\` → whole \`=\` + \`Math.max(i,\` as one WORD
-   - 2nd \`W\` → \`4200),\`
-   - 3rd \`W\` → \`Math.min(j,\`
-   - 4th \`W\` → \`4900);\`
-
-The animation makes the difference obvious:
 **WORDS blaze through symbol-heavy code.**`
     },
     {
@@ -79,7 +97,7 @@ The animation makes the difference obvious:
             id: 'reach-first-math',
             type: 'move',
             description: 'Move the cursor to the M in the first "Math".',
-            validator: (prev, next) => {
+            validator: (_prev, next) => {
               if (!next.buffer.length) return false;
               return next.cursor.line === 0 && next.cursor.col === 4;
             }
@@ -88,7 +106,7 @@ The animation makes the difference obvious:
             id: 'reach-second-math',
             type: 'move',
             description: 'Move the cursor to the M in the second "Math".',
-            validator: (prev, next) => {
+            validator: (_prev, next) => {
               if (!next.buffer.length) return false;
               return next.cursor.line === 0 && next.cursor.col === 23;
             }
