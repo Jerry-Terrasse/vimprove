@@ -8,7 +8,7 @@ Vimprove 是一个交互式 Vim 学习网站。核心功能是通过浏览器中
 
 **当前状态**: ✅ 重构完成。项目已从单文件原型（`tmp/vimprove.html`）重构为模块化的 React + TypeScript 架构。
 
-**版本**: v0.4.0 Alpha（版本管理在 `src/version.ts` 和 `package.json`）
+**版本管理**: 版本号在 `src/version.ts` 和 `package.json` 中维护，CHANGELOG 见 `README.md`
 
 ## Development Commands
 
@@ -352,19 +352,19 @@ ls src/data/lessons/chapter3/
 **版本号格式**: `MAJOR.MINOR.PATCH` (遵循 SemVer)
 
 **更新规则**：
-- **PATCH** (0.3.x): Bug 修复、小的样式调整
+- **PATCH** (0.x.1): Bug 修复、小的样式调整
 - **MINOR** (0.x.0): 新功能、新课程章节、新命令支持
 - **MAJOR** (x.0.0): 重大架构变更、不兼容的 API 变化
 
-**更新文件**：
+**更新文件**（版本号只记录在这些文件中）：
 - `src/version.ts` - 应用内版本显示
 - `package.json` - 包版本号
-- `README.md` - CHANGELOG 版本记录
+- `README.md` - CHANGELOG 版本记录（包含版本号和更新内容）
 
 **何时更新版本**：
 - 添加新章节（如 Chapter 4）→ MINOR++
-- 添加新核心功能（如 undo/redo、yank/paste、dot command）→ MINOR++
+- 添加新核心功能（如 undo/redo、yank/paste、dot command、testing）→ MINOR++
 - 修复 Bug → PATCH++
 - 每次提交前检查是否需要更新版本
 
-**版本历史详见 README.md 的 CHANGELOG 部分**
+**重要**: CLAUDE.md 不记录具体版本号，只记录重要的结构性变化和功能说明
