@@ -13,3 +13,9 @@ export const clampCursor = (cursor: Cursor, buffer: string[]): Cursor => {
 };
 
 export const isWhitespace = (char: string): boolean => /\s/.test(char);
+
+export const isWordChar = (char: string): boolean => /[a-zA-Z0-9_]/.test(char);
+
+export const isPunctuation = (char: string): boolean => {
+  return !isWhitespace(char) && !isWordChar(char);
+};

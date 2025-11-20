@@ -88,6 +88,7 @@ New VimState
   cursor: { line: number, col: number },
   mode: 'normal' | 'insert',
   pendingOperator: null | 'd' | 'c' | 'y',
+  pendingReplace: boolean,    // r 命令的等待状态
   lastCommand: Command        // 用于 goal validator
 }
 ```
@@ -129,11 +130,14 @@ import { useVimEngine } from '@/hooks/useVimEngine';
 
 **Normal Mode 移动**:
 - `h`, `j`, `k`, `l` - 基础移动（左下上右）
-- `w`, `b` - 单词移动（word）
-- `0`, `$` - 行首/行尾
+- `w`, `b`, `e` - 单词移动（word）
+- `W`, `B`, `E` - WORD 移动（空白分隔）
+- `0`, `^`, `_`, `$` - 行首/首字符/行尾
 
 **编辑命令**:
 - `x` - 删除字符
+- `s` - 删除字符并进入 Insert 模式
+- `r{char}` - 替换当前字符
 - `dd` - 删除行
 - `d{motion}` - 删除到 motion 位置（如 `dw`, `d$`）
 - `c{motion}` - 修改到 motion 位置（删除后进入 Insert 模式）
@@ -154,11 +158,14 @@ import { useVimEngine } from '@/hooks/useVimEngine';
 - 数字前缀（`3w`, `5dd`）
 - Text Objects（`iw`, `aw`, `i"`, `a{`）
 - 查找命令（`f`, `t`, `F`, `T`, `;`, `,`）
-- `e`, `E`, `W`, `B` 等高级移动
 - Visual Mode、Yank/Paste、Undo/Redo
 - 搜索和替换（`/`, `:s`）
 
 **扩展引擎**: 如需添加新命令，修改 `src/core/motions.ts` 或 `src/core/operators.ts`
+
+**辅助函数** (`src/core/utils.ts`):
+- `isWordChar(char)` - 判断是否为单词字符 `[a-zA-Z0-9_]`
+- `isPunctuation(char)` - 判断是否为标点符号
 
 ## Adding New Lessons
 
@@ -274,9 +281,10 @@ ls src/data/lessons/edits/
 ### 当前已完成
 
 - ✅ 模块化架构（Core/Data/Hooks/Components）
-- ✅ 4 个基础课程（moving-hjkl, word-motion, deletion, insert-mode）
-- ✅ 完整的 Vim 引擎（支持基础命令）
+- ✅ 13 个课程（Chapter 1-2 完成，包括 basics 和 edits）
+- ✅ 完整的 Vim 引擎（支持 w/b/e/W/B/E/s/r 等命令）
 - ✅ Challenge 系统（目标验证、计时）
+- ✅ Run Example 可播放示例（`src/components/example/RunExamplePlayer.tsx`）
 - ✅ 版本管理（v0.1.0 Alpha）
 - ✅ 网站图标和 PWA 支持
 - ✅ 课程编写协作文档（`tmp/` 目录）
@@ -304,5 +312,19 @@ ls src/data/lessons/edits/
 - **课程编写指南**: `tmp/course-creation-guide.md`（给课程 AI）
 - **技术支持说明**: `tmp/tech-support-capabilities.md`（给技术 AI）
 - **课程模板**: `tmp/lesson-template.ts`（快速创建新课程）
+- **Run Example 模板**: `tmp/run-example-template.md`（可播放示例编写指南）
+- **Motion 修复记录**: `tmp/motion-fixes-summary.md`（w/b/e/W/B/E 的实现细节）
 - **版本管理**: `src/version.ts` + `tmp/version-management.md`
 - **原型参考**: `tmp/vimprove.html`（已完成重构，仅供参考）
+
+## CLAUDE.md 更新规则
+
+**只记录重要的结构性变化，小事不写入**：
+- ✅ 新增核心功能模块（如 Run Example）
+- ✅ 重大 bug 修复（如 motion 逻辑重写）
+- ✅ 新增重要辅助函数或类型
+- ✅ 课程总数变化
+- ✅ 重要文档位置
+- ❌ 单个课程内容
+- ❌ 小的样式调整
+- ❌ 临时的调试信息

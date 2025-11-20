@@ -1,5 +1,5 @@
 import type { VimState, Cursor, Motion } from './types';
-import { isWhitespace } from './utils';
+import { isWhitespace, isWordChar } from './utils';
 
 export const getMotionTarget = (state: VimState, motion: Motion): Cursor => {
   const { buffer, cursor } = state;
@@ -31,7 +31,8 @@ export const getMotionTarget = (state: VimState, motion: Motion): Cursor => {
     case '$':
       return { line, col: Math.max(0, currentLine.length - 1) };
 
-    case '^': {
+    case '^':
+    case '_': {
       let firstNonBlank = 0;
       for (let i = 0; i < currentLine.length; i++) {
         if (!isWhitespace(currentLine[i])) {
@@ -44,154 +45,375 @@ export const getMotionTarget = (state: VimState, motion: Motion): Cursor => {
 
     case 'w': {
       let r = line, c = col;
-      c++;
-      if (c >= buffer[r].length) {
-        r++; c = 0;
+
+      if (r >= buffer.length || c >= buffer[r].length) return cursor;
+
+      const startChar = buffer[r][c];
+      const startIsWord = isWordChar(startChar);
+      const startIsWhite = isWhitespace(startChar);
+
+      // Skip current word or punctuation
+      if (!startIsWhite) {
+        while (r < buffer.length && c < buffer[r].length) {
+          const char = buffer[r][c];
+          const charIsWord = isWordChar(char);
+
+          // If we started on word char, skip while still on word chars
+          // If we started on punctuation, skip while still on punctuation
+          if (startIsWord !== charIsWord) break;
+
+          c++;
+          if (c >= buffer[r].length) {
+            r++;
+            c = 0;
+            break;
+          }
+        }
       }
 
+      // Skip whitespace
       while (r < buffer.length) {
-        const char = buffer[r][c];
-        if (char && !isWhitespace(char)) {
-          break;
-        }
-        c++;
         if (c >= buffer[r].length) {
-          r++; c = 0;
+          r++;
+          c = 0;
+          if (r >= buffer.length) break;
+          continue;
         }
+
+        const char = buffer[r][c];
+        if (!isWhitespace(char)) break;
+
+        c++;
       }
+
       if (r >= buffer.length) return cursor;
-      return { line: r, col: c };
+      return { line: r, col: Math.min(c, Math.max(0, buffer[r].length - 1)) };
     }
 
     case 'b': {
       let r = line, c = col;
+
+      if (r < 0 || c < 0) return cursor;
+
+      // Move back one position first
       c--;
+      if (c < 0) {
+        r--;
+        if (r < 0) return { line: 0, col: 0 };
+        c = buffer[r].length - 1;
+      }
+
+      // Skip whitespace backwards
       while (r >= 0) {
         if (c < 0) {
           r--;
-          if (r >= 0) c = buffer[r].length - 1;
+          if (r < 0) return { line: 0, col: 0 };
+          c = buffer[r].length - 1;
           continue;
         }
+
         const char = buffer[r][c];
-        const prevChar = c > 0 ? buffer[r][c - 1] : ' ';
-        if (!isWhitespace(char) && isWhitespace(prevChar)) {
-          break;
-        }
+        if (!isWhitespace(char)) break;
+
         c--;
       }
+
       if (r < 0) return { line: 0, col: 0 };
-      return { line: r, col: c };
+
+      // Now we're on a non-whitespace char, find the start of this word/punctuation
+      const targetChar = buffer[r][c];
+      const targetIsWord = isWordChar(targetChar);
+
+      while (r >= 0) {
+        if (c < 0) {
+          r--;
+          if (r < 0) return { line: 0, col: 0 };
+          c = buffer[r].length - 1;
+          if (c < 0) return { line: 0, col: 0 };
+        }
+
+        const char = buffer[r][c];
+        if (isWhitespace(char)) {
+          // Hit whitespace, move forward one step
+          c++;
+          if (c >= buffer[r].length) {
+            r++;
+            c = 0;
+          }
+          break;
+        }
+
+        const charIsWord = isWordChar(char);
+        if (targetIsWord !== charIsWord) {
+          // Hit different type, move forward one step
+          c++;
+          if (c >= buffer[r].length) {
+            r++;
+            c = 0;
+          }
+          break;
+        }
+
+        // Check if we're at the start of the word
+        if (c === 0) {
+          // At start of line
+          break;
+        }
+
+        const prevChar = buffer[r][c - 1];
+        if (isWhitespace(prevChar)) {
+          // Previous char is whitespace, we're at word start
+          break;
+        }
+
+        const prevIsWord = isWordChar(prevChar);
+        if (targetIsWord !== prevIsWord) {
+          // Previous char is different type, we're at word start
+          break;
+        }
+
+        c--;
+      }
+
+      if (r < 0) return { line: 0, col: 0 };
+      return { line: r, col: Math.max(0, c) };
     }
 
     case 'e': {
       let r = line, c = col;
-      const onWord = !isWhitespace(buffer[r][c] || ' ');
 
-      if (onWord) {
-        c++;
-        while (r < buffer.length && c < buffer[r].length) {
-          if (isWhitespace(buffer[r][c])) break;
-          c++;
-        }
-        c--;
+      if (r >= buffer.length) return cursor;
+      if (c >= buffer[r].length) {
+        c = buffer[r].length - 1;
       }
 
-      if (c >= buffer[r].length || isWhitespace(buffer[r][c] || ' ')) {
-        c++;
-        while (r < buffer.length) {
-          while (c < buffer[r].length && isWhitespace(buffer[r][c])) {
-            c++;
-          }
-          if (c < buffer[r].length) break;
+      const startChar = buffer[r][c];
+      const startIsWhite = isWhitespace(startChar);
+      const startIsWord = isWordChar(startChar);
+
+      // Move forward one position first
+      c++;
+      if (c >= buffer[r].length) {
+        r++;
+        c = 0;
+        if (r >= buffer.length) return cursor;
+      }
+
+      // Skip whitespace
+      while (r < buffer.length) {
+        if (c >= buffer[r].length) {
           r++;
           c = 0;
+          if (r >= buffer.length) return cursor;
+          continue;
         }
 
-        if (r >= buffer.length) return cursor;
+        const char = buffer[r][c];
+        if (!isWhitespace(char)) break;
 
-        while (c < buffer[r].length && !isWhitespace(buffer[r][c])) {
-          c++;
-        }
-        c--;
+        c++;
       }
 
-      return { line: r, col: Math.max(0, c) };
+      if (r >= buffer.length) return cursor;
+
+      // Now find the end of the current word/punctuation
+      const targetChar = buffer[r][c];
+      const targetIsWord = isWordChar(targetChar);
+
+      while (r < buffer.length) {
+        if (c >= buffer[r].length) {
+          r++;
+          c = 0;
+          if (r >= buffer.length) break;
+          continue;
+        }
+
+        const char = buffer[r][c];
+        const charIsWord = isWordChar(char);
+
+        // Check next character
+        const nextC = c + 1;
+        if (nextC >= buffer[r].length) {
+          // At end of line, this is the end
+          return { line: r, col: c };
+        }
+
+        const nextChar = buffer[r][nextC];
+        if (isWhitespace(nextChar)) {
+          // Next char is whitespace, this is the end
+          return { line: r, col: c };
+        }
+
+        const nextIsWord = isWordChar(nextChar);
+        if (targetIsWord !== nextIsWord) {
+          // Next char is different type, this is the end
+          return { line: r, col: c };
+        }
+
+        c++;
+      }
+
+      if (r >= buffer.length) return cursor;
+      return { line: r, col: Math.max(0, Math.min(c, buffer[r].length - 1)) };
     }
 
     case 'W': {
       let r = line, c = col;
-      c++;
-      while (r < buffer.length) {
-        while (c < buffer[r].length && !isWhitespace(buffer[r][c])) {
+
+      if (r >= buffer.length || c >= buffer[r].length) return cursor;
+
+      const startChar = buffer[r][c];
+      const startIsWhite = isWhitespace(startChar);
+
+      // Skip current WORD (any non-whitespace)
+      if (!startIsWhite) {
+        while (r < buffer.length && c < buffer[r].length) {
+          const char = buffer[r][c];
+          if (isWhitespace(char)) break;
+
           c++;
-        }
-        while (c < buffer[r].length && isWhitespace(buffer[r][c])) {
-          c++;
-        }
-        if (c < buffer[r].length) break;
-        r++;
-        c = 0;
-        if (r < buffer.length && buffer[r].length > 0 && !isWhitespace(buffer[r][0])) {
-          break;
+          if (c >= buffer[r].length) {
+            r++;
+            c = 0;
+            break;
+          }
         }
       }
+
+      // Skip whitespace
+      while (r < buffer.length) {
+        if (c >= buffer[r].length) {
+          r++;
+          c = 0;
+          if (r >= buffer.length) break;
+          continue;
+        }
+
+        const char = buffer[r][c];
+        if (!isWhitespace(char)) break;
+
+        c++;
+      }
+
       if (r >= buffer.length) return cursor;
-      return { line: r, col: c };
+      return { line: r, col: Math.min(c, Math.max(0, buffer[r].length - 1)) };
     }
 
     case 'B': {
       let r = line, c = col;
+
+      if (r < 0 || c < 0) return cursor;
+
+      // Move back one position first
       c--;
+      if (c < 0) {
+        r--;
+        if (r < 0) return { line: 0, col: 0 };
+        c = buffer[r].length - 1;
+      }
+
+      // Skip whitespace backwards
       while (r >= 0) {
         if (c < 0) {
           r--;
-          if (r >= 0) c = buffer[r].length - 1;
+          if (r < 0) return { line: 0, col: 0 };
+          c = buffer[r].length - 1;
           continue;
         }
+
         const char = buffer[r][c];
-        const prevChar = c > 0 ? buffer[r][c - 1] : ' ';
-        if (!isWhitespace(char) && isWhitespace(prevChar)) {
-          break;
-        }
+        if (!isWhitespace(char)) break;
+
         c--;
       }
+
       if (r < 0) return { line: 0, col: 0 };
-      return { line: r, col: c };
+
+      // Now we're on a non-whitespace char, find the start of this WORD
+      while (r >= 0) {
+        if (c === 0) {
+          // At start of line
+          break;
+        }
+
+        const prevChar = buffer[r][c - 1];
+        if (isWhitespace(prevChar)) {
+          // Previous char is whitespace, we're at WORD start
+          break;
+        }
+
+        c--;
+        if (c < 0) {
+          r--;
+          if (r < 0) return { line: 0, col: 0 };
+          c = buffer[r].length - 1;
+        }
+      }
+
+      if (r < 0) return { line: 0, col: 0 };
+      return { line: r, col: Math.max(0, c) };
     }
 
     case 'E': {
       let r = line, c = col;
-      const onWORD = !isWhitespace(buffer[r][c] || ' ');
 
-      if (onWORD) {
-        c++;
-        while (r < buffer.length && c < buffer[r].length) {
-          if (isWhitespace(buffer[r][c])) break;
-          c++;
-        }
-        c--;
+      if (r >= buffer.length) return cursor;
+      if (c >= buffer[r].length) {
+        c = buffer[r].length - 1;
       }
 
-      if (c >= buffer[r].length || isWhitespace(buffer[r][c] || ' ')) {
-        c++;
-        while (r < buffer.length) {
-          while (c < buffer[r].length && isWhitespace(buffer[r][c])) {
-            c++;
-          }
-          if (c < buffer[r].length) break;
+      // Move forward one position first
+      c++;
+      if (c >= buffer[r].length) {
+        r++;
+        c = 0;
+        if (r >= buffer.length) return cursor;
+      }
+
+      // Skip whitespace
+      while (r < buffer.length) {
+        if (c >= buffer[r].length) {
           r++;
           c = 0;
+          if (r >= buffer.length) return cursor;
+          continue;
         }
 
-        if (r >= buffer.length) return cursor;
+        const char = buffer[r][c];
+        if (!isWhitespace(char)) break;
 
-        while (c < buffer[r].length && !isWhitespace(buffer[r][c])) {
-          c++;
-        }
-        c--;
+        c++;
       }
 
-      return { line: r, col: Math.max(0, c) };
+      if (r >= buffer.length) return cursor;
+
+      // Now find the end of the current WORD
+      while (r < buffer.length) {
+        if (c >= buffer[r].length) {
+          r++;
+          c = 0;
+          if (r >= buffer.length) break;
+          continue;
+        }
+
+        // Check next character
+        const nextC = c + 1;
+        if (nextC >= buffer[r].length) {
+          // At end of line, this is the end
+          return { line: r, col: c };
+        }
+
+        const nextChar = buffer[r][nextC];
+        if (isWhitespace(nextChar)) {
+          // Next char is whitespace, this is the end
+          return { line: r, col: c };
+        }
+
+        c++;
+      }
+
+      if (r >= buffer.length) return cursor;
+      return { line: r, col: Math.max(0, Math.min(c, buffer[r].length - 1)) };
     }
 
     default:

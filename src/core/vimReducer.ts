@@ -118,7 +118,7 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
           }
 
           // Operator + Motion
-          if (['h', 'j', 'k', 'l', 'w', 'b', 'e', '0', '$', '^', 'W', 'B', 'E'].includes(key)) {
+          if (['h', 'j', 'k', 'l', 'w', 'b', 'e', '0', '$', '^', '_', 'W', 'B', 'E'].includes(key)) {
             if (pendingOperator === 'd' || pendingOperator === 'c') {
               return applyOperatorWithMotion(state, pendingOperator, key as Motion);
             }
@@ -128,7 +128,7 @@ export const vimReducer = (state: VimState, action: VimAction): VimState => {
         }
 
         // Navigation
-        if (['h', 'j', 'k', 'l', 'w', 'b', 'e', '0', '$', '^', 'W', 'B', 'E'].includes(key)) {
+        if (['h', 'j', 'k', 'l', 'w', 'b', 'e', '0', '$', '^', '_', 'W', 'B', 'E'].includes(key)) {
           const newPos = getMotionTarget(state, key as Motion);
           return { ...state, cursor: newPos, lastCommand: { type: 'move', motion: key as Motion } };
         }
