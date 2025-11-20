@@ -3,7 +3,7 @@ import type { Lesson } from '@/core/types';
 export const motionsWORDs: Lesson = {
   slug: 'motions-WORDs',
   title: 'Move by WORDs: W, B, E',
-  categoryId: 'basics',
+  categoryId: 'chapter2',
   shortDescription: 'Jump across noisy code using WORD motions that treat symbols as part of the chunk.',
   contentBlocks: [
     {

@@ -3,7 +3,7 @@ import type { Lesson } from '@/core/types';
 export const motionsWords: Lesson = {
   slug: 'motions-words',
   title: 'Move by words: w, b, e',
-  categoryId: 'basics',
+  categoryId: 'chapter2',
   shortDescription: 'Jump over whole words instead of moving character by character.',
   contentBlocks: [
     {

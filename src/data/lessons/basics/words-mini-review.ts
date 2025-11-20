@@ -3,7 +3,7 @@ import type { Lesson } from '@/core/types';
 export const wordsMiniReview: Lesson = {
   slug: 'words-mini-review',
   title: 'Mini review: word motions + small edits',
-  categoryId: 'basics',
+  categoryId: 'chapter2',
   shortDescription: 'Combine word motions with x, s, and r to quickly clean up a small snippet.',
   contentBlocks: [
     {

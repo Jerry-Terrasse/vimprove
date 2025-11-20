@@ -3,7 +3,7 @@ import type { Lesson } from '@/core/types';
 export const modesBasics: Lesson = {
   slug: 'modes-basics',
   title: 'Modes: Normal vs Insert',
-  categoryId: 'basics',
+  categoryId: 'chapter1',
   shortDescription: 'Learn how Vim modes work and how to enter and leave Insert mode.',
   contentBlocks: [
     {

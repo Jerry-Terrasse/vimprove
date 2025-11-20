@@ -1,6 +1,6 @@
 import type { Category } from '@/core/types';
 
 export const CATEGORIES: Category[] = [
-  { id: 'basics', title: 'The Fundamentals', order: 1 },
-  { id: 'edits', title: 'Editing Text', order: 2 }
+  { id: 'chapter1', title: 'Chapter 1: Vim Mindset & Basic Motions', order: 1 },
+  { id: 'chapter2', title: 'Chapter 2: Word Navigation & Small Edits', order: 2 }
 ];

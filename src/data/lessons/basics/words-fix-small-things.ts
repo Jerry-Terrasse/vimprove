@@ -3,7 +3,7 @@ import type { Lesson } from '@/core/types';
 export const wordsFixSmallThings: Lesson = {
   slug: 'words-fix-small-things',
   title: 'Fix small things with word motions',
-  categoryId: 'basics',
+  categoryId: 'chapter2',
   shortDescription: 'Use w, b, e with i/a to quickly fix small typos.',
   contentBlocks: [
     {

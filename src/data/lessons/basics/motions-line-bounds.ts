@@ -3,7 +3,7 @@ import type { Lesson } from '@/core/types';
 export const motionsLineBounds: Lesson = {
   slug: 'motions-line-bounds',
   title: 'Line Bounds: 0, ^, $',
-  categoryId: 'basics',
+  categoryId: 'chapter1',
   shortDescription: 'Jump to the start, code start, or end of a line.',
   contentBlocks: [
     {

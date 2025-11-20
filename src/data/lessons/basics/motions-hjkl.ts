@@ -3,7 +3,7 @@ import type { Lesson } from '@/core/types';
 export const motionsHjkl: Lesson = {
   slug: 'motions-hjkl',
   title: 'Move with HJKL',
-  categoryId: 'basics',
+  categoryId: 'chapter1',
   shortDescription: 'Use HJKL instead of arrow keys to move the cursor.',
   contentBlocks: [
     {

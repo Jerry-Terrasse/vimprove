@@ -3,7 +3,7 @@ import type { Lesson } from '@/core/types';
 export const modesMovementMiniReview: Lesson = {
   slug: 'modes-movement-mini-review',
   title: 'Mini Review: Move then Insert',
-  categoryId: 'basics',
+  categoryId: 'chapter1',
   shortDescription: 'Combine movement and Insert mode to fix a tiny program.',
   contentBlocks: [
     {

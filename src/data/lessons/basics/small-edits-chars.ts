@@ -3,7 +3,7 @@ import type { Lesson } from '@/core/types';
 export const smallEditsChars: Lesson = {
   slug: 'small-edits-chars',
   title: 'Small edits: x, s, r',
-  categoryId: 'basics',
+  categoryId: 'chapter2',
   shortDescription: 'Use x, s, and r to clean up tiny mistakes without full Insert mode.',
   contentBlocks: [
     {
