@@ -67,20 +67,25 @@ export const VimChallenge = ({ config, onComplete }: VimChallengeProps) => {
             return tokenChars.map((char, localIdx) => {
               const c = charIndex++;
               const isCursor = state.cursor.line === r && state.cursor.col === c;
-              const isBlock = state.mode === 'normal';
+              const isNormalMode = state.mode === 'normal';
 
               return (
                 <span
                   key={`${tokenIdx}-${localIdx}`}
-                  className={`${tokenColor} ${
-                    isCursor
-                      ? isBlock
-                        ? 'bg-stone-200 text-stone-900'
-                        : 'border-l-2 border-stone-200'
-                      : ''
-                  }`}
+                  className={`${tokenColor} ${isCursor ? 'relative' : ''}`}
                 >
-                  {char}
+                  {isCursor && (
+                    <span
+                      className={`absolute ${
+                        isNormalMode
+                          ? 'inset-0 bg-stone-200 opacity-70'
+                          : 'left-0 top-0 bottom-0 w-0.5 bg-stone-200 opacity-90'
+                      }`}
+                    />
+                  )}
+                  <span className={`${isCursor ? 'relative z-10 text-stone-900 font-bold' : ''}`}>
+                    {char}
+                  </span>
                 </span>
               );
             });
@@ -89,8 +94,8 @@ export const VimChallenge = ({ config, onComplete }: VimChallengeProps) => {
             <span
               className={`${
                 state.mode === 'normal'
-                  ? 'bg-stone-200 text-stone-900 opacity-50 inline-block w-2.5 h-5 align-middle'
-                  : 'border-l-2 border-stone-200 inline-block h-5 align-middle'
+                  ? 'bg-stone-200 opacity-70 inline-block w-2.5 h-5 align-middle'
+                  : 'bg-stone-200 opacity-90 inline-block w-0.5 h-5 align-middle'
               }`}
             >
               &nbsp;

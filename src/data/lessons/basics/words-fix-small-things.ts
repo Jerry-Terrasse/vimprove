@@ -20,30 +20,28 @@ A common editing pattern in Vim:
 You move first, then type.`
     },
     {
-      type: 'markdown',
-      content: `## Playable example: fixing a typo
-
-Start with:
-
-\`\`\`js
-const userNmae = 'Ada';
-console.log(userNmae);
-\`\`\`
-
-Animation steps:
-
-1. Start at the \`c\` in \`const\` (Normal mode).
-2. Press **w** twice:
-   - 1st \`w\` → \`userNmae\`
-   - 2nd \`w\` → the \`=\` sign
-3. Press **b** to jump back to the start of \`userNmae\`.
-4. Press **i** to enter Insert mode **before** the word.
-5. Use Backspace and typing to change \`userNmae\` → \`userName\`.
-6. Press **Esc** to return to Normal.
-7. Move to the second line and repeat the fix for the log call.
-
-The example shows that you do not "drag" the cursor while typing.
-You **jump with word motions**, fix briefly, then return to Normal.`
+      type: 'run-example',
+      config: {
+        initialBuffer: [
+          'int main() {',
+          '    int count = 0;',
+          '}'
+        ],
+        initialCursor: { line: 1, col: 4 },
+        autoPlaySpeed: 900,
+        tracks: [
+          { label: 'Word + Insert', keys: [] }
+        ],
+        steps: [
+          { key: 'w', description: 'w: jump to "int".', cursorIndex: 0 },
+          { key: 'w', description: 'w: jump to "count".', cursorIndex: 0 },
+          { key: 'e', description: 'e: jump to the end of "count".', cursorIndex: 0 },
+          { key: 'a', description: 'a: enter Insert mode just after "count".', cursorIndex: 0 },
+          { key: 'e', description: 'Type "e" to start adding "er".', cursorIndex: 0 },
+          { key: 'r', description: 'Type "r" to complete the new name "counter".', cursorIndex: 0 },
+          { key: 'Escape', description: 'Escape: go back to Normal with the fixed name.', cursorIndex: 0 }
+        ]
+      }
     },
     {
       type: 'key-list',

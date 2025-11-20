@@ -38,7 +38,7 @@ export const Sidebar = ({
       <div className="flex-1 p-4 overflow-y-auto">
         {CATEGORIES.map(cat => (
           <div key={cat.id} className="mb-8">
-            <h3 className="text-xs font-bold text-stone-500 uppercase tracking-widest mb-3 pl-2">
+            <h3 className="text-sm font-bold text-green-400 uppercase tracking-wide mb-4 px-2 py-1 border-l-2 border-green-500">
               {cat.title}
             </h3>
             <div className="space-y-1">

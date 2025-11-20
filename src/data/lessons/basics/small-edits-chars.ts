@@ -25,37 +25,41 @@ They are perfect for things like:
 - Removing an extra symbol.`
     },
     {
-      type: 'markdown',
-      content: `## Playable example: from "==" to "==="
-
-Start with:
-
-\`\`\`js
-if (count == 0) {
-  console.log("Zerro");
-}
-\`\`\`
-
-Two possible animations:
-
-1. Using **x**:
-   - Move to the second \`=\` in \`==\`.
-   - Press **x** to remove it.
-   - Type \`=\` in Insert mode (or use \`i\` + typing).
-
-2. Using **r**:
-   - Move to the space after \`==\`.
-   - Move left onto the second \`=\`.
-   - Press **r=** to turn the second \`=\` into another \`=\`, giving \`===\`.
-
-Then:
-
-- Move to the word \`Zerro\`.
-- Use **s** on the \`e\`:
-  - \`s\` deletes \`e\` and enters Insert mode.
-  - Type \`e\` again if you want to change it, or use Backspace and retype the whole word.
-- Fix \`Zerro\` → \`Zero\`.
-- Press **Esc** to return to Normal.`
+      type: 'run-example',
+      config: {
+        initialBuffer: [
+          'int main() {',
+          '    int value = 10;',
+          '    int count = 0;',
+          '    std::string text = "Hxllo";',
+          '}'
+        ],
+        initialCursor: { line: 1, col: 4 },
+        autoPlaySpeed: 850,
+        tracks: [
+          { label: 'Small edits: x, r, s', keys: [] }
+        ],
+        steps: [
+          { key: 'w', description: 'w: jump to "int".', cursorIndex: 0 },
+          { key: 'w', description: 'w: jump to "value".', cursorIndex: 0 },
+          { key: 'w', description: 'w: jump to "10".', cursorIndex: 0 },
+          { key: 'x', description: 'x: delete the "0" to make the value 1.', cursorIndex: 0 },
+          { key: 'j', description: 'j: move down to the "count" line.', cursorIndex: 0 },
+          { key: 'w', description: 'w: jump to "int".', cursorIndex: 0 },
+          { key: 'w', description: 'w: jump to "count".', cursorIndex: 0 },
+          { key: 'w', description: 'w: jump to the "0".', cursorIndex: 0 },
+          { key: 'r', description: 'r: prepare to replace the digit under the cursor.', cursorIndex: 0 },
+          { key: '1', description: 'Type "1" so the assignment becomes count = 1.', cursorIndex: 0 },
+          { key: 'j', description: 'j: move down to the string line.', cursorIndex: 0 },
+          { key: 'w', description: 'w: jump to "std::string".', cursorIndex: 0 },
+          { key: 'w', description: 'w: jump to "text".', cursorIndex: 0 },
+          { key: 'w', description: 'w: jump to the string literal "Hxllo".', cursorIndex: 0 },
+          { key: 'l', description: 'l: move onto the wrong letter "x".', cursorIndex: 0 },
+          { key: 's', description: 's: delete "x" and enter Insert mode at that spot.', cursorIndex: 0 },
+          { key: 'e', description: 'Type "e" to fix the word to "Hello".', cursorIndex: 0 },
+          { key: 'Escape', description: 'Escape: back to Normal after the small edit.', cursorIndex: 0 }
+        ]
+      }
     },
     {
       type: 'key-list',

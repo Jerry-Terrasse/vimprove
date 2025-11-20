@@ -25,25 +25,41 @@ Real editing in Vim follows a simple rhythm:
 In this mini review, you will fix a small program using this rhythm.`
     },
     {
-      type: 'markdown',
-      content: `## Example snippet
-
-\`\`\`js
-// Fix this tiny program using Normal + Insert motions only.
-
-function greet(name) {
-  const message = 'Hello, ' + name
-  // PRINT GREETING
-  console.log(message)
-}
-\`\`\`
-
-Your tasks:
-
-- Add missing semicolons.
-- Add a TODO comment line for the log.
-
-Move in **Normal**, then dip into **Insert** just long enough to make each fix.`
+      type: 'run-example',
+      config: {
+        initialBuffer: [
+          '#include <iostream>',
+          '',
+          'int main() {',
+          '    std::cout << "Hello";',
+          '}'
+        ],
+        initialCursor: { line: 2, col: 0 },
+        autoPlaySpeed: 900,
+        tracks: [
+          { label: 'Move + Insert review', keys: [] }
+        ],
+        steps: [
+          { key: 'O', description: 'O: open a new line above and enter Insert mode.', cursorIndex: 0 },
+          { key: '/', description: 'Type "/" to start a comment.', cursorIndex: 0 },
+          { key: '/', description: 'Type "/" again to make "//".', cursorIndex: 0 },
+          { key: 'Escape', description: 'Escape: back to Normal on the new comment line.', cursorIndex: 0 },
+          { key: 'j', description: 'j: move down to the std::cout line.', cursorIndex: 0 },
+          { key: '$', description: '$: jump to the end of the line.', cursorIndex: 0 },
+          { key: 'a', description: 'a: enter Insert mode after the semicolon.', cursorIndex: 0 },
+          { key: '!', description: 'Type "!" to make the greeting more expressive.', cursorIndex: 0 },
+          { key: 'Escape', description: 'Escape: return to Normal mode again.', cursorIndex: 0 },
+          { key: 'o', description: 'o: open a new line below and enter Insert mode.', cursorIndex: 0 },
+          { key: '/', description: 'Type "/" to start another comment.', cursorIndex: 0 },
+          { key: '/', description: 'Type "/" again.', cursorIndex: 0 },
+          { key: ' ', description: 'Type a space.', cursorIndex: 0 },
+          { key: 'd', description: 'Type "d".', cursorIndex: 0 },
+          { key: 'o', description: 'Type "o".', cursorIndex: 0 },
+          { key: 'n', description: 'Type "n".', cursorIndex: 0 },
+          { key: 'e', description: 'Type "e" to complete "// done".', cursorIndex: 0 },
+          { key: 'Escape', description: 'Escape: leave Insert mode with the new comment.', cursorIndex: 0 }
+        ]
+      }
     },
     {
       type: 'key-list',

@@ -25,32 +25,29 @@ Focus on:
 - Using \`x/s/r\` for tiny edits, not long Insert sessions.`
     },
     {
-      type: 'markdown',
-      content: `## Playable example: quick bugfix session
-
-Start from:
-
-\`\`\`js
-let totalCount = 0;
-let curentCount = 1;  // typo
-if (curentCount == totalCount) {
-  console.log("Match!");
-}
-\`\`\`
-
-Possible animation:
-
-1. Use **W** to jump across \`let\` and the variable name quickly.
-2. Land on \`curentCount\` and use **w/b/e** to align the cursor.
-3. Use **s** or **i** to fix the typo \`curentCount\` → \`currentCount\`.
-4. Use word motions to reach the \`==\` and make it \`===\` with **x** or **r**.
-5. Finish with a tiny comment line using **o**:
-
-\`\`\`js
-// TODO: check other counters
-\`\`\`
-
-The animation should highlight how little time is spent in Insert mode.`
+      type: 'run-example',
+      config: {
+        initialBuffer: [
+          'std::vector<int> values = {1, 2, 3};'
+        ],
+        initialCursor: { line: 0, col: 0 },
+        autoPlaySpeed: 700,
+        tracks: [
+          { label: 'Using h/l', keys: [], color: 'bg-red-500' },
+          { label: 'Using w (word)', keys: [], color: 'bg-blue-500' },
+          { label: 'Using W (WORD)', keys: [], color: 'bg-green-500' }
+        ],
+        steps: [
+          { key: 'l', description: 'h/l cursor: move right one character.', cursorIndex: 0 },
+          { key: 'l', description: 'h/l cursor: move right again.', cursorIndex: 0 },
+          { key: 'l', description: 'h/l cursor: move right again.', cursorIndex: 0 },
+          { key: 'l', description: 'h/l cursor: still stepping through "std::vector<int>".', cursorIndex: 0 },
+          { key: 'w', description: 'w cursor: jump to "values".', cursorIndex: 1 },
+          { key: 'w', description: 'w cursor: jump to "=".', cursorIndex: 1 },
+          { key: 'W', description: 'W cursor: jump over "std::vector<int>" as one WORD.', cursorIndex: 2 },
+          { key: 'W', description: 'W cursor: jump to "{1," in a single step.', cursorIndex: 2 }
+        ]
+      }
     },
     {
       type: 'key-list',

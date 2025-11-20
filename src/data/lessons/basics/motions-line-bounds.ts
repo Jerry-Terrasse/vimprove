@@ -25,24 +25,26 @@ Vim gives you three motions for this:
 You can use **h** and **l** to make small adjustments after jumping.`
     },
     {
-      type: 'markdown',
-      content: `## Example line
-
-\`\`\`js
-    const value = 42;   // indented line
-\`\`\`
-
-On this line:
-
-- \`0\` jumps to the very first column (before the spaces).
-- \`^\` jumps to the **c** in \`const\`.
-- \`$\` jumps to the last letter of \`line\`.
-
-Try to feel the difference:
-
-- \`0\` cares about the **text row**.
-- \`^\` cares about the **code start**.
-- \`$\` cares about the **end**.`
+      type: 'run-example',
+      config: {
+        initialBuffer: [
+          '#include <string>',
+          '',
+          'int main() {',
+          '    std::string name = "Ada";',
+          '}'
+        ],
+        initialCursor: { line: 3, col: 16 },
+        autoPlaySpeed: 900,
+        tracks: [
+          { label: 'Line bounds', keys: [] }
+        ],
+        steps: [
+          { key: '0', description: '0: jump to column 0 (very start of the line).', cursorIndex: 0 },
+          { key: '^', description: '^: jump to the first non-blank character "s".', cursorIndex: 0 },
+          { key: '$', description: '$: jump to the end of the line (after the semicolon).', cursorIndex: 0 }
+        ]
+      }
     },
     {
       type: 'key-list',

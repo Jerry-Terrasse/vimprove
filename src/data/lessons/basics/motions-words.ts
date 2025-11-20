@@ -21,33 +21,27 @@ Vim gives you **word motions** to skip bigger chunks:
 A "word" here is a run of letters, digits, or underscores separated by spaces or punctuation.`
     },
     {
-      type: 'markdown',
-      content: `## Playable example: walking through a line
-
-Take this line:
-
-\`\`\`js
-const fullName = firstName + lastName;
-\`\`\`
-
-Imagine the cursor starts on the \`c\` in \`const\`.
-
-Try this sequence:
-
-1. Press **w** repeatedly:
-   - 1st \`w\` → \`fullName\`
-   - 2nd \`w\` → \`=\`
-   - 3rd \`w\` → \`firstName\`
-   - 4th \`w\` → \`+\`
-   - 5th \`w\` → \`lastName\`
-
-2. From the start of \`firstName\`, press **e**:
-   - Cursor jumps to the **last letter** of \`firstName\`.
-
-3. From the end of \`firstName\`, press **b**:
-   - Cursor jumps back to the start of \`firstName\`.
-
-The animation can show a small highlight on each word as \`w\`, \`b\`, and \`e\` move the cursor along.`
+      type: 'run-example',
+      config: {
+        initialBuffer: [
+          '#include <string>',
+          '',
+          'int main() {',
+          '    std::string fullName = "Ada Lovelace";',
+          '}'
+        ],
+        initialCursor: { line: 3, col: 4 },
+        autoPlaySpeed: 900,
+        tracks: [
+          { label: 'Move by words', keys: [] }
+        ],
+        steps: [
+          { key: 'w', description: 'w: jump from indentation to "std::string".', cursorIndex: 0 },
+          { key: 'w', description: 'w: jump to "fullName".', cursorIndex: 0 },
+          { key: 'e', description: 'e: jump to the end of "fullName".', cursorIndex: 0 },
+          { key: 'b', description: 'b: jump back to the start of "fullName".', cursorIndex: 0 }
+        ]
+      }
     },
     {
       type: 'key-list',

@@ -147,13 +147,15 @@ export const RunExamplePlayer = ({ config }: RunExamplePlayerProps) => {
                   {cursorsAtPos.map(({ idx }) => {
                     const track = config.tracks[idx];
                     const bgColor = track.color || (idx === 0 ? 'bg-blue-500' : 'bg-green-500');
-                    const isBlock = states[idx].mode === 'normal';
+                    const isNormalMode = states[idx].mode === 'normal';
 
                     return (
                       <span
                         key={idx}
-                        className={`absolute inset-0 ${bgColor} ${
-                          isBlock ? 'opacity-70' : 'border-l-2 opacity-50'
+                        className={`absolute ${bgColor} ${
+                          isNormalMode
+                            ? 'inset-0 opacity-70'
+                            : 'left-0 top-0 bottom-0 w-0.5 opacity-90'
                         }`}
                       />
                     );
@@ -177,15 +179,15 @@ export const RunExamplePlayer = ({ config }: RunExamplePlayerProps) => {
                 .map(({ idx }) => {
                   const track = config.tracks[idx];
                   const bgColor = track.color || (idx === 0 ? 'bg-blue-500' : 'bg-green-500');
-                  const isBlock = states[idx].mode === 'normal';
+                  const isNormalMode = states[idx].mode === 'normal';
 
                   return (
                     <span
                       key={idx}
-                      className={`${bgColor} ${
-                        isBlock
-                          ? 'opacity-70 inline-block w-2.5 h-5 align-middle'
-                          : 'border-l-2 opacity-50 inline-block h-5 align-middle'
+                      className={`${bgColor} inline-block h-5 align-middle ${
+                        isNormalMode
+                          ? 'w-2.5 opacity-70'
+                          : 'w-0.5 opacity-90'
                       }`}
                     >
                       &nbsp;

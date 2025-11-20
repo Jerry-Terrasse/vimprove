@@ -40,31 +40,23 @@ The **green cursor** uses \`W\` (treats everything between spaces as one chunk).
     {
       type: 'run-example',
       config: {
-        initialBuffer: ['t = Math.max(i, 4200), Math.min(j, 4900);'],
+        initialBuffer: [
+          'auto result = std::max(x, 42) + std::min(y, 7);'
+        ],
         initialCursor: { line: 0, col: 0 },
         autoPlaySpeed: 800,
         tracks: [
-          { label: 'Using w', keys: [], color: 'bg-blue-500' },
-          { label: 'Using W', keys: [], color: 'bg-green-500' }
+          { label: 'Using w (word)', keys: [], color: 'bg-blue-500' },
+          { label: 'Using W (WORD)', keys: [], color: 'bg-green-500' }
         ],
         steps: [
-          { key: 'w', description: 'Cursor A (w): jumps to "="', cursorIndex: 0 },
-          { key: 'W', description: 'Cursor B (W): jumps to "Math.max(i,"', cursorIndex: 1 },
-          { key: 'w', description: 'Cursor A (w): jumps to "Math"', cursorIndex: 0 },
-          { key: 'w', description: 'Cursor A (w): jumps to "."', cursorIndex: 0 },
-          { key: 'W', description: 'Cursor B (W): jumps to "4200),"', cursorIndex: 1 },
-          { key: 'w', description: 'Cursor A (w): jumps to "max"', cursorIndex: 0 },
-          { key: 'w', description: 'Cursor A (w): jumps to "("', cursorIndex: 0 },
-          { key: 'W', description: 'Cursor B (W): jumps to "Math.min(j,"', cursorIndex: 1 },
-          { key: 'w', description: 'Cursor A (w): jumps to "i"', cursorIndex: 0 },
-          { key: 'w', description: 'Cursor A (w): jumps to ","', cursorIndex: 0 },
-          { key: 'W', description: 'Cursor B (W): jumps to "4900);"', cursorIndex: 1 },
-          { key: 'w', description: 'Cursor A (w): jumps to "4200"', cursorIndex: 0 },
-          { key: 'w', description: 'Cursor A (w): jumps to ")"', cursorIndex: 0 },
-          { key: 'w', description: 'Cursor A (w): jumps to ","', cursorIndex: 0 },
-          { key: 'w', description: 'Cursor A (w): jumps to "Math" (2nd)', cursorIndex: 0 },
-          { key: 'w', description: 'Cursor A (w): jumps to "." (2nd)', cursorIndex: 0 },
-          { key: 'w', description: 'Cursor A (w): jumps to "min"', cursorIndex: 0 }
+          { key: 'w', description: 'w: move from "auto" to "result".', cursorIndex: 0 },
+          { key: 'W', description: 'W: move from "auto" to "result".', cursorIndex: 1 },
+          { key: 'w', description: 'w: move from "result" to "=".', cursorIndex: 0 },
+          { key: 'W', description: 'W: jump over "= std::max(x, 42)" as one WORD.', cursorIndex: 1 },
+          { key: 'w', description: 'w: step into "std::max(x, 42)".', cursorIndex: 0 },
+          { key: 'w', description: 'w: continue stepping over smaller pieces.', cursorIndex: 0 },
+          { key: 'W', description: 'W: jump again over "+ std::min(y, 7);" towards the end.', cursorIndex: 1 }
         ]
       }
     },

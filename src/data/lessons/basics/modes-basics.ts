@@ -43,26 +43,30 @@ You can read them as tiny English phrases:
 - \`O\` → "Open above" (same, but above)`
     },
     {
-      type: 'markdown',
-      content: `## Example: fixing a tiny snippet
-
-Given this code:
-
-\`\`\`js
-// Lesson 1.1 - modes
-const message = 'ready';
-console.log(message);
-\`\`\`
-
-One efficient way to extend it is:
-
-1. Make sure you are in Normal mode (press **Esc** once, just in case).
-2. Move the cursor to the comment line and insert the word \`Vim\` in the sentence using **i** or **a**.
-3. Move to \`console.log(message);\` and press **o** to open a new line *below*.
-4. Type \`console.log('done');\`.
-5. Press **Esc** to leave Insert mode.
-
-Notice how you **start in Normal**, dip into **Insert** to type, then come back to **Normal** with **Esc**. That rhythm is the core of Vim editing.`
+      type: 'run-example',
+      config: {
+        initialBuffer: [
+          '#include <iostream>',
+          '',
+          'int main() {',
+          '    int value = 42;',
+          '}'
+        ],
+        initialCursor: { line: 3, col: 4 },
+        autoPlaySpeed: 900,
+        tracks: [
+          { label: 'Insert vs Normal', keys: [] }
+        ],
+        steps: [
+          { key: 'i', description: 'i: enter Insert mode before "int".', cursorIndex: 0 },
+          { key: '/', description: 'Type "/" – the code changes while in Insert.', cursorIndex: 0 },
+          { key: 'Escape', description: 'Escape: go back to Normal mode.', cursorIndex: 0 },
+          { key: '$', description: '$: jump to the end of the line in Normal mode.', cursorIndex: 0 },
+          { key: 'a', description: 'a: enter Insert mode after the semicolon.', cursorIndex: 0 },
+          { key: '/', description: 'Type "/" to start a trailing comment.', cursorIndex: 0 },
+          { key: 'Escape', description: 'Escape: return to Normal again.', cursorIndex: 0 }
+        ]
+      }
     },
     {
       type: 'key-list',

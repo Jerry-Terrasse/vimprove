@@ -22,22 +22,27 @@ Think of the cursor as a tiny player on a grid.
 Your goal is to **walk** to the target using only these four keys.`
     },
     {
-      type: 'markdown',
-      content: `## Example: walking to the target
-
-Imagine this tiny map:
-
-\`\`\`
-S.........
-.....X....
-...TARGET.
-\`\`\`
-
-- You start on \`S\` (top-left).
-- First walk to the \`X\`.
-- Then walk down and right to the start of \`TARGET\`.
-
-You do all of this with **h j k l** only.`
+      type: 'run-example',
+      config: {
+        initialBuffer: [
+          'int main() {',
+          '    int value = 42;',
+          '}'
+        ],
+        initialCursor: { line: 0, col: 0 },
+        autoPlaySpeed: 800,
+        tracks: [
+          { label: 'Move with HJKL', keys: [] }
+        ],
+        steps: [
+          { key: 'j', description: 'j: move down from the function header to the variable line.', cursorIndex: 0 },
+          { key: 'k', description: 'k: move back up to the function header.', cursorIndex: 0 },
+          { key: 'j', description: 'j: move down again to the variable line.', cursorIndex: 0 },
+          { key: 'l', description: 'l: move right inside the line.', cursorIndex: 0 },
+          { key: 'l', description: 'l: move right one more character.', cursorIndex: 0 },
+          { key: 'h', description: 'h: move left to step back by one.', cursorIndex: 0 }
+        ]
+      }
     },
     {
       type: 'key-list',
