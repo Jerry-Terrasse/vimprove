@@ -8,7 +8,7 @@ Vimprove 是一个交互式 Vim 学习网站。核心功能是通过浏览器中
 
 **当前状态**: ✅ 重构完成。项目已从单文件原型（`tmp/vimprove.html`）重构为模块化的 React + TypeScript 架构。
 
-**版本**: v0.1.0 Alpha（版本管理在 `src/version.ts`）
+**版本**: v0.3.0 Alpha（版本管理在 `src/version.ts` 和 `package.json`）
 
 ## Development Commands
 
@@ -281,11 +281,15 @@ ls src/data/lessons/edits/
 ### 当前已完成
 
 - ✅ 模块化架构（Core/Data/Hooks/Components）
-- ✅ 13 个课程（Chapter 1-2 完成，包括 basics 和 edits）
-- ✅ 完整的 Vim 引擎（支持 w/b/e/W/B/E/s/r 等命令）
+- ✅ 14 个课程（Chapter 1-3 完成，包括 basics 和 edits）
+- ✅ 完整的 Vim 引擎（支持 w/b/e/W/B/E/s/r/f/t/F/T/;/,/y/p/P/u/Ctrl-r 等命令）
+- ✅ Undo/Redo 系统
+- ✅ Yank/Paste 功能
+- ✅ 数字前缀（Count Multiplier）
+- ✅ 查找字符（f/F/t/T/;/,）
 - ✅ Challenge 系统（目标验证、计时）
 - ✅ Run Example 可播放示例（`src/components/example/RunExamplePlayer.tsx`）
-- ✅ 版本管理（v0.1.0 Alpha）
+- ✅ 版本管理（v0.3.0 Alpha）
 - ✅ 网站图标和 PWA 支持
 - ✅ 课程编写协作文档（`tmp/` 目录）
 
@@ -328,3 +332,28 @@ ls src/data/lessons/edits/
 - ❌ 单个课程内容
 - ❌ 小的样式调整
 - ❌ 临时的调试信息
+
+## 版本管理规则
+
+**版本号格式**: `MAJOR.MINOR.PATCH` (遵循 SemVer)
+
+**更新规则**：
+- **PATCH** (0.3.x): Bug 修复、小的样式调整
+- **MINOR** (0.x.0): 新功能、新课程章节、新命令支持
+- **MAJOR** (x.0.0): 重大架构变更、不兼容的 API 变化
+
+**更新文件**：
+- `src/version.ts` - 应用内版本显示
+- `package.json` - 包版本号
+- `CLAUDE.md` - 项目版本状态
+
+**何时更新版本**：
+- 添加新章节（如 Chapter 4）→ MINOR++
+- 添加新核心功能（如 undo/redo、yank/paste）→ MINOR++
+- 修复 Bug → PATCH++
+- 每次提交前检查是否需要更新版本
+
+**版本历史**：
+- v0.1.0: 项目初始化、框架搭建
+- v0.2.0: Chapter 1-2、run-example、Markdown 渲染
+- v0.3.0: Chapter 3、undo/redo、yank/paste、数字前缀、f/F/t/T 查找

@@ -16,13 +16,35 @@ export type Command = {
   to?: Mode;
 };
 
+export type FindMotion = {
+  type: 'f' | 'F' | 't' | 'T';
+  char: string;
+};
+
 export type VimState = {
   buffer: string[];
   cursor: Cursor;
   mode: Mode;
   pendingOperator: Operator | null;
   pendingReplace: boolean;
+  pendingFind: 'f' | 'F' | 't' | 'T' | null;
   lastCommand: Command | null;
+
+  // Undo/Redo support
+  history: VimState[];
+  historyIndex: number;
+
+  // Yank/Paste support
+  register: string;
+
+  // Count prefix (e.g., "3" in "3dw")
+  count: string;
+
+  // Last find motion (for ; and ,)
+  lastFind: FindMotion | null;
+
+  // Last change action (for . repeat)
+  lastChange: VimAction | null;
 };
 
 export type VimAction = {

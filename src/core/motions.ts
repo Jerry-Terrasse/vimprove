@@ -1,5 +1,36 @@
-import type { VimState, Cursor, Motion } from './types';
+import type { VimState, Cursor, Motion, FindMotion } from './types';
 import { isWhitespace, isWordChar } from './utils';
+
+// Find character on current line
+export const findCharOnLine = (
+  line: string,
+  startCol: number,
+  char: string,
+  findType: 'f' | 'F' | 't' | 'T'
+): number | null => {
+  if (findType === 'f') {
+    // Find forward: search from startCol + 1 to end
+    for (let i = startCol + 1; i < line.length; i++) {
+      if (line[i] === char) return i;
+    }
+  } else if (findType === 'F') {
+    // Find backward: search from startCol - 1 to start
+    for (let i = startCol - 1; i >= 0; i--) {
+      if (line[i] === char) return i;
+    }
+  } else if (findType === 't') {
+    // Till forward: search from startCol + 1, return position before char
+    for (let i = startCol + 1; i < line.length; i++) {
+      if (line[i] === char) return i - 1;
+    }
+  } else if (findType === 'T') {
+    // Till backward: search from startCol - 1, return position after char
+    for (let i = startCol - 1; i >= 0; i--) {
+      if (line[i] === char) return i + 1;
+    }
+  }
+  return null;
+};
 
 export const getMotionTarget = (state: VimState, motion: Motion): Cursor => {
   const { buffer, cursor } = state;
