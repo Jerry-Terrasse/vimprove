@@ -1,34 +1,42 @@
 import { tokenizeLine, getTokenClassName } from '@/core/syntaxHighlight';
 import type { EditorSettings } from '@/hooks/useSettings';
 import { useTranslationSafe } from '@/hooks/useI18n';
+import { useFontLoader, FONT_CONFIGS, getFontFamily } from '@/hooks/useFontLoader';
 
 type AppearanceTabProps = {
   settings: EditorSettings;
   onUpdate: (updates: Partial<EditorSettings>) => void;
 };
 
-const FONT_OPTIONS = [
-  'Consolas',
-  'JetBrains Mono',
-  'Fira Code',
-  'Source Code Pro',
-  'Menlo',
-  'Monaco',
-  'Courier New'
-];
-
 export const AppearanceTab = ({ settings, onUpdate }: AppearanceTabProps) => {
   const { t } = useTranslationSafe('settings');
+  useFontLoader(settings.fontFamily);
 
   const renderPreview = () => {
     const code = [
-      'function hello() {',
-      '  console.log("Hello, Vim!");',
+      '[[nodiscard]] constexpr auto fast_inv_sqrt(float x) noexcept -> float {',
+      '    using std::uint32_t;',
+      '',
+      '    constexpr auto magic        = 0x5f3759dfu;',
+      '    constexpr auto half         = 0.5f;',
+      '    constexpr auto three_halfs  = 1.5f;',
+      '',
+      '    if (x <= 0.0f || !std::isfinite(x)) {',
+      '        return std::numeric_limits<float>::quiet_NaN();',
+      '    }',
+      '',
+      '    auto i = std::bit_cast<uint32_t>(x);        // float -> bits',
+      '    i = magic - (i >> 1);                       // magic initial guess',
+      '    auto y = std::bit_cast<float>(i);           // bits -> float',
+      '',
+      '    y = y * (three_halfs - half * x * y * y);   // Newton-Raphson step',
+      '',
+      '    return y;',
       '}'
     ];
 
     return code.map((line, idx) => {
-      const tokens = tokenizeLine(line, 'javascript', code);
+      const tokens = tokenizeLine(line, 'cpp', code);
       return (
         <div key={idx}>
           {tokens.map((token, tokenIdx) => (
@@ -49,18 +57,18 @@ export const AppearanceTab = ({ settings, onUpdate }: AppearanceTabProps) => {
           {t('appearance.fontFamily', 'Font Family')}
         </label>
         <div className="grid grid-cols-2 gap-2">
-          {FONT_OPTIONS.map(font => (
+          {FONT_CONFIGS.map(config => (
             <button
-              key={font}
-              onClick={() => onUpdate({ fontFamily: font })}
+              key={config.name}
+              onClick={() => onUpdate({ fontFamily: config.name })}
               className={`px-4 py-2 rounded-lg text-sm transition-all ${
-                settings.fontFamily === font
+                settings.fontFamily === config.name
                   ? 'bg-green-600 text-white'
                   : 'bg-stone-800 text-stone-300 hover:bg-stone-700'
               }`}
-              style={{ fontFamily: font }}
+              style={{ fontFamily: getFontFamily(config.name) }}
             >
-              {font}
+              {config.name}
             </button>
           ))}
         </div>
@@ -95,8 +103,9 @@ export const AppearanceTab = ({ settings, onUpdate }: AppearanceTabProps) => {
         </label>
         <div className="bg-stone-900 rounded-lg p-4 border border-stone-700">
           <div
+            className="whitespace-pre"
             style={{
-              fontFamily: settings.fontFamily,
+              fontFamily: getFontFamily(settings.fontFamily),
               fontSize: `${settings.fontSize}px`,
               lineHeight: 1.5
             }}

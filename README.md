@@ -141,6 +141,14 @@ src/
 
 ## 📝 CHANGELOG
 
+### v0.10.1
+- 🎨 优化设置面板布局：Tab 栏从左侧改为顶部，面板尺寸增大以适应更长的代码预览
+- 🔤 实现字体按需加载系统：Google Fonts 动态加载，系统字体自动 fallback
+- 📝 更新字体列表：新增 10 个等宽字体选项（Consolas、Fira Code、JetBrains Mono、Cascadia Code 等）
+- 🐛 修复外观设置预览代码缩进不显示的问题（添加 `whitespace-pre`）
+- 🌐 修复首页按钮缺少 i18n 支持
+- 🗣️ 简化语言菜单显示（移除括号中的语言说明）
+
 ### v0.10.0
 - 🗣️ 新增「中文（活泼）」 i18n 方案：为课程文案提供更具故事感和引导感的中文活泼版
 - 📚 为 Chapter 1–6 撰写活泼版课程文案（zh-lively/lessons.json），按章节覆盖 modes/motions、word/WORD、小编辑、操作符、文本对象、find/till、搜索重构等内容
@@ -208,4 +216,4 @@ src/
 
 ---
 
-**当前版本**: v0.9.0 Alpha
+**当前版本**: v0.10.1 Alpha

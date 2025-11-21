@@ -27,9 +27,9 @@ export const SettingsPanel = ({ isOpen, onClose }: SettingsPanelProps) => {
       />
 
       {/* Panel */}
-      <div className="relative bg-stone-900 rounded-2xl border border-stone-700 shadow-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
+      <div className="relative bg-stone-900 rounded-2xl border border-stone-700 shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="border-b border-stone-800 p-6 flex items-center justify-between">
+        <div className="border-b border-stone-800 px-6 py-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-white">{t('title', 'Settings')}</h2>
           <button
             onClick={onClose}
@@ -39,31 +39,29 @@ export const SettingsPanel = ({ isOpen, onClose }: SettingsPanelProps) => {
           </button>
         </div>
 
-        <div className="flex flex-1 overflow-hidden">
-          {/* Sidebar */}
-          <div className="w-48 border-r border-stone-800 p-4 flex flex-col gap-1">
-            <button
-              onClick={() => setActiveTab('appearance')}
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-colors ${
+        {/* Tab Bar */}
+        <div className="border-b border-stone-800 px-6 flex gap-2">
+          <button
+            onClick={() => setActiveTab('appearance')}
+            className={`flex items-center gap-2 px-4 py-3 text-sm transition-colors border-b-2 ${
               activeTab === 'appearance'
-                ? 'bg-stone-800 text-white'
-                : 'text-stone-400 hover:text-white hover:bg-stone-800/50'
-              }`}
-            >
-              <Palette size={18} />
-              {t('appearance.tab', 'Appearance')}
-            </button>
-          </div>
+                ? 'border-green-500 text-white'
+                : 'border-transparent text-stone-400 hover:text-white'
+            }`}
+          >
+            <Palette size={18} />
+            {t('appearance.tab', 'Appearance')}
+          </button>
+        </div>
 
-          {/* Content */}
-          <div className="flex-1 p-6 overflow-y-auto">
-            {activeTab === 'appearance' && (
-              <AppearanceTab
-                settings={settings.editor}
-                onUpdate={updateEditorSettings}
-              />
-            )}
-          </div>
+        {/* Content */}
+        <div className="flex-1 p-6 overflow-y-auto">
+          {activeTab === 'appearance' && (
+            <AppearanceTab
+              settings={settings.editor}
+              onUpdate={updateEditorSettings}
+            />
+          )}
         </div>
 
         {/* Footer */}

@@ -84,7 +84,7 @@ export const Sidebar = ({
               onClick={onHomeClick}
               className="w-full flex items-center justify-center gap-2 text-stone-300 bg-stone-900 border border-stone-800 rounded-lg px-3 py-2 text-sm hover:border-green-600 transition-colors"
             >
-              <HomeIcon size={16} /> 首页
+              <HomeIcon size={16} /> {t('home')}
             </button>
           </div>
           <div className="relative">
@@ -114,7 +114,7 @@ export const Sidebar = ({
                         : 'text-stone-200 hover:bg-stone-800'
                     }`}
                   >
-                    {lng.nativeLabel} <span className="text-xs text-stone-500">({lng.label})</span>
+                    {lng.nativeLabel}
                   </button>
                 ))}
               </div>
