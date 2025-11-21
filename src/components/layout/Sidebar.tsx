@@ -1,4 +1,4 @@
-import { Terminal, ChevronRight, Home as HomeIcon, Code2 } from 'lucide-react';
+import { ChevronRight, Home as HomeIcon, Code2 } from 'lucide-react';
 import { CATEGORIES } from '@/data';
 import type { Lesson } from '@/core/types';
 import { VERSION, VERSION_LABEL } from '@/version';
@@ -23,16 +23,16 @@ export const Sidebar = ({
   return (
     <div
       className={`
-        fixed inset-y-0 left-0 z-50 w-72 bg-stone-900 border-r border-stone-800 transform transition-transform duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-50 w-72 h-screen bg-stone-900 border-r border-stone-800 transform transition-transform duration-300 ease-in-out
         flex flex-col
         ${!isVisible ? '-translate-x-full' : isOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:relative md:translate-x-0
+        md:relative md:translate-x-0 md:h-screen
         ${!isVisible ? 'md:hidden' : ''}
       `}
     >
-      <div className="p-6 border-b border-stone-800 flex items-center gap-3">
-        <Terminal className="text-green-400" size={24} />
-        <span className="font-bold text-lg tracking-tight">Vimprove</span>
+      <div className="px-4 py-3 border-b border-stone-800 flex items-center gap-4">
+        <img src="/favicon.png" alt="Vimprove" className="w-16 h-16 flex-shrink-0" />
+        <span className="font-bold text-4xl logo-text">Vimprove</span>
       </div>
 
       <div className="flex-1 p-4 overflow-y-auto">
