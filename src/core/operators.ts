@@ -1,58 +1,12 @@
 import type { VimState, Operator, Motion, OperatorMotion, TextObject, Cursor } from './types';
 import { getMotionTarget } from './motions';
 import { clampCursor, isWhitespace, isWordChar } from './utils';
+import { pushHistory } from './stateUtils';
 
 type Range = {
   start: Cursor;
   end: Cursor;
   isLinewise?: boolean;
-};
-
-// Helper: create snapshot for history
-const createSnapshot = (state: VimState): VimState => {
-  return {
-    buffer: [...state.buffer],
-    cursor: { ...state.cursor },
-    mode: state.mode,
-    pendingOperator: state.pendingOperator,
-    pendingReplace: state.pendingReplace,
-    pendingFind: state.pendingFind,
-    pendingTextObject: state.pendingTextObject,
-    pendingSearch: state.pendingSearch,
-    lastSearch: state.lastSearch,
-    lastCommand: state.lastCommand,
-    history: [],
-    historyIndex: -1,
-    register: state.register,
-    count: state.count,
-    lastFind: state.lastFind,
-    lastChange: state.lastChange ? [...state.lastChange] : null,
-    changeRecording: state.changeRecording ? [...state.changeRecording] : null,
-    lastChangeCount: state.lastChangeCount,
-    recordingCount: state.recordingCount,
-    lastChangeCursor: state.lastChangeCursor ? { ...state.lastChangeCursor } : null,
-    lastChangeInsertCursor: state.lastChangeInsertCursor ? { ...state.lastChangeInsertCursor } : null,
-    recordingExitCursor: state.recordingExitCursor ? { ...state.recordingExitCursor } : null,
-    recordingInsertCursor: state.recordingInsertCursor ? { ...state.recordingInsertCursor } : null,
-  };
-};
-
-// Helper: add current state to history
-const pushHistory = (state: VimState): VimState => {
-  const snapshot = createSnapshot(state);
-  const newHistory = state.history.slice(0, state.historyIndex + 1);
-  newHistory.push(snapshot);
-
-  const maxHistory = 100;
-  if (newHistory.length > maxHistory) {
-    newHistory.shift();
-  }
-
-  return {
-    ...state,
-    history: newHistory,
-    historyIndex: newHistory.length - 1,
-  };
 };
 
 const isTextObjectMotion = (motion: OperatorMotion): motion is TextObject => {
