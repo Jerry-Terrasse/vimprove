@@ -18,7 +18,8 @@ Object.entries(localeModules).forEach(([path, mod]) => {
 
 export const supportedLocales = [
   { code: 'en', label: 'English', nativeLabel: 'English' },
-  { code: 'zh', label: 'Chinese', nativeLabel: '中文' }
+  { code: 'zh', label: 'Chinese', nativeLabel: '中文' },
+  { code: 'zh-lively', label: 'Chinese (Lively)', nativeLabel: '中文（活泼）' }
 ] as const;
 
 export const defaultNS = 'common';

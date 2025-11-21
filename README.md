@@ -141,6 +141,11 @@ src/
 
 ## 📝 CHANGELOG
 
+### v0.10.0
+- 🗣️ 新增「中文（活泼）」 i18n 方案：为课程文案提供更具故事感和引导感的中文活泼版
+- 📚 为 Chapter 1–6 撰写活泼版课程文案（zh-lively/lessons.json），按章节覆盖 modes/motions、word/WORD、小编辑、操作符、文本对象、find/till、搜索重构等内容
+- 🧠 形成统一的活泼版文案规范（tmp/plans/zh-lively.md），包括语气风格、术语处理、情绪价值与教学结构
+
 ### v0.9.0
 - 🌐 引入 i18next + react-i18next，支持多语言（英文/中文）与语言检测、切换器
 - 🧭 全站文案 i18n 化：布局、首页、课程页、挑战/Run Example/设置面板均接入翻译
