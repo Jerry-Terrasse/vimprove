@@ -127,26 +127,57 @@ export const RunExamplePlayer = ({ config }: RunExamplePlayerProps) => {
       let charIndex = 0;
 
       return (
-        <div key={r} className="relative min-h-[1.5rem] whitespace-pre font-mono text-lg">
-          <span className="absolute -left-8 text-stone-600 text-xs top-1 select-none">
-            {r + 1}
-          </span>
-          {tokens.map((token, tokenIdx) => {
-            const tokenChars = token.content.split('');
-            const tokenColor = getTokenClassName(token.type);
+        <div key={r} className="vim-editor-line">
+          <span className="vim-line-number">{r + 1}</span>
+          <div className="vim-line-content">
+            {tokens.map((token, tokenIdx) => {
+              const tokenChars = token.content.split('');
+              const tokenColor = getTokenClassName(token.type);
 
-            return tokenChars.map((char, localIdx) => {
-              const c = charIndex++;
-              const cursorsAtPos = states
-                .map((s, idx) => ({ state: s, idx }))
-                .filter(({ state }) => state.cursor.line === r && state.cursor.col === c);
+              return tokenChars.map((char, localIdx) => {
+                const c = charIndex++;
+                const cursorsAtPos = states
+                  .map((s, idx) => ({ state: s, idx }))
+                  .filter(({ state }) => state.cursor.line === r && state.cursor.col === c);
 
-              const renderChar = cursorsAtPos.length > 0 ? (
-                <span
-                  key={`${tokenIdx}-${localIdx}`}
-                  className={`${tokenColor} relative`}
-                >
-                  {cursorsAtPos.map(({ idx }) => {
+                const renderChar = cursorsAtPos.length > 0 ? (
+                  <span
+                    key={`${tokenIdx}-${localIdx}`}
+                    className={`${tokenColor} relative`}
+                  >
+                    {cursorsAtPos.map(({ idx }) => {
+                      const track = config.tracks[idx];
+                      const bgColor = track.color || (idx === 0 ? 'bg-blue-500' : 'bg-green-500');
+                      const isNormalMode = states[idx].mode === 'normal';
+
+                      return (
+                        <span
+                          key={idx}
+                          className={`absolute ${bgColor} ${
+                            isNormalMode
+                              ? 'inset-0 opacity-70'
+                              : 'left-0 top-0 bottom-0 w-0.5 opacity-90'
+                          }`}
+                        />
+                      );
+                    })}
+                    <span className="relative z-10 text-stone-900 font-bold">{char}</span>
+                  </span>
+                ) : (
+                  <span key={`${tokenIdx}-${localIdx}`} className={tokenColor}>
+                    {char}
+                  </span>
+                );
+
+                return renderChar;
+              });
+            })}
+            {states.some(s => s.cursor.line === r && s.cursor.col === line.length) && (
+              <span className="inline-block">
+                {states
+                  .map((s, idx) => ({ state: s, idx }))
+                  .filter(({ state }) => state.cursor.line === r && state.cursor.col === line.length)
+                  .map(({ idx }) => {
                     const track = config.tracks[idx];
                     const bgColor = track.color || (idx === 0 ? 'bg-blue-500' : 'bg-green-500');
                     const isNormalMode = states[idx].mode === 'normal';
@@ -154,50 +185,19 @@ export const RunExamplePlayer = ({ config }: RunExamplePlayerProps) => {
                     return (
                       <span
                         key={idx}
-                        className={`absolute ${bgColor} ${
+                        className={`${bgColor} inline-block h-5 ${
                           isNormalMode
-                            ? 'inset-0 opacity-70'
-                            : 'left-0 top-0 bottom-0 w-0.5 opacity-90'
+                            ? 'w-2.5 opacity-70'
+                            : 'w-0.5 opacity-90'
                         }`}
-                      />
+                      >
+                        &nbsp;
+                      </span>
                     );
                   })}
-                  <span className="relative z-10 text-stone-900 font-bold">{char}</span>
-                </span>
-              ) : (
-                <span key={`${tokenIdx}-${localIdx}`} className={tokenColor}>
-                  {char}
-                </span>
-              );
-
-              return renderChar;
-            });
-          })}
-          {states.some(s => s.cursor.line === r && s.cursor.col === line.length) && (
-            <span className="inline-block">
-              {states
-                .map((s, idx) => ({ state: s, idx }))
-                .filter(({ state }) => state.cursor.line === r && state.cursor.col === line.length)
-                .map(({ idx }) => {
-                  const track = config.tracks[idx];
-                  const bgColor = track.color || (idx === 0 ? 'bg-blue-500' : 'bg-green-500');
-                  const isNormalMode = states[idx].mode === 'normal';
-
-                  return (
-                    <span
-                      key={idx}
-                      className={`${bgColor} inline-block h-5 align-middle ${
-                        isNormalMode
-                          ? 'w-2.5 opacity-70'
-                          : 'w-0.5 opacity-90'
-                      }`}
-                    >
-                      &nbsp;
-                    </span>
-                  );
-                })}
-            </span>
-          )}
+              </span>
+            )}
+          </div>
         </div>
       );
     });
@@ -224,8 +224,8 @@ export const RunExamplePlayer = ({ config }: RunExamplePlayerProps) => {
       </div>
 
       {/* Editor Area */}
-      <div className="bg-stone-900 p-8 min-h-[300px]">
-        <div className="pl-6 text-stone-300">{renderBuffer()}</div>
+      <div className="bg-stone-900 min-h-[300px]">
+        <div className="vim-editor-root">{renderBuffer()}</div>
       </div>
 
       {/* Current Step Display */}

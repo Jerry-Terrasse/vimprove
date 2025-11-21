@@ -7,3 +7,41 @@
     @apply bg-stone-950 text-stone-200;
   }
 }
+
+@layer components {
+  .vim-editor-root {
+    position: relative;
+    font-family: "JetBrains Mono", "Fira Code", "Source Code Pro",
+                 "SFMono-Regular", Menlo, Monaco, Consolas,
+                 "Liberation Mono", "Courier New", monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: 0;
+    tab-size: 4;
+    -moz-tab-size: 4;
+    color: rgb(214 211 209); /* stone-300 */
+    padding: 16px 0;
+  }
+
+  .vim-editor-line {
+    display: flex;
+    align-items: flex-start;
+    padding: 0 12px;
+  }
+
+  .vim-line-number {
+    width: 3em;
+    text-align: right;
+    margin-right: 12px;
+    color: rgb(87 83 78); /* stone-600 */
+    font-size: 12px;
+    opacity: 0.8;
+    user-select: none;
+    flex-shrink: 0;
+  }
+
+  .vim-line-content {
+    white-space: pre;
+    flex: 1;
+  }
+}

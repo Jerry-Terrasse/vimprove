@@ -58,51 +58,51 @@ export const VimChallenge = ({ config, onComplete }: VimChallengeProps) => {
       let charIndex = 0;
 
       return (
-        <div key={r} className="relative min-h-[1.5rem] whitespace-pre font-mono text-lg">
-          <span className="absolute -left-8 text-stone-600 text-xs top-1 select-none">
-            {r + 1}
-          </span>
-          {tokens.map((token, tokenIdx) => {
-            const tokenChars = token.content.split('');
-            const tokenColor = getTokenClassName(token.type);
+        <div key={r} className="vim-editor-line">
+          <span className="vim-line-number">{r + 1}</span>
+          <div className="vim-line-content">
+            {tokens.map((token, tokenIdx) => {
+              const tokenChars = token.content.split('');
+              const tokenColor = getTokenClassName(token.type);
 
-            return tokenChars.map((char, localIdx) => {
-              const c = charIndex++;
-              const isCursor = state.cursor.line === r && state.cursor.col === c;
-              const isNormalMode = state.mode === 'normal';
+              return tokenChars.map((char, localIdx) => {
+                const c = charIndex++;
+                const isCursor = state.cursor.line === r && state.cursor.col === c;
+                const isNormalMode = state.mode === 'normal';
 
-              return (
-                <span
-                  key={`${tokenIdx}-${localIdx}`}
-                  className={`${tokenColor} ${isCursor ? 'relative' : ''}`}
-                >
-                  {isCursor && (
-                    <span
-                      className={`absolute ${
-                        isNormalMode
-                          ? 'inset-0 bg-stone-200 opacity-70'
-                          : 'left-0 top-0 bottom-0 w-0.5 bg-stone-200 opacity-90'
-                      }`}
-                    />
-                  )}
-                  <span className={`${isCursor ? 'relative z-10 text-stone-900 font-bold' : ''}`}>
-                    {char}
+                return (
+                  <span
+                    key={`${tokenIdx}-${localIdx}`}
+                    className={`${tokenColor} ${isCursor ? 'relative' : ''}`}
+                  >
+                    {isCursor && (
+                      <span
+                        className={`absolute ${
+                          isNormalMode
+                            ? 'inset-0 bg-stone-200 opacity-70'
+                            : 'left-0 top-0 bottom-0 w-0.5 bg-stone-200 opacity-90'
+                        }`}
+                      />
+                    )}
+                    <span className={`${isCursor ? 'relative z-10 text-stone-900 font-bold' : ''}`}>
+                      {char}
+                    </span>
                   </span>
-                </span>
-              );
-            });
-          })}
-          {state.cursor.line === r && state.cursor.col === line.length && (
-            <span
-              className={`${
-                state.mode === 'normal'
-                  ? 'bg-stone-200 opacity-70 inline-block w-2.5 h-5 align-middle'
-                  : 'bg-stone-200 opacity-90 inline-block w-0.5 h-5 align-middle'
-              }`}
-            >
-              &nbsp;
-            </span>
-          )}
+                );
+              });
+            })}
+            {state.cursor.line === r && state.cursor.col === line.length && (
+              <span
+                className={`${
+                  state.mode === 'normal'
+                    ? 'bg-stone-200 opacity-70 inline-block w-2.5 h-5'
+                    : 'bg-stone-200 opacity-90 inline-block w-0.5 h-5'
+                }`}
+              >
+                &nbsp;
+              </span>
+            )}
+          </div>
         </div>
       );
     });
@@ -147,7 +147,7 @@ export const VimChallenge = ({ config, onComplete }: VimChallengeProps) => {
 
       {/* Editor Area */}
       <div
-        className="flex-1 relative bg-stone-900 p-8 overflow-y-auto cursor-text"
+        className="flex-1 relative bg-stone-900 overflow-y-auto cursor-text"
         onClick={() => inputRef.current?.focus()}
       >
         <input
@@ -184,7 +184,7 @@ export const VimChallenge = ({ config, onComplete }: VimChallengeProps) => {
           </div>
         )}
 
-        <div className="pl-6 text-stone-300">{renderBuffer()}</div>
+        <div className="vim-editor-root">{renderBuffer()}</div>
       </div>
 
       {/* Goals List */}
