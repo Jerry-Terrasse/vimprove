@@ -1,0 +1,18 @@
+{
+  "mode": {
+    "normal": "NORMAL",
+    "insert": "INSERT"
+  },
+  "goals": {
+    "label": "Goals:",
+    "title": "Mission Objectives"
+  },
+  "focus": {
+    "resume": "Click to resume focus"
+  },
+  "complete": {
+    "title": "Lesson Complete!",
+    "subtitle": "You finished in {{time}} seconds.",
+    "next": "Next Lesson"
+  }
+}

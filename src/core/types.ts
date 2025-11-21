@@ -132,14 +132,15 @@ export type RunExampleConfig = {
 };
 
 export type ContentBlock =
-  | { type: 'markdown'; content: string }
-  | { type: 'key-list'; keys: KeyItem[] }
-  | { type: 'challenge'; config: ChallengeConfig }
-  | { type: 'run-example'; config: RunExampleConfig };
+  | { type: 'markdown'; content: string; i18nKey?: string }
+  | { type: 'key-list'; keys: KeyItem[]; i18nKey?: string }
+  | { type: 'challenge'; config: ChallengeConfig; i18nKey?: string }
+  | { type: 'run-example'; config: RunExampleConfig; i18nKey?: string };
 
 export type KeyItem = {
   chars: string[];
   desc: string;
+  i18nKey?: string;
 };
 
 export type Lesson = {
@@ -148,6 +149,7 @@ export type Lesson = {
   categoryId: string;
   shortDescription: string;
   contentBlocks: ContentBlock[];
+  i18nKey?: string;
 };
 
 export type Category = {

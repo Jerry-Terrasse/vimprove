@@ -1,0 +1,22 @@
+{
+  "hero": {
+    "titlePrefix": "Master",
+    "titleSuffix": "Motion.",
+    "subtitle": "Stop memorizing cheatsheets. Build muscle memory directly in the browser with our interactive challenges.",
+    "cta": "Start Learning"
+  },
+  "features": {
+    "realEngine": {
+      "title": "Real Engine",
+      "desc": "A custom built Vim engine running directly in your browser."
+    },
+    "gamified": {
+      "title": "Gamified",
+      "desc": "Complete challenges to unlock new levels and track stats."
+    },
+    "interactive": {
+      "title": "Interactive",
+      "desc": "Don't just read. Type. Edit. Delete. Practice makes perfect."
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "title": "Settings",
+  "appearance": {
+    "tab": "Appearance",
+    "fontFamily": "Font Family",
+    "fontSize": "Font Size",
+    "preview": "Preview"
+  },
+  "reset": "Reset to Defaults",
+  "done": "Done"
+}

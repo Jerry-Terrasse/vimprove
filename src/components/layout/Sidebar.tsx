@@ -2,6 +2,8 @@ import { ChevronRight, Home as HomeIcon, Code2 } from 'lucide-react';
 import { CATEGORIES } from '@/data';
 import type { Lesson } from '@/core/types';
 import { VERSION, VERSION_LABEL } from '@/version';
+import { supportedLocales } from '@/i18n';
+import { useTranslationSafe, useLocale } from '@/hooks/useI18n';
 
 type SidebarProps = {
   lessons: Lesson[];
@@ -20,6 +22,9 @@ export const Sidebar = ({
   isOpen,
   isVisible
 }: SidebarProps) => {
+  const { t } = useTranslationSafe('layout');
+  const { locale, setLocale } = useLocale();
+
   return (
     <div
       className={`
@@ -35,42 +40,65 @@ export const Sidebar = ({
         <span className="font-bold text-4xl logo-text">Vimprove</span>
       </div>
 
-      <div className="flex-1 p-4 overflow-y-auto">
-        {CATEGORIES.map(cat => (
-          <div key={cat.id} className="mb-8">
-            <h3 className="text-sm font-bold text-green-400 uppercase tracking-wide mb-4 px-2 py-1 border-l-2 border-green-500">
-              {cat.title}
-            </h3>
-            <div className="space-y-1">
-              {lessons
-                .filter(l => l.categoryId === cat.id)
-                .map(lesson => (
-                  <button
-                    key={lesson.slug}
-                    onClick={() => onLessonSelect(lesson.slug)}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-between
+      <div className="flex-1 p-4 overflow-y-auto flex flex-col">
+        <div className="mb-6">
+          <label className="text-xs text-stone-500 uppercase tracking-wide block mb-2">
+            {t('language')}
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {supportedLocales.map(l => (
+              <button
+                key={l.code}
+                onClick={() => setLocale(l.code)}
+                className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${
+                  locale === l.code
+                    ? 'bg-green-700/40 border-green-600 text-white'
+                    : 'bg-stone-900 border-stone-800 text-stone-300 hover:text-white hover:border-stone-700'
+                }`}
+              >
+                {l.nativeLabel}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex-1">
+          {CATEGORIES.map(cat => (
+            <div key={cat.id} className="mb-8">
+              <h3 className="text-sm font-bold text-green-400 uppercase tracking-wide mb-4 px-2 py-1 border-l-2 border-green-500">
+                {t(`lessons.categories.${cat.id}`, cat.title, { ns: 'lessons' })}
+              </h3>
+              <div className="space-y-1">
+                {lessons
+                  .filter(l => l.categoryId === cat.id)
+                  .map(lesson => (
+                    <button
+                      key={lesson.slug}
+                      onClick={() => onLessonSelect(lesson.slug)}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-between
                       ${
                         currentLessonSlug === lesson.slug
                           ? 'bg-stone-800 text-white'
                           : 'text-stone-400 hover:text-stone-200 hover:bg-stone-900'
                       }
                     `}
-                  >
-                    {lesson.title}
-                    {currentLessonSlug === lesson.slug && (
-                      <ChevronRight size={14} className="text-stone-500" />
-                    )}
-                  </button>
-                ))}
+                    >
+                      {t(`lessons.${lesson.slug}.title`, lesson.title, { ns: 'lessons' })}
+                      {currentLessonSlug === lesson.slug && (
+                        <ChevronRight size={14} className="text-stone-500" />
+                      )}
+                    </button>
+                  ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
 
         <button
           onClick={onHomeClick}
           className="w-full mt-8 flex items-center gap-2 text-stone-500 px-3 py-2 hover:text-white transition-colors text-sm"
         >
-          <HomeIcon size={16} /> Back to Home
+          <HomeIcon size={16} /> {t('backToHome')}
         </button>
       </div>
 

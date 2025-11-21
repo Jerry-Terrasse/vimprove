@@ -3,16 +3,20 @@ import { Play, Pause, RotateCcw, SkipForward, SkipBack } from 'lucide-react';
 import type { RunExampleConfig, VimState } from '@/core/types';
 import { vimReducer, INITIAL_VIM_STATE } from '@/core/vimReducer';
 import { tokenizeLine, getTokenClassName } from '@/core/syntaxHighlight';
+import { useTranslationSafe } from '@/hooks/useI18n';
 
 type RunExamplePlayerProps = {
   config: RunExampleConfig;
+  lessonSlug?: string;
+  i18nBaseKey?: string;
 };
 
-export const RunExamplePlayer = ({ config }: RunExamplePlayerProps) => {
+export const RunExamplePlayer = ({ config, lessonSlug, i18nBaseKey }: RunExamplePlayerProps) => {
   const [currentStep, setCurrentStep] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [states, setStates] = useState<VimState[]>([]);
   const autoPlayInterval = useRef<NodeJS.Timeout | null>(null);
+  const { t } = useTranslationSafe(['example', 'lessons']);
 
   useEffect(() => {
     const initialStates = config.tracks.map(() => ({
@@ -24,23 +28,46 @@ export const RunExamplePlayer = ({ config }: RunExamplePlayerProps) => {
     setCurrentStep(-1);
   }, [config]);
 
-  const executeStep = useCallback((stepIndex: number) => {
-    if (stepIndex < 0 || stepIndex >= config.steps.length) return;
+  const executeStep = useCallback(
+    (stepIndex: number) => {
+      if (stepIndex < 0 || stepIndex >= config.steps.length) return;
 
-    const step = config.steps[stepIndex];
-    const cursorIdx = step.cursorIndex ?? 0;
+      const step = config.steps[stepIndex];
+      const cursorIdx = step.cursorIndex ?? 0;
 
-    setStates(prevStates => {
-      const newStates = [...prevStates];
-      newStates[cursorIdx] = vimReducer(newStates[cursorIdx], {
-        type: 'KEYDOWN',
-        payload: { key: step.key, ctrlKey: false }
+      setStates(prevStates => {
+        const newStates = [...prevStates];
+        newStates[cursorIdx] = vimReducer(newStates[cursorIdx], {
+          type: 'KEYDOWN',
+          payload: { key: step.key, ctrlKey: false }
+        });
+        return newStates;
       });
-      return newStates;
-    });
 
-    setCurrentStep(stepIndex);
-  }, [config.steps]);
+      setCurrentStep(stepIndex);
+    },
+    [config.steps]
+  );
+
+  const executeStepImmediately = useCallback(
+    (stepIndex: number) => {
+      if (stepIndex < 0 || stepIndex >= config.steps.length) return;
+
+      const step = config.steps[stepIndex];
+      const cursorIdx = step.cursorIndex ?? 0;
+
+      setStates(prev => {
+        const newStates = [...prev];
+        newStates[cursorIdx] = vimReducer(newStates[cursorIdx], {
+          type: 'KEYDOWN',
+          payload: { key: step.key, ctrlKey: false }
+        });
+        return newStates;
+      });
+      setCurrentStep(stepIndex);
+    },
+    [config.steps]
+  );
 
   const handleNext = useCallback(() => {
     if (currentStep < config.steps.length - 1) {
@@ -97,24 +124,7 @@ export const RunExamplePlayer = ({ config }: RunExamplePlayerProps) => {
     } else if (currentStep === 0) {
       handleReset();
     }
-  }, [currentStep, handleReset]);
-
-  const executeStepImmediately = (stepIndex: number) => {
-    if (stepIndex < 0 || stepIndex >= config.steps.length) return;
-
-    const step = config.steps[stepIndex];
-    const cursorIdx = step.cursorIndex ?? 0;
-
-    setStates(prev => {
-      const newStates = [...prev];
-      newStates[cursorIdx] = vimReducer(newStates[cursorIdx], {
-        type: 'KEYDOWN',
-        payload: { key: step.key, ctrlKey: false }
-      });
-      return newStates;
-    });
-    setCurrentStep(stepIndex);
-  };
+  }, [currentStep, executeStepImmediately, handleReset]);
 
   const renderBuffer = () => {
     const displayState = states[0];
@@ -204,19 +214,37 @@ export const RunExamplePlayer = ({ config }: RunExamplePlayerProps) => {
   };
 
   const currentStepData = currentStep >= 0 ? config.steps[currentStep] : null;
+  const resolveStepDesc = (index: number, fallback: string) => {
+    if (!lessonSlug) return fallback;
+    const key = i18nBaseKey
+      ? `${i18nBaseKey}.steps.${index}`
+      : `lessons.${lessonSlug}.runExample.steps.${index}`;
+    return t(key, fallback, { ns: 'lessons' });
+  };
+  const keyedLabel = (key: string, fallback: string) => t(key, fallback, { ns: 'example' });
 
   return (
     <div className="bg-stone-900 rounded-xl overflow-hidden border border-stone-800 shadow-2xl">
       {/* Header */}
       <div className="bg-stone-950 border-b border-stone-800 p-3 flex items-center justify-between text-sm font-mono">
-        <div className="text-stone-400">Run Example</div>
+        <div className="text-stone-400">{keyedLabel('title', 'Run Example')}</div>
         <div className="flex items-center gap-2">
           {config.tracks.map((track, idx) => {
             const bgColor = track.color || (idx === 0 ? 'bg-blue-500' : 'bg-green-500');
             return (
               <div key={idx} className="flex items-center gap-2">
                 <div className={`w-3 h-3 rounded-full ${bgColor}`} />
-                <span className="text-xs text-stone-400">{track.label}</span>
+                <span className="text-xs text-stone-400">
+                  {lessonSlug
+                    ? t(
+                        i18nBaseKey
+                          ? `${i18nBaseKey}.tracks.${idx}`
+                          : `lessons.${lessonSlug}.runExample.tracks.${idx}`,
+                        track.label,
+                        { ns: 'lessons' }
+                      )
+                    : track.label}
+                </span>
               </div>
             );
           })}
@@ -233,11 +261,15 @@ export const RunExamplePlayer = ({ config }: RunExamplePlayerProps) => {
         <div className="bg-stone-950 border-t border-stone-800 p-4">
           <div className="flex items-center gap-4">
             <div className="bg-stone-800 px-3 py-1 rounded font-mono text-lg font-bold text-white">
-              {currentStepData.key === ' ' ? 'Space' : currentStepData.key}
+              {currentStepData.key === ' '
+                ? keyedLabel('space', 'Space')
+                : currentStepData.key}
             </div>
-            <div className="text-stone-400 text-sm flex-1">{currentStepData.description}</div>
+            <div className="text-stone-400 text-sm flex-1">
+              {resolveStepDesc(currentStep, currentStepData.description)}
+            </div>
             <div className="text-xs text-stone-600">
-              Step {currentStep + 1} / {config.steps.length}
+              {keyedLabel('step', 'Step')} {currentStep + 1} / {config.steps.length}
             </div>
           </div>
         </div>
@@ -248,7 +280,7 @@ export const RunExamplePlayer = ({ config }: RunExamplePlayerProps) => {
         <button
           onClick={handleReset}
           className="p-2 hover:bg-stone-800 rounded transition-colors text-stone-400 hover:text-white"
-          title="Reset"
+          title={keyedLabel('reset', 'Reset')}
         >
           <RotateCcw size={18} />
         </button>
@@ -256,7 +288,7 @@ export const RunExamplePlayer = ({ config }: RunExamplePlayerProps) => {
           onClick={handlePrev}
           disabled={currentStep <= 0}
           className="p-2 hover:bg-stone-800 rounded transition-colors text-stone-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-          title="Previous Step"
+          title={keyedLabel('prev', 'Previous Step')}
         >
           <SkipBack size={18} />
         </button>
@@ -264,7 +296,7 @@ export const RunExamplePlayer = ({ config }: RunExamplePlayerProps) => {
           <button
             onClick={handlePause}
             className="p-3 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors text-white"
-            title="Pause"
+            title={keyedLabel('pause', 'Pause')}
           >
             <Pause size={20} />
           </button>
@@ -272,7 +304,7 @@ export const RunExamplePlayer = ({ config }: RunExamplePlayerProps) => {
           <button
             onClick={handlePlay}
             className="p-3 bg-green-600 hover:bg-green-500 rounded-lg transition-colors text-white"
-            title="Play"
+            title={keyedLabel('play', 'Play')}
           >
             <Play size={20} />
           </button>
@@ -281,7 +313,7 @@ export const RunExamplePlayer = ({ config }: RunExamplePlayerProps) => {
           onClick={handleNext}
           disabled={currentStep >= config.steps.length - 1}
           className="p-2 hover:bg-stone-800 rounded transition-colors text-stone-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-          title="Next Step"
+          title={keyedLabel('next', 'Next Step')}
         >
           <SkipForward size={18} />
         </button>

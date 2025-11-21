@@ -120,7 +120,7 @@ const findEnclosingPair = (state: VimState, opening: string, closing: string): {
 
   for (let line = cursor.line; line >= 0; line--) {
     const text = buffer[line];
-    let startCol = line === cursor.line ? cursor.col : text.length - 1;
+    const startCol = line === cursor.line ? cursor.col : text.length - 1;
     for (let col = startCol; col >= 0; col--) {
       const char = text[col];
       if (char === closing) depth++;
@@ -138,7 +138,7 @@ const findEnclosingPair = (state: VimState, opening: string, closing: string): {
   depth = 0;
   for (let line = cursor.line; line < buffer.length; line++) {
     const text = buffer[line];
-    let startCol = line === cursor.line ? cursor.col : 0;
+    const startCol = line === cursor.line ? cursor.col : 0;
     for (let col = startCol; col < text.length; col++) {
       const char = text[col];
       if (char === opening) depth++;
@@ -164,7 +164,7 @@ const getQuoteRange = (state: VimState, quote: string, includeDelimiters: boolea
   const lineText = buffer[cursor.line] ?? '';
   const searchStart = Math.min(cursor.col, Math.max(0, lineText.length - 1));
 
-  let left = lineText.lastIndexOf(quote, searchStart);
+  const left = lineText.lastIndexOf(quote, searchStart);
   let right = lineText.indexOf(quote, left + 1);
   if (right !== -1 && right <= cursor.col && lineText[right] === quote) {
     right = lineText.indexOf(quote, right + 1);

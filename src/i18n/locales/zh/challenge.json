@@ -1,0 +1,18 @@
+{
+  "mode": {
+    "normal": "NORMAL",
+    "insert": "INSERT"
+  },
+  "goals": {
+    "label": "目标：",
+    "title": "任务目标"
+  },
+  "focus": {
+    "resume": "点击恢复焦点"
+  },
+  "complete": {
+    "title": "课程完成！",
+    "subtitle": "你在 {{time}} 秒内完成。",
+    "next": "下一节"
+  }
+}

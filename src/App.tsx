@@ -7,6 +7,7 @@ import { LessonPage } from '@/pages/LessonPage';
 import { SettingsProvider } from '@/contexts/SettingsContext';
 import { SettingsPanel } from '@/components/settings/SettingsPanel';
 import { EditorStyleApplier } from '@/components/settings/EditorStyleApplier';
+import { useTranslationSafe } from '@/hooks/useI18n';
 
 type View = 'home' | 'lesson';
 
@@ -15,6 +16,7 @@ const App = () => {
   const [currentLessonSlug, setCurrentLessonSlug] = useState(LESSONS[0].slug);
   const [sidebarOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const { t } = useTranslationSafe('layout');
 
   const currentLessonIdx = LESSONS.findIndex(l => l.slug === currentLessonSlug);
   const currentLesson = LESSONS[currentLessonIdx];
@@ -77,7 +79,7 @@ const App = () => {
         <button
           onClick={() => setSettingsOpen(true)}
           className="fixed bottom-6 right-6 p-4 bg-stone-800 hover:bg-stone-700 rounded-full shadow-2xl transition-all hover:scale-110 text-stone-300 hover:text-white z-40"
-          title="Settings"
+          title={t('settings', 'Settings')}
         >
           <Settings size={24} />
         </button>

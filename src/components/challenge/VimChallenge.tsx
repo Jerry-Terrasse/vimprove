@@ -4,13 +4,16 @@ import type { ChallengeConfig } from '@/core/types';
 import { useVimEngine } from '@/hooks/useVimEngine';
 import { useChallenge } from '@/hooks/useChallenge';
 import { tokenizeLine, getTokenClassName } from '@/core/syntaxHighlight';
+import { useTranslationSafe } from '@/hooks/useI18n';
 
 type VimChallengeProps = {
   config: ChallengeConfig;
   onComplete: (result: { next?: boolean; time: number }) => void;
+  lessonSlug?: string;
+  i18nBaseKey?: string;
 };
 
-export const VimChallenge = ({ config, onComplete }: VimChallengeProps) => {
+export const VimChallenge = ({ config, onComplete, lessonSlug, i18nBaseKey }: VimChallengeProps) => {
   const { state, dispatch } = useVimEngine({
     buffer: config.initialBuffer,
     cursor: config.initialCursor
@@ -21,6 +24,7 @@ export const VimChallenge = ({ config, onComplete }: VimChallengeProps) => {
     state,
     onComplete
   );
+  const { t } = useTranslationSafe(['challenge', 'lessons']);
 
   const [isFocused, setIsFocused] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -120,7 +124,7 @@ export const VimChallenge = ({ config, onComplete }: VimChallengeProps) => {
                 : 'bg-blue-900 text-blue-400'
             }`}
           >
-            {state.mode.toUpperCase()}
+            {t(`mode.${state.mode}`, state.mode.toUpperCase(), { ns: 'challenge' })}
           </div>
           <div className="text-stone-500 flex items-center gap-2">
             <Clock size={14} />
@@ -131,7 +135,9 @@ export const VimChallenge = ({ config, onComplete }: VimChallengeProps) => {
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-stone-500">Goals:</span>
+            <span className="text-stone-500">
+              {t('goals.label', 'Goals:', { ns: 'challenge' })}
+            </span>
             <span className="text-white font-bold">
               {completedCount} / {config.goalsRequired}
             </span>
@@ -164,7 +170,7 @@ export const VimChallenge = ({ config, onComplete }: VimChallengeProps) => {
         {!isFocused && !isComplete && (
           <div className="absolute inset-0 z-10 bg-stone-900/80 backdrop-blur-[1px] flex items-center justify-center text-stone-400 gap-2">
             <Keyboard size={20} />
-            Click to resume focus
+            {t('focus.resume', 'Click to resume focus', { ns: 'challenge' })}
           </div>
         )}
 
@@ -172,13 +178,20 @@ export const VimChallenge = ({ config, onComplete }: VimChallengeProps) => {
           <div className="absolute inset-0 z-20 bg-stone-950/90 flex flex-col items-center justify-center animate-in fade-in duration-500">
             <div className="bg-stone-900 p-8 rounded-2xl border border-green-900/50 shadow-2xl text-center max-w-md">
               <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-white mb-2">Lesson Complete!</h3>
-              <p className="text-stone-400 mb-6">You finished in {elapsed} seconds.</p>
+              <h3 className="text-2xl font-bold text-white mb-2">
+                {t('complete.title', 'Lesson Complete!', { ns: 'challenge' })}
+              </h3>
+              <p className="text-stone-400 mb-6">
+                {t('complete.subtitle', 'You finished in {{time}} seconds.', {
+                  ns: 'challenge',
+                  time: elapsed
+                })}
+              </p>
               <button
                 onClick={() => onComplete({ next: true, time: elapsed })}
                 className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold w-full transition-all"
               >
-                Next Lesson
+                {t('complete.next', 'Next Lesson', { ns: 'challenge' })}
               </button>
             </div>
           </div>
@@ -190,7 +203,7 @@ export const VimChallenge = ({ config, onComplete }: VimChallengeProps) => {
       {/* Goals List */}
       <div className="bg-stone-950 p-4 border-t border-stone-800">
         <h4 className="text-xs uppercase tracking-widest text-stone-500 font-bold mb-3">
-          Mission Objectives
+          {t('goals.title', 'Mission Objectives', { ns: 'challenge' })}
         </h4>
         <div className="space-y-2">
           {config.goals.map(g => (
@@ -199,13 +212,19 @@ export const VimChallenge = ({ config, onComplete }: VimChallengeProps) => {
               className={`flex items-center gap-2 text-sm transition-colors ${
                 goalsStatus[g.id] ? 'text-green-400 opacity-50' : 'text-stone-300'
               }`}
-            >
-              <CheckCircle2
-                size={16}
-                className={goalsStatus[g.id] ? 'fill-green-900' : 'text-stone-700'}
-              />
+              >
+                <CheckCircle2
+                  size={16}
+                  className={goalsStatus[g.id] ? 'fill-green-900' : 'text-stone-700'}
+                />
               <span className={goalsStatus[g.id] ? 'line-through' : ''}>
-                {g.description}
+                {t(
+                  i18nBaseKey && lessonSlug
+                    ? `${i18nBaseKey}.goals.${g.id}`
+                    : `lessons.${lessonSlug ?? 'unknown'}.goals.${g.id}`,
+                  g.description,
+                  { ns: 'lessons' }
+                )}
               </span>
             </div>
           ))}

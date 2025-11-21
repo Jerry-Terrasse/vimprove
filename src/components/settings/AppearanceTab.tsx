@@ -1,5 +1,6 @@
 import { tokenizeLine, getTokenClassName } from '@/core/syntaxHighlight';
 import type { EditorSettings } from '@/hooks/useSettings';
+import { useTranslationSafe } from '@/hooks/useI18n';
 
 type AppearanceTabProps = {
   settings: EditorSettings;
@@ -17,6 +18,8 @@ const FONT_OPTIONS = [
 ];
 
 export const AppearanceTab = ({ settings, onUpdate }: AppearanceTabProps) => {
+  const { t } = useTranslationSafe('settings');
+
   const renderPreview = () => {
     const code = [
       'function hello() {',
@@ -43,7 +46,7 @@ export const AppearanceTab = ({ settings, onUpdate }: AppearanceTabProps) => {
       {/* Font Family */}
       <div>
         <label className="block text-sm font-semibold text-stone-200 mb-3">
-          Font Family
+          {t('appearance.fontFamily', 'Font Family')}
         </label>
         <div className="grid grid-cols-2 gap-2">
           {FONT_OPTIONS.map(font => (
@@ -66,7 +69,7 @@ export const AppearanceTab = ({ settings, onUpdate }: AppearanceTabProps) => {
       {/* Font Size */}
       <div>
         <label className="block text-sm font-semibold text-stone-200 mb-3">
-          Font Size: {settings.fontSize}px
+          {t('appearance.fontSize', 'Font Size')}: {settings.fontSize}px
         </label>
         <div className="flex items-center gap-4">
           <span className="text-stone-500 text-sm">12px</span>
@@ -88,7 +91,7 @@ export const AppearanceTab = ({ settings, onUpdate }: AppearanceTabProps) => {
       {/* Preview */}
       <div>
         <label className="block text-sm font-semibold text-stone-200 mb-3">
-          Preview
+          {t('appearance.preview', 'Preview')}
         </label>
         <div className="bg-stone-900 rounded-lg p-4 border border-stone-700">
           <div

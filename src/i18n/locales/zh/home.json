@@ -1,0 +1,22 @@
+{
+  "hero": {
+    "titlePrefix": "掌握",
+    "titleSuffix": "Vim 位移。",
+    "subtitle": "告别死记快捷键，用浏览器里的交互式挑战直接建立肌肉记忆。",
+    "cta": "开始学习"
+  },
+  "features": {
+    "realEngine": {
+      "title": "真实引擎",
+      "desc": "自研 Vim 引擎在浏览器本地运行，行为贴近原生。"
+    },
+    "gamified": {
+      "title": "游戏化",
+      "desc": "完成关卡解锁新课程并记录成绩。"
+    },
+    "interactive": {
+      "title": "交互式",
+      "desc": "不仅是阅读，而是敲键、编辑、删除、不断练习。"
+    }
+  }
+}

@@ -63,7 +63,7 @@ const findPatternFromCursor = (
 const getWordUnderCursor = (buffer: string[], cursor: { line: number; col: number }): { word: string; startCol: number } | null => {
   const lineText = buffer[cursor.line] ?? '';
   if (!lineText.length) return null;
-  let idx = Math.min(cursor.col, Math.max(0, lineText.length - 1));
+  const idx = Math.min(cursor.col, Math.max(0, lineText.length - 1));
 
   if (isWhitespace(lineText[idx])) return null;
 
