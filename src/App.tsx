@@ -11,8 +11,13 @@ import { useTranslationSafe } from '@/hooks/useI18n';
 
 type View = 'home' | 'lesson';
 
+const LEARNING_STARTED_KEY = 'vimprove_learning_started';
+
 const App = () => {
-  const [currentView, setCurrentView] = useState<View>('home');
+  // Check if user has started learning before
+  const hasStartedLearning = localStorage.getItem(LEARNING_STARTED_KEY) === 'true';
+
+  const [currentView, setCurrentView] = useState<View>(hasStartedLearning ? 'lesson' : 'home');
   const [currentLessonSlug, setCurrentLessonSlug] = useState(LESSONS[0].slug);
   const [sidebarOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -42,11 +47,13 @@ const App = () => {
   };
 
   const handleStartLearning = () => {
+    localStorage.setItem(LEARNING_STARTED_KEY, 'true');
     setCurrentView('lesson');
     setCurrentLessonSlug(LESSONS[0].slug);
   };
 
   const handleHomeClick = () => {
+    localStorage.removeItem(LEARNING_STARTED_KEY);
     setCurrentView('home');
   };
 

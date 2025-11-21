@@ -45,18 +45,18 @@ export const Sidebar = ({
       <div className="flex-1 p-4 overflow-y-auto flex flex-col">
         <div className="flex-1">
           {CATEGORIES.map(cat => (
-            <div key={cat.id} className="mb-8">
-              <h3 className="text-sm font-bold text-green-400 uppercase tracking-wide mb-4 px-2 py-1 border-l-2 border-green-500">
-                {t(`lessons.categories.${cat.id}`, cat.title, { ns: 'lessons' })}
+            <div key={cat.id} className="mb-5">
+              <h3 className="text-sm font-bold text-green-400 uppercase tracking-wide mb-2 px-2 py-1 border-l-2 border-green-500">
+                {t(`categories.${cat.id}`, cat.title, { ns: 'lessons' })}
               </h3>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {lessons
                   .filter(l => l.categoryId === cat.id)
                   .map(lesson => (
                     <button
                       key={lesson.slug}
                       onClick={() => onLessonSelect(lesson.slug)}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-between
+                      className={`w-full text-left px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-between
                       ${
                         currentLessonSlug === lesson.slug
                           ? 'bg-stone-800 text-white'

@@ -15,9 +15,37 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
     <title>Vimprove - Interactive Vim Training</title>
+    <style>
+      body {
+        margin: 0;
+        background-color: #0c0a09;
+      }
+      #loading {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #0c0a09;
+      }
+      #loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid #292524;
+        border-top-color: #22c55e;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <div id="loading">
+      <div id="loading-spinner"></div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

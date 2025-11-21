@@ -1,11 +1,11 @@
 {
   "categories": {
-    "chapter1": "第1章：Vim 思维与基本移动",
-    "chapter2": "第2章：单词移动与小型编辑",
-    "chapter3": "第3章：进阶编辑",
-    "chapter4": "第4章：行内 find/till 精准编辑",
-    "chapter5": "第5章：文本对象",
-    "chapter6": "第6章：搜索与重构"
+    "chapter1": "第 1 章：模式入门与基础移动",
+    "chapter2": "第 2 章：单词导航与小幅编辑",
+    "chapter3": "第 3 章：操作框架与高级编辑",
+    "chapter4": "第 4 章：行内查找与精准删改",
+    "chapter5": "第 5 章：文本对象与语义编辑",
+    "chapter6": "第 6 章：搜索跳转与批量重构"
   },
   "lessons": {
     "modes-basics": {
