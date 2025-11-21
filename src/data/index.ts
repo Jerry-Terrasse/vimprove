@@ -15,11 +15,11 @@ import { smallEditsChars } from './lessons/chapter2/small-edits-chars';
 import { wordsMiniReview } from './lessons/chapter2/words-mini-review';
 
 // Chapter 3: Advanced Editing
-import { comboOperators } from './lessons/chapter3/combo-operators';
-import { yankPaste } from './lessons/chapter3/yank-paste';
-import { undoRedo } from './lessons/chapter3/undo-redo';
-import { countMultiplier } from './lessons/chapter3/count-multiplier';
-import { repeatDot } from './lessons/chapter3/repeat-dot';
+import { operatorDeleteBasic } from './lessons/chapter3/operator-delete-basic';
+import { operatorChangeBasic } from './lessons/chapter3/operator-change-basic';
+import { operatorYankBasic } from './lessons/chapter3/operator-yank-basic';
+import { countRepeatUndo } from './lessons/chapter3/count-repeat-undo';
+import { operatorsMiniReview } from './lessons/chapter3/operators-mini-review';
 
 // Chapter 4: In-line Find/Till & Precise Edits
 import { findChar } from './lessons/chapter4/find-char';
@@ -55,11 +55,11 @@ export const LESSONS: Lesson[] = [
   wordsMiniReview,
 
   // Chapter 3: Advanced Editing
-  comboOperators,
-  yankPaste,
-  undoRedo,
-  countMultiplier,
-  repeatDot,
+  operatorDeleteBasic,
+  operatorChangeBasic,
+  operatorYankBasic,
+  countRepeatUndo,
+  operatorsMiniReview,
 
   // Chapter 4: In-line Find/Till & Precise Edits
   findChar,
