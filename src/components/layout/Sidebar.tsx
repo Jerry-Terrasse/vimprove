@@ -1,4 +1,5 @@
-import { ChevronRight, Home as HomeIcon, Code2 } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronRight, Home as HomeIcon, Code2, ChevronDown, Languages } from 'lucide-react';
 import { CATEGORIES } from '@/data';
 import type { Lesson } from '@/core/types';
 import { VERSION, VERSION_LABEL } from '@/version';
@@ -24,6 +25,7 @@ export const Sidebar = ({
 }: SidebarProps) => {
   const { t } = useTranslationSafe('layout');
   const { locale, setLocale } = useLocale();
+  const [isLangOpen, setIsLangOpen] = useState(false);
 
   return (
     <div
@@ -41,27 +43,6 @@ export const Sidebar = ({
       </div>
 
       <div className="flex-1 p-4 overflow-y-auto flex flex-col">
-        <div className="mb-6">
-          <label className="text-xs text-stone-500 uppercase tracking-wide block mb-2">
-            {t('language')}
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            {supportedLocales.map(l => (
-              <button
-                key={l.code}
-                onClick={() => setLocale(l.code)}
-                className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${
-                  locale === l.code
-                    ? 'bg-green-700/40 border-green-600 text-white'
-                    : 'bg-stone-900 border-stone-800 text-stone-300 hover:text-white hover:border-stone-700'
-                }`}
-              >
-                {l.nativeLabel}
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div className="flex-1">
           {CATEGORIES.map(cat => (
             <div key={cat.id} className="mb-8">
@@ -94,15 +75,52 @@ export const Sidebar = ({
           ))}
         </div>
 
-        <button
-          onClick={onHomeClick}
-          className="w-full mt-8 flex items-center gap-2 text-stone-500 px-3 py-2 hover:text-white transition-colors text-sm"
-        >
-          <HomeIcon size={16} /> {t('backToHome')}
-        </button>
       </div>
 
-      <div className="border-t border-stone-800 px-4 py-3 bg-stone-950/50">
+      <div className="border-t border-stone-800 px-4 py-3 bg-stone-950/50 space-y-3">
+        <div className="grid grid-cols-2 gap-2 items-center">
+          <div className="relative">
+            <button
+              onClick={onHomeClick}
+              className="w-full flex items-center justify-center gap-2 text-stone-300 bg-stone-900 border border-stone-800 rounded-lg px-3 py-2 text-sm hover:border-green-600 transition-colors"
+            >
+              <HomeIcon size={16} /> 首页
+            </button>
+          </div>
+          <div className="relative">
+            <button
+              onClick={() => setIsLangOpen(open => !open)}
+              className="w-full flex items-center gap-2 justify-center bg-stone-900 border border-stone-800 rounded-lg px-3 py-2 text-sm text-stone-200 hover:border-green-600 transition-colors"
+            >
+              <Languages size={14} />
+              {t('language')}
+              <ChevronDown size={14} className={isLangOpen ? 'transform rotate-180' : ''} />
+            </button>
+            {isLangOpen && (
+              <div
+                className="absolute left-full ml-2 bottom-0 w-44 bg-stone-900 border border-stone-800 rounded-lg shadow-xl overflow-hidden"
+                onMouseLeave={() => setIsLangOpen(false)}
+              >
+                {supportedLocales.map(lng => (
+                  <button
+                    key={lng.code}
+                    onClick={() => {
+                      setLocale(lng.code);
+                      setIsLangOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                      locale === lng.code
+                        ? 'bg-green-700/30 text-white'
+                        : 'text-stone-200 hover:bg-stone-800'
+                    }`}
+                  >
+                    {lng.nativeLabel} <span className="text-xs text-stone-500">({lng.label})</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
         <div className="flex items-center justify-between text-xs text-stone-600">
           <div className="flex items-center gap-2">
             <Code2 size={12} className="text-stone-700" />
