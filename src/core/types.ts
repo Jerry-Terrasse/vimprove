@@ -107,6 +107,7 @@ export type ChallengeConfig = {
   goalsRequired: number;
   enabledCommands: string[];
   goals: ChallengeGoal[];
+  language?: 'cpp' | 'javascript' | 'typescript' | 'python' | 'auto';
 };
 
 export type RunExampleStep = {
@@ -127,6 +128,7 @@ export type RunExampleConfig = {
   tracks: RunExampleTrack[];
   steps: RunExampleStep[];
   autoPlaySpeed?: number;
+  language?: 'cpp' | 'javascript' | 'typescript' | 'python' | 'auto';
 };
 
 export type ContentBlock =

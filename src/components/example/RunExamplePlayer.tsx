@@ -120,8 +120,10 @@ export const RunExamplePlayer = ({ config }: RunExamplePlayerProps) => {
     const displayState = states[0];
     if (!displayState) return null;
 
+    const language = config.language || 'auto';
+
     return displayState.buffer.map((line, r) => {
-      const tokens = tokenizeLine(line);
+      const tokens = tokenizeLine(line, language, displayState.buffer);
       let charIndex = 0;
 
       return (

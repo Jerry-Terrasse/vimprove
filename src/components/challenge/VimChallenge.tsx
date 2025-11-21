@@ -51,8 +51,10 @@ export const VimChallenge = ({ config, onComplete }: VimChallengeProps) => {
   };
 
   const renderBuffer = () => {
+    const language = config.language || 'auto';
+
     return state.buffer.map((line, r) => {
-      const tokens = tokenizeLine(line);
+      const tokens = tokenizeLine(line, language, state.buffer);
       let charIndex = 0;
 
       return (
