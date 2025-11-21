@@ -92,9 +92,9 @@ export const Sidebar = ({
               onClick={() => setIsLangOpen(open => !open)}
               className="w-full flex items-center gap-2 justify-center bg-stone-900 border border-stone-800 rounded-lg px-3 py-2 text-sm text-stone-200 hover:border-green-600 transition-colors"
             >
-              <Languages size={14} />
-              {t('language')}
-              <ChevronDown size={14} className={isLangOpen ? 'transform rotate-180' : ''} />
+              <Languages size={16} />
+              {supportedLocales.find(l => l.code === locale)?.shortLabel || locale}
+              <ChevronDown size={16} className={isLangOpen ? 'transform rotate-180' : ''} />
             </button>
             {isLangOpen && (
               <div

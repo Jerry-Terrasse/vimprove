@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Settings } from 'lucide-react';
+import { Settings, SkipBack, SkipForward, Github } from 'lucide-react';
 import { LESSONS } from '@/data';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { HomePage } from '@/pages/HomePage';
@@ -82,14 +82,43 @@ const App = () => {
           )}
         </div>
 
-        {/* Settings Button */}
-        <button
-          onClick={() => setSettingsOpen(true)}
-          className="fixed bottom-6 right-6 p-4 bg-stone-800 hover:bg-stone-700 rounded-full shadow-2xl transition-all hover:scale-110 text-stone-300 hover:text-white z-40"
-          title={t('settings', 'Settings')}
-        >
-          <Settings size={24} />
-        </button>
+        {/* Floating Action Buttons */}
+        <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-40">
+          {currentView === 'lesson' && currentLessonIdx > 0 && (
+            <button
+              onClick={handlePrev}
+              className="w-14 h-14 flex items-center justify-center bg-stone-700 hover:bg-stone-600 border border-stone-600 rounded-full shadow-2xl transition-all hover:scale-110 text-stone-200 hover:text-white"
+              title={t('prevLesson', 'Previous Lesson')}
+            >
+              <SkipBack size={24} />
+            </button>
+          )}
+          {currentView === 'lesson' && currentLessonIdx < LESSONS.length - 1 && (
+            <button
+              onClick={handleNext}
+              className="w-14 h-14 flex items-center justify-center bg-stone-700 hover:bg-stone-600 border border-stone-600 rounded-full shadow-2xl transition-all hover:scale-110 text-stone-200 hover:text-white"
+              title={t('nextLesson', 'Next Lesson')}
+            >
+              <SkipForward size={24} />
+            </button>
+          )}
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="p-4 bg-stone-700 hover:bg-stone-600 border border-stone-600 rounded-full shadow-2xl transition-all hover:scale-110 text-stone-200 hover:text-white"
+            title={t('settings', 'Settings')}
+          >
+            <Settings size={24} />
+          </button>
+          <a
+            href="https://github.com/Jerry-Terrasse/vimprove"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-4 bg-stone-700 hover:bg-stone-600 border border-stone-600 rounded-full shadow-2xl transition-all hover:scale-110 text-stone-200 hover:text-white"
+            title={t('starOnGithub', 'Give me a Star!')}
+          >
+            <Github size={24} />
+          </a>
+        </div>
 
         {/* Settings Panel */}
         <SettingsPanel isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />

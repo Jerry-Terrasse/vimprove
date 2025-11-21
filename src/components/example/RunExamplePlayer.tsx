@@ -157,6 +157,7 @@ export const RunExamplePlayer = ({ config, lessonSlug, i18nBaseKey }: RunExample
                   >
                     {cursorsAtPos.map(({ idx }) => {
                       const track = config.tracks[idx];
+                      if (!track) return null;
                       const bgColor = track.color || (idx === 0 ? 'bg-blue-500' : 'bg-green-500');
                       const isNormalMode = states[idx].mode === 'normal';
 
