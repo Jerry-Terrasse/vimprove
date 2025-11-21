@@ -10,7 +10,7 @@ Vimprove 是一个交互式 Vim 学习网站。核心功能是通过浏览器中
 
 **课程范围**: 已完成 Chapter 1-6（基础、进阶编辑、行内 find/till、文本对象、搜索/重构），共 27 节课。
 
-**版本管理**: 版本号在 `src/version.ts` 和 `package.json` 中维护，CHANGELOG 见 `README.md`（当前 0.6.0）
+**版本管理**: 版本号在 `src/version.ts` 和 `package.json` 中维护，CHANGELOG 见 `README.md`（当前 0.9.0）
 
 ## Development Commands
 
@@ -38,6 +38,7 @@ npx vitest run --pool=threads
 src/
 ├── core/              # Vim 引擎核心（纯逻辑，零依赖）
 │   ├── types.ts      # 所有类型定义（Buffer, Cursor, VimState, Command, ChallengeGoal 等）
+│   │                 # Lesson/ContentBlock/KeyItem 支持可选 i18nKey 字段
 │   ├── vimReducer.ts # 核心状态管理 reducer
 │   ├── motions.ts    # 移动逻辑（h/j/k/l/w/b/0/$/f/t 等）
 │   ├── operators.ts  # 操作符逻辑（d/c/y + motion）
@@ -56,7 +57,8 @@ src/
 ├── hooks/             # 自定义 hooks（业务逻辑封装）
 │   ├── useVimEngine.ts    # 封装 vimReducer
 │   ├── useChallenge.ts    # 挑战逻辑（目标验证、计时）
-│   └── useProgress.ts     # 进度持久化（localStorage）
+│   ├── useProgress.ts     # 进度持久化（localStorage）
+│   └── useI18n.ts         # i18n hooks（useTranslationSafe, useLocale）
 │
 ├── components/        # UI 组件
 │   ├── common/       # 通用组件（MarkdownBlock, KeyListBlock）
@@ -69,7 +71,55 @@ src/
 │   └── LessonPage.tsx
 │
 └── i18n/             # 国际化支持
+    ├── config.ts     # i18n 配置与初始化（使用 Vite glob 动态加载）
+    ├── index.ts      # 导出配置与类型
+    └── locales/      # 语言包（按语言/命名空间组织）
+        ├── en/       # 英文
+        │   ├── common.json    # 通用词汇
+        │   ├── layout.json    # 布局组件
+        │   ├── home.json      # 主页
+        │   ├── lesson.json    # 课程页面
+        │   ├── challenge.json # 挑战组件
+        │   ├── example.json   # Run Example 组件
+        │   ├── settings.json  # 设置页面
+        │   └── lessons.json   # 课程内容翻译（按 slug 组织）
+        └── zh/       # 中文（结构同 en）
 ```
+
+### i18n Architecture
+
+**技术栈**: `i18next` + `react-i18next` + `i18next-browser-languagedetector`
+
+**配置位置**: `src/i18n/config.ts`
+- 使用 Vite 的 `import.meta.glob` 动态加载所有语言包（eager 模式）
+- 语言检测顺序: querystring → localStorage → navigator
+- 自动持久化到 localStorage
+- 默认语言: `en`，支持: `en`, `zh`
+
+**自定义 Hooks** (`src/hooks/useI18n.ts`):
+- `useTranslationSafe`: 封装 `useTranslation`，支持 defaultValue 回退
+- `useLocale`: 管理语言切换，自动持久化到 localStorage
+
+**课程数据 i18n 支持**:
+- `Lesson`, `ContentBlock`, `KeyItem` 均支持可选的 `i18nKey` 字段
+- 渲染时优先使用 `lessons.{slug}.*` 翻译键，回退到原始字符串
+- Markdown 内容、Run Example 步骤、Challenge 目标均可翻译
+- 课程分类（categories）通过 `i18nKey` 关联到翻译文件
+
+**App 初始化**:
+- App 根组件包裹 `I18nextProvider` + `Suspense`（loading fallback）
+- `initI18n()` 在渲染前完成初始化
+- 所有组件通过 `useTranslationSafe` 或 `useTranslation` 获取翻译
+
+**Sidebar 语言切换设计模式**:
+- 底部行：左侧"首页"按钮 + 右侧"语言"按钮（等宽布局）
+- 语言菜单从按钮右侧弹出（grid 布局，每行 2 按钮）
+- 添加新语言时保持此模式（修改 `supportedLocales` 和添加语言包）
+
+**重要约束**:
+- Run Example 初始化顺序：`executeStepImmediately` 必须在首次调用前声明（避免 TDZ 错误）
+- 翻译键命名约定: `{namespace}.{category}.{key}` (如 `lessons.basics-intro.title`)
+- 新增语言只需: 1) 添加语言包文件夹 2) 更新 `supportedLocales` 配置
 
 ### Key Data Flow
 
@@ -276,6 +326,20 @@ export const LESSONS: Lesson[] = [..., newLesson];
    - 避免使用 emoji（除非用户要求）
    - 注释只在非平凡（non-trivial）位置添加
 
+4. **i18n 相关约束**:
+   - 新增 UI 组件必须使用 `useTranslationSafe` 或 `useTranslation` 获取文案
+   - 硬编码文案只允许在语言包 JSON 文件中
+   - 添加新课程时，必须同时提供 `en` 和 `zh` 翻译（通过 `i18nKey` 或直接在 `lessons.json` 中）
+   - 修改 `supportedLocales` 后需要添加对应的语言包文件夹
+
+   **翻译质量要求**:
+   - **因地制宜，而非逐句直译**: 翻译时应考虑目标语言特征，从知识传递的高度理解原文
+   - **保留关键信息关联**: 当英文原文通过词汇联系传递知识时（如 "i" 命令与 "insert" 的关联），翻译需保留这种联系
+   - **示例**:
+     - ❌ 直译: "You can read them as tiny English phrases: i → 'insert here'" → "可以把它们当成小短语：i → '在光标前插入'"（丢失了 i 和 insert 的关联）
+     - ✅ 意译: "它们可以用对应英文理解: `i` -> 插入(Insert)"（保留了助记关联，更有教学价值）
+   - **适当保留英文术语**: 对于 Vim 命令相关的核心概念（如 motion、operator、text object），可在中文后附英文以增强理解
+
 ## TypeScript Configuration
 
 - 使用严格模式 (`strict: true`)
@@ -324,18 +388,18 @@ ls src/data/lessons/chapter3/
 - ✅ Run Example 可播放示例（`src/components/example/RunExamplePlayer.tsx`）
 - ✅ 网站图标和 PWA 支持
 - ✅ 课程编写协作文档（`tmp/` 目录）
+- ✅ 完整的 i18n 支持（i18next，当前支持 en/zh，课程内容可翻译）
 
 ### 下一步任务（参考）
 
 **课程扩展**:
 1. Visual 模式相关课程与命令支持
 2. 更多高级命令或篇章（如寄存器、多文件场景）
-3. 多语言或 i18n 课程
+3. 更多语言支持（当前 en/zh，i18n 架构已完成）
 
 **功能增强**:
 1. 进度统计和展示（`useProgress` hook 已实现，但 UI 未完成）
 2. 成就系统
-3. 多语言支持（i18n 基础已搭建）
 
 **优化**:
 1. 性能优化
@@ -357,6 +421,12 @@ ls src/data/lessons/chapter3/
 - **测试总结**: `tmp/test-summary.md`（单元测试覆盖和统计）
 - **版本管理**: `src/version.ts` + `tmp/version-management.md`
 - **原型参考**: `tmp/vimprove.html`（已完成重构，仅供参考）
+
+**i18n 相关**:
+- **i18n 配置**: `src/i18n/config.ts`（初始化与语言包加载）
+- **i18n Hooks**: `src/hooks/useI18n.ts`（useTranslationSafe, useLocale）
+- **语言包**: `src/i18n/locales/{en|zh}/*.json`（按命名空间组织）
+- **类型定义**: `src/core/types.ts`（Lesson/ContentBlock/KeyItem 的 i18nKey 字段）
 
 **测试文件**:
 - `src/core/motions.test.ts` - 移动命令测试
