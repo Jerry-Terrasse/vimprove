@@ -24,23 +24,11 @@ Try to perform them **cleanly and quickly** – even if the website does not tim
     },
     {
       type: 'markdown',
-      content: `## Playable example: rename a repeated variable
+      content: `## Example: rename a repeated variable
 
-We start from:
-
-\`\`\`cpp
-int main() {
-    int value = 0;
-    value += 1;
-    value += 1;
-}
-\`\`\`
-
-Goal: rename \`value\` to a shorter name using:
-
-- *** to search for "value".
-- **ciw** to change the word once.
-- **n** and **.** to repeat the change.`
+The example works on a short function that uses the variable \`value\` several times.
+We search for "value" with \`*\`, rename it once with \`ciw\`,
+then use \`n\` and \`.\` to repeat the same change on the remaining occurrences.`
     },
     {
       type: 'run-example',

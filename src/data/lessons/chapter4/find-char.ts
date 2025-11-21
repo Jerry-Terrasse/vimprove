@@ -23,19 +23,11 @@ This is perfect for lines with multiple commas, quotes, or parentheses.`
     },
     {
       type: 'markdown',
-      content: `## Code we will edit
+      content: `## Example: hopping between commas
 
-We will start from this C++ output line:
-
-\`\`\`cpp
-#include <iostream>
-
-int main() {
-    std::cout << values[0] << ", " << values[1] << ", " << values[2] << "\\n";
-}
-\`\`\`
-
-We will use **f,** to jump to commas inside the string, and then use **;** and **,** to move between them.`
+The example uses a \`std::cout\` line with several commas inside a string literal.
+Starting near the beginning of the line, we use \`f,\` to jump to the first comma,
+then \`;\` and \`,\` to move forward and backward between commas without counting characters.`
     },
     {
       type: 'run-example',

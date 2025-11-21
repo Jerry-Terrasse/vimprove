@@ -30,6 +30,14 @@ The idea:
 3. Fix mistakes with \`u\` and \`Ctrl-r\`.`
     },
     {
+      type: 'markdown',
+      content: `## Example: count, repeat, undo
+
+The example edits a series of initializers.
+We change one value to 42, then use **.** to repeat the change on the next lines,
+and finally use **u** / **Ctrl-r** to demonstrate undo and redo on the repeated edits.`
+    },
+    {
       type: 'run-example',
       config: {
         initialBuffer: [

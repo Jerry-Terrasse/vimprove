@@ -22,6 +22,13 @@ Think of the cursor as a tiny player on a grid.
 Your goal is to **walk** to the target using only these four keys.`
     },
     {
+      type: 'markdown',
+      content: `## Example: walking a tiny map with HJKL
+
+The example starts at the top of a small function and moves to a variable line using only **h j k l**.
+Notice how every move is a single keypress, keeping your hands on the home row the whole time.`
+    },
+    {
       type: 'run-example',
       config: {
         initialBuffer: [

@@ -23,25 +23,11 @@ This lets you refactor many similar places with just a few key presses.`
     },
     {
       type: 'markdown',
-      content: `## Playable example: change DEBUG to INFO
+      content: `## Example: change DEBUG to INFO
 
-We start with:
-
-\`\`\`cpp
-#include <string>
-
-int main() {
-    std::string level = "DEBUG";
-    std::string other = "DEBUG";
-}
-\`\`\`
-
-Imagine you used **/DEBUG** to land on the first "DEBUG".  
-Now you can:
-
-- Use **ci"** to change the string to "INFO".
-- Move to the second "DEBUG".
-- Press **.** to repeat the change.`
+The example starts with two "DEBUG" strings in a small C++ snippet.
+We land on the first "DEBUG" (for example with \`/DEBUG\`), use \`ci"\` once to change it to "INFO",
+then move to the second "DEBUG" and press \`.\` to repeat exactly the same change.`
     },
     {
       type: 'run-example',

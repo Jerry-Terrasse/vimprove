@@ -20,6 +20,14 @@ A common editing pattern in Vim:
 You move first, then type.`
     },
     {
+      type: 'markdown',
+      content: `## Example: fixing a word with w/b/e and Insert
+
+In the example we travel with **w/e** to the end of \`count\`, enter Insert with **a**,
+and type a couple of letters to turn it into \`counter\`.
+It highlights the rhythm of navigate first, then make a quick edit.`
+    },
+    {
       type: 'run-example',
       config: {
         initialBuffer: [

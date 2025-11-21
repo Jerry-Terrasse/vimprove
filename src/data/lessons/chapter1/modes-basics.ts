@@ -43,6 +43,15 @@ You can read them as tiny English phrases:
 - \`O\` → "Open above" (same, but above)`
     },
     {
+      type: 'markdown',
+      content: `## Example: switching between Normal and Insert
+
+In the example the cursor starts near a small C++ snippet.
+We enter Insert with \`i\`, type a few characters, return with **Esc**,
+jump to the end of the line, and enter Insert again with \`a\` to add a trailing comment.
+Watch how Insert changes the buffer immediately, while Esc drops you back to command mode.`
+    },
+    {
       type: 'run-example',
       config: {
         initialBuffer: [

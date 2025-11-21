@@ -24,6 +24,14 @@ Combined with operators:
 - **di"** – delete the contents of the string, keep the quotes.
 - **yi"** – yank the contents of the string.`
     },
+    {
+      type: 'markdown',
+      content: `## Example: changing a string with ci"
+
+The example jumps into a string literal, uses **ci"** to clear its contents,
+and types a shorter message. Because the quotes stay in place, you never have to count characters
+inside the string.`
+    },
 
     {
       type: 'run-example',

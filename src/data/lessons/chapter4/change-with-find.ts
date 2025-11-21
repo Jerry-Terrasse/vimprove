@@ -27,19 +27,11 @@ Common use cases:
     },
     {
       type: 'markdown',
-      content: `## Code we will edit
+      content: `## Example: rewriting a name string
 
-We start from a simple C++ string:
-
-\`\`\`cpp
-#include <string>
-
-int main() {
-    std::string name = "Ada";
-}
-\`\`\`
-
-We will use **ct"** to replace \`"Ada"\` with a new name, without touching the quotes.`
+The example starts with \`std::string name = "Ada";\` in a small C++ program.
+With the cursor inside the string, we use \`ct"\` to delete up to (but not including)
+the closing quote, then type a new name while keeping the surrounding quotes intact.`
     },
     {
       type: 'run-example',

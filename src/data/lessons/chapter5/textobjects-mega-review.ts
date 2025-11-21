@@ -26,6 +26,13 @@ Combined with operators, they become small sentences:
 
 In this review, you will use them together to clean up a small program.`
     },
+    {
+      type: 'markdown',
+      content: `## Example: mix strings and braces in one pass
+
+The example changes the message inside \`logError\` with **ci"**, then clears an if-block with **di{**.
+It shows how different text objects can be combined back-to-back to reshape structured code.`
+    },
 
     {
       type: 'run-example',

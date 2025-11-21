@@ -24,6 +24,14 @@ Think:
 - \`yy\` → "copy this line".`
     },
     {
+      type: 'markdown',
+      content: `## Example: yank a string and paste it elsewhere
+
+The example yanks the string literal for \`name\` with \`yw\`,
+clears an empty placeholder on the next line, and pastes the copied string with **p**.
+It highlights how y and p pair to move text without deleting the source.`
+    },
+    {
       type: 'run-example',
       config: {
         initialBuffer: [

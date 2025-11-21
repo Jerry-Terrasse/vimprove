@@ -25,6 +25,13 @@ Focus on:
 - Using \`x/s/r\` for tiny edits, not long Insert sessions.`
     },
     {
+      type: 'markdown',
+      content: `## Example: comparing h/l, w, and W
+
+The example animates three cursors: one stepping with **h/l**, one with **w**, and one with **W**.
+Watch how word and WORD motions reach targets in far fewer keystrokes than single-character steps.`
+    },
+    {
       type: 'run-example',
       config: {
         initialBuffer: [

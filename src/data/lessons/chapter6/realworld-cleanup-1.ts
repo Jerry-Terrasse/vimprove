@@ -25,21 +25,11 @@ Instead of scrolling and editing by hand, you can:
     },
     {
       type: 'markdown',
-      content: `## Playable example: remove one debug line
+      content: `## Example: remove one debug line
 
-We start from:
-
-\`\`\`cpp
-#include <iostream>
-
-int main() {
-    int value = 42;
-    // DEBUG: temporary log
-    std::cout << "Value = " << value << std::endl;
-}
-\`\`\`
-
-Goal: remove the debug comment line with a search and a single delete command.`
+The example shows a tiny \`main\` function with a single debug comment line.
+We search for "DEBUG" with \`/\`, land on that line, and then use \`dd\`
+to delete the whole comment in a single command.`
     },
     {
       type: 'run-example',

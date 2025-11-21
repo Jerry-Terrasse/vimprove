@@ -24,22 +24,11 @@ Vim can also search for the **word under the cursor**:
     },
     {
       type: 'markdown',
-      content: `## Playable example: jump through all occurrences
+      content: `## Example: jumping through all "Ada"
 
-We use this C++ code:
-
-\`\`\`cpp
-#include <iostream>
-#include <string>
-
-int main() {
-    std::string name = "Ada";
-    std::string log1 = "User: Ada";
-    std::string log2 = "Hello, Ada!";
-}
-\`\`\`
-
-We will put the cursor on the first **"Ada"**, then use *** and n/N to jump between all matches.`
+The example uses a small C++ snippet with three occurrences of the string "Ada".
+We start with the cursor on the first "Ada", then use \`*\` to search for that word
+and \`n\`/\`N\` to move forward and backward through each match in the buffer.`
     },
     {
       type: 'run-example',

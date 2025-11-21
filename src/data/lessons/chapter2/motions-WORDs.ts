@@ -30,7 +30,7 @@ A WORD is "anything until the next space".`
     },
     {
       type: 'markdown',
-      content: `## Playable example: two cursors race
+      content: `## Example: two cursors race
 
 Watch how **w** (lowercase) and **W** (uppercase) behave differently on symbol-heavy code.
 

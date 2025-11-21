@@ -25,6 +25,14 @@ You can combine them with operators:
 
 This is useful for comment blocks and documentation inside code.`
     },
+    {
+      type: 'markdown',
+      content: `## Example: deleting a comment block with dip
+
+The example sits inside a two-line comment paragraph.
+Using **d i p** deletes the whole block at once, showing how paragraph text objects save you
+from counting lines when working on documentation-style sections.`
+    },
 
     {
       type: 'run-example',

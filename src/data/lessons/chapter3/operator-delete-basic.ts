@@ -30,6 +30,14 @@ You can read them as little sentences:
 - \`d$\` → "delete to the end of this line".`
     },
     {
+      type: 'markdown',
+      content: `## Example: deleting a word and a comment
+
+The example jumps onto a variable name and deletes it with \`dw\`,
+then moves to a trailing comment and uses \`d$\` to remove everything to the end of the line.
+It shows how the delete operator follows whatever motion you pair with it.`
+    },
+    {
       type: 'run-example',
       config: {
         initialBuffer: [

@@ -25,6 +25,14 @@ Vim gives you three motions for this:
 You can use **h** and **l** to make small adjustments after jumping.`
     },
     {
+      type: 'markdown',
+      content: `## Example: jumping to line bounds
+
+The example starts in the middle of a declaration.
+We use **0** to hit absolute column 0, **^** to land on the first code character,
+and **$** to jump straight to the semicolon at the end of the line.`
+    },
+    {
       type: 'run-example',
       config: {
         initialBuffer: [

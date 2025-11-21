@@ -32,6 +32,13 @@ So you get:
 - **ciw** – change the whole word and enter Insert mode.
 - **yiw** – yank (copy) the word.`
     },
+    {
+      type: 'markdown',
+      content: `## Example: renaming with ciw
+
+Here we start on \`totalCount\`, use **ciw** to wipe the whole word, and type a new name.
+Because it's a text object, you do not have to measure the motion—Vim knows you mean "this word".`
+    },
 
     {
       type: 'run-example',

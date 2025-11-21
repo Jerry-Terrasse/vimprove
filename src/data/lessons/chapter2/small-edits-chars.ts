@@ -25,6 +25,14 @@ They are perfect for things like:
 - Removing an extra symbol.`
     },
     {
+      type: 'markdown',
+      content: `## Example: quick single-character fixes
+
+The example line-up shows three tiny edits in one pass:
+use **x** to drop a digit, **r** to replace a number in place,
+and **s** to swap a wrong letter inside a string while briefly entering Insert mode.`
+    },
+    {
       type: 'run-example',
       config: {
         initialBuffer: [

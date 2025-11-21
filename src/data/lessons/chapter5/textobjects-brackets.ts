@@ -28,6 +28,14 @@ Combine with operators:
 - **ci{** – change everything inside \`{...}\`, then type new content.
 - **yi(** – yank (copy) the inside of \`(...)\`.`
     },
+    {
+      type: 'markdown',
+      content: `## Example: clearing arguments with di(
+
+In this example we move into a function call and run **d i (** to wipe the arguments,
+leaving the surrounding parentheses intact. This shows how bracket text objects
+let you act on structured code without counting characters.`
+    },
 
     {
       type: 'run-example',

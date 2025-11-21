@@ -32,6 +32,14 @@ In this review you will:
 using any combination of these tools.`
     },
     {
+      type: 'markdown',
+      content: `## Example: chaining operators in one flow
+
+The example walks through a tiny program: rename a variable with **cw**, delete a debug line with **dd**,
+then copy and tweak a computation using **yy**, **p**, and a quick change.
+It demonstrates how operator + motion pairs read like short sentences you can string together.`
+    },
+    {
       type: 'run-example',
       config: {
         initialBuffer: [

@@ -25,6 +25,13 @@ Real editing in Vim follows a simple rhythm:
 In this mini review, you will fix a small program using this rhythm.`
     },
     {
+      type: 'markdown',
+      content: `## Example: move then insert on a tiny program
+
+The example opens and edits a short snippet: add a comment above a print, tweak a line ending,
+then drop another comment below. It highlights the Normal → Insert → Normal loop in action.`
+    },
+    {
       type: 'run-example',
       config: {
         initialBuffer: [

@@ -21,6 +21,14 @@ Vim gives you **word motions** to skip bigger chunks:
 A "word" here is a run of letters, digits, or underscores separated by spaces or punctuation.`
     },
     {
+      type: 'markdown',
+      content: `## Example: hopping across a name
+
+Starting near the beginning of a line, we use **w** to hop to \`std::string\`,
+then to the variable \`fullName\`, use **e** to land on its end, and **b** to jump back to the start.
+This shows how word motions cover more ground than single-character moves.`
+    },
+    {
       type: 'run-example',
       config: {
         initialBuffer: [

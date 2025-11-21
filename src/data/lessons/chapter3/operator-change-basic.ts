@@ -24,6 +24,14 @@ Common patterns:
 This is perfect for renaming variables or rewriting the rest of a line.`
     },
     {
+      type: 'markdown',
+      content: `## Example: renaming with cw
+
+In the example we start on \`userCount\`, use \`cw\` to delete the word and enter Insert,
+then type a new name. It demonstrates how change both removes the old text and drops you
+right into typing at the same spot.`
+    },
+    {
       type: 'run-example',
       config: {
         initialBuffer: [

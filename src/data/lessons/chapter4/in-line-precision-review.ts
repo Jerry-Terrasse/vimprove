@@ -26,22 +26,11 @@ Together they let you do surgical edits like:
     },
     {
       type: 'markdown',
-      content: `## Code we will edit
+      content: `## Example: precise edits inside add(10, 20, 30)
 
-We start from this C++ snippet:
-
-\`\`\`cpp
-#include <iostream>
-
-int main() {
-    auto sum = add(10, 20, 30);
-}
-\`\`\`
-
-We will:
-
-- Use **dt,** to remove the first argument \`10,\`.
-- Then use **ct)** to rewrite the remaining arguments.`
+The example focuses on the call \`add(10, 20, 30)\` inside a small C++ program.
+We first use \`dt,\` to delete the leading \`10,\`, then move to the end of the argument list
+and use \`ct)\` to replace the remaining arguments with a single \`42\`, without disturbing the rest of the line.`
     },
     {
       type: 'run-example',

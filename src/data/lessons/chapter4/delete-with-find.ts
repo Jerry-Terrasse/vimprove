@@ -22,19 +22,11 @@ Typical uses:
     },
     {
       type: 'markdown',
-      content: `## Code we will edit
+      content: `## Example: deleting a vector initializer
 
-We start from a C++ vector initialization:
-
-\`\`\`cpp
-#include <vector>
-
-int main() {
-    std::vector<int> values = {1, 2, 3, 4};
-}
-\`\`\`
-
-We will delete the initializer \`= {1, 2, 3, 4};\` with a single **df;** from the equals sign.`
+The example uses a \`std::vector<int>\` initialization with values inside braces.
+With the cursor on the equals sign, we run \`df;\` to delete everything from \`=\`
+through the semicolon, leaving just the declaration and a clean trailing \`;\`.`
     },
     {
       type: 'run-example',
