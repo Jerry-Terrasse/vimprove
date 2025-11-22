@@ -144,6 +144,11 @@ src/
 <details>
 <summary><b>点击展开完整版本历史</b></summary>
 
+### v0.14.0
+- 🧩 英文课程文案全部迁移到 `en/lessons.json`，页面不再依赖 defaultValue，彻底消除 TRANSLATION MISSING
+- ✅ 新增 i18n 结构与完整性测试：校验所有 locale 的 lessons/namespace 键类型一致、覆盖全部分类与课程序号
+- 🔧 修复中文版/活泼版课程翻译结构缺失（tracks/steps/keys/goals 对齐），确保 Run Example 与 Challenge 文案正常显示
+
 ### v0.13.0
 - 🎨 移动端 Header 重设计：Logo/标题左对齐，新增语言切换按钮，所有按钮右侧均匀排布（上一课、下一课、语言、设置、侧栏、GitHub）
 - 📱 移动端设置面板优化：紧凑布局（95vw 宽度 + 3列字体选项 + 简化预览代码），移除标题栏和关闭按钮

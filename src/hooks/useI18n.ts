@@ -2,11 +2,13 @@ import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { LocaleCode } from '@/i18n';
 
+const MISSING_FALLBACK = 'TRANSLATION MISSING';
+
 export const useTranslationSafe = <T extends string = string>(ns?: T) => {
   const { t, i18n } = useTranslation(ns);
   const translate = useCallback(
-    (key: string, defaultValue?: string, options?: Record<string, unknown>) =>
-      t(key, { defaultValue, ...options }),
+    (key: string, _defaultValue?: string, options?: Record<string, unknown>) =>
+      t(key, { defaultValue: MISSING_FALLBACK, ...options }),
     [t]
   );
   return { t: translate, i18n };

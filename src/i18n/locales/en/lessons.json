@@ -1,1 +1,1103 @@
-{}
+{
+  "categories": {
+    "chapter1": "Chapter 1: Vim Mindset & Basic Motions",
+    "chapter2": "Chapter 2: Word Navigation & Small Edits",
+    "chapter3": "Chapter 3: Advanced Editing",
+    "chapter4": "Chapter 4: In-line Find & Till",
+    "chapter5": "Chapter 5: Text Objects",
+    "chapter6": "Chapter 6: Search & Refactor"
+  },
+  "lessons": {
+    "modes-basics": {
+      "title": "Modes: Normal vs Insert",
+      "shortDescription": "Learn how Vim modes work and how to enter and leave Insert mode.",
+      "content": {
+        "0": "## Normal vs Insert\n\nIn Vim you are not always \"just typing\". Vim has **modes**.\n\n- **Normal mode** is for moving around and running commands.\n- **Insert mode** is for typing text, like in a regular editor.\n- Press **Esc** any time to go back to Normal mode and cancel what you were doing.\n\nA common pattern is:\n\n1. Stay in **Normal** most of the time.\n2. Jump to where you want to edit.\n3. Enter **Insert** briefly to add or change text.\n4. Press **Esc** to return to Normal and keep moving.",
+        "1": "## Four ways to start inserting\n\nFrom Normal mode you can enter Insert mode in different ways:\n\n- **i** – insert *before* the cursor on the current line.\n- **a** – insert *after* the cursor on the current line.\n- **o** – open a new line *below* the current one and start inserting there.\n- **O** – open a new line *above* the current one and start inserting there.\n- **Esc** – leave Insert mode and go back to Normal.\n\nYou can read them as tiny English phrases:\n\n- `i` → \"insert here, before the cursor\"\n- `a` → \"append after the cursor\"\n- `o` → \"open below\"\n- `O` → \"Open above\" (same, but above)",
+        "2": "## Example: switching between Normal and Insert\n\nIn the example the cursor starts near a small C++ snippet.\nWe enter Insert with `i`, type a few characters, return with **Esc**,\njump to the end of the line, and enter Insert again with `a` to add a trailing comment.\nWatch how Insert changes the buffer immediately, while Esc drops you back to command mode.",
+        "3": {
+          "tracks": {
+            "0": "Insert vs Normal"
+          },
+          "steps": {
+            "0": "i: enter Insert mode before \"int\".",
+            "1": "Type \"/\" – the code changes while in Insert.",
+            "2": "Escape: go back to Normal mode.",
+            "3": "$: jump to the end of the line in Normal mode.",
+            "4": "a: enter Insert mode after the semicolon.",
+            "5": "Type \"/\" to start a trailing comment.",
+            "6": "Escape: return to Normal again."
+          }
+        },
+        "4": {
+          "keys": {
+            "0": "Return to Normal mode",
+            "1": "Insert before cursor",
+            "2": "Insert after cursor",
+            "3": "Open new line below and insert",
+            "4": "Open new line above and insert"
+          }
+        },
+        "5": {
+          "goals": {
+            "add-vim-word": "Add the word \"Vim\" to the lesson comment on the first line.",
+            "add-todo-comment": "Add a TODO comment line, for example \"// TODO: log the message\".",
+            "add-done-log": "Add a second log call that prints \"done\"."
+          }
+        }
+      }
+    },
+    "motions-hjkl": {
+      "title": "Move with HJKL",
+      "shortDescription": "Use HJKL instead of arrow keys to move the cursor.",
+      "content": {
+        "0": "## Why HJKL?\n\nIn Vim, your hands stay on the home row.\nInstead of reaching for the arrow keys, you move with:\n\n- **h** → left\n- **j** → down\n- **k** → up\n- **l** → right\n\nThink of the cursor as a tiny player on a grid.\nYour goal is to **walk** to the target using only these four keys.",
+        "1": "## Example: walking a tiny map with HJKL\n\nThe example starts at the top of a small function and moves to a variable line using only **h j k l**.\nNotice how every move is a single keypress, keeping your hands on the home row the whole time.",
+        "2": {
+          "tracks": {
+            "0": "Move with HJKL"
+          },
+          "steps": {
+            "0": "j: move down from the function header to the variable line.",
+            "1": "k: move back up to the function header.",
+            "2": "j: move down again to the variable line.",
+            "3": "l: move right inside the line.",
+            "4": "l: move right one more character.",
+            "5": "h: move left to step back by one."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Move left",
+            "1": "Move down",
+            "2": "Move up",
+            "3": "Move right"
+          }
+        },
+        "4": {
+          "goals": {
+            "reach-X": "Move the cursor onto the X on the second line.",
+            "reach-TARGET": "Move the cursor to the T in \"TARGET\" on the last line."
+          }
+        }
+      }
+    },
+    "motions-line-bounds": {
+      "title": "Line Bounds: 0, ^, $",
+      "shortDescription": "Jump to the start, code start, or end of a line.",
+      "content": {
+        "0": "## Three important spots in a line\n\nWhen editing code, you often need three positions on a line:\n\n- Column **0**: the very start of the line.\n- First **non-blank** character (after indentation).\n- The **last** character of the line.\n\nVim gives you three motions for this:\n\n- **0** → go to column 0 (absolute start).\n- **^** → go to the first non-blank character.\n- **$** → go to the end of the line.\n\nYou can use **h** and **l** to make small adjustments after jumping.",
+        "1": "## Example: jumping to line bounds\n\nThe example starts in the middle of a declaration.\nWe use **0** to hit absolute column 0, **^** to land on the first code character,\nand **$** to jump straight to the semicolon at the end of the line.",
+        "2": {
+          "tracks": {
+            "0": "Line bounds"
+          },
+          "steps": {
+            "0": "0: jump to column 0 (very start of the line).",
+            "1": "^: jump to the first non-blank character \"s\".",
+            "2": "$: jump to the end of the line (after the semicolon)."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Jump to column 0 of the current line",
+            "1": "Jump to the first non-blank character",
+            "2": "Jump to the end of the current line",
+            "3": "Move left (fine adjust)",
+            "4": "Move right (fine adjust)"
+          }
+        },
+        "4": {
+          "goals": {
+            "go-to-absolute-start": "Move the cursor to column 0 on the second line.",
+            "go-to-first-code-char": "Move the cursor to the first non-blank character on the second line.",
+            "go-to-line-end": "Move the cursor to the last character of the second line."
+          }
+        }
+      }
+    },
+    "modes-movement-mini-review": {
+      "title": "Mini Review: Move then Insert",
+      "shortDescription": "Combine movement and Insert mode to fix a tiny program.",
+      "content": {
+        "0": "## The Normal → Insert rhythm\n\nBy now you know how to:\n\n- Move with **h j k l**.\n- Jump to key spots in a line with **0, ^, $**.\n- Enter Insert mode with **i, a, o, O** and leave it with **Esc**.\n\nReal editing in Vim follows a simple rhythm:\n\n1. In **Normal**, move to where the change should happen.\n2. Enter **Insert** briefly to type or fix text.\n3. Press **Esc** to come back to **Normal** for the next move.\n\nIn this mini review, you will fix a small program using this rhythm.",
+        "1": "## Example: move then insert on a tiny program\n\nThe example opens and edits a short snippet: add a comment above a print, tweak a line ending,\nthen drop another comment below. It highlights the Normal → Insert → Normal loop in action.",
+        "2": {
+          "tracks": {
+            "0": "Move + Insert review"
+          },
+          "steps": {
+            "0": "O: open a new line above and enter Insert mode.",
+            "1": "Type \"/\" to start a comment.",
+            "2": "Type \"/\" again to make \"//\".",
+            "3": "Escape: back to Normal on the new comment line.",
+            "4": "j: move down to the std::cout line.",
+            "5": "$: jump to the end of the line.",
+            "6": "a: enter Insert mode after the semicolon.",
+            "7": "Type \"!\" to make the greeting more expressive.",
+            "8": "Escape: return to Normal mode again.",
+            "9": "o: open a new line below and enter Insert mode.",
+            "10": "Type \"/\" to start another comment.",
+            "11": "Type \"/\" again.",
+            "12": "Type a space.",
+            "13": "Type \"d\".",
+            "14": "Type \"o\".",
+            "15": "Type \"n\".",
+            "16": "Type \"e\" to complete \"// done\".",
+            "17": "Escape: leave Insert mode with the new comment."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Move left",
+            "1": "Move down",
+            "2": "Move up",
+            "3": "Move right",
+            "4": "Jump to column 0 of the line",
+            "5": "Jump to the first non-blank character",
+            "6": "Jump to the end of the line",
+            "7": "Insert before the cursor",
+            "8": "Insert after the cursor",
+            "9": "Open new line below and insert",
+            "10": "Open new line above and insert",
+            "11": "Return to Normal mode"
+          }
+        },
+        "4": {
+          "goals": {
+            "add-semicolon-message": "Add a semicolon at the end of the line that defines \"message\".",
+            "add-semicolon-log": "Add a semicolon at the end of the console.log line.",
+            "add-todo-comment": "Add a TODO comment line like \"// TODO: print greeting\" (for the log)."
+          }
+        }
+      }
+    },
+    "motions-words": {
+      "title": "Move by words: w, b, e",
+      "shortDescription": "Jump over whole words instead of moving character by character.",
+      "content": {
+        "0": "## Why move by words?\n\nUsing **h** and **l** to move one character at a time is slow.\n\nVim gives you **word motions** to skip bigger chunks:\n\n- **w** – jump to the **start of the next word**\n- **b** – jump **back** to the start of the previous word\n- **e** – jump to the **end of the current/next word**\n\nA \"word\" here is a run of letters, digits, or underscores separated by spaces or punctuation.",
+        "1": "## Example: hopping across a name\n\nStarting near the beginning of a line, we use **w** to hop to `std::string`,\nthen to the variable `fullName`, use **e** to land on its end, and **b** to jump back to the start.\nThis shows how word motions cover more ground than single-character moves.",
+        "2": {
+          "tracks": {
+            "0": "Move by words"
+          },
+          "steps": {
+            "0": "w: jump from indentation to \"std::string\".",
+            "1": "w: jump to \"fullName\".",
+            "2": "e: jump to the end of \"fullName\".",
+            "3": "b: jump back to the start of \"fullName\"."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Jump to the start of the next word",
+            "1": "Jump back to the start of the previous word",
+            "2": "Jump to the end of the current/next word"
+          }
+        },
+        "4": {
+          "goals": {
+            "reach-lastName-start": "Move the cursor to the start of the word \"lastName\" on the second line.",
+            "reach-firstName-end": "Move the cursor to the end of the word \"firstName\" on the third line."
+          }
+        }
+      }
+    },
+    "words-fix-small-things": {
+      "title": "Fix small things with word motions",
+      "shortDescription": "Use w, b, e with i/a to quickly fix small typos.",
+      "content": {
+        "0": "## Move, then insert\n\nA common editing pattern in Vim:\n\n1. In **Normal mode**, use **w/b/e** to land on the word you want.\n2. Enter **Insert mode** with **i** (before) or **a** (after).\n3. Use Backspace and typing to fix the word.\n4. Press **Esc** to go back to Normal.\n\nYou move first, then type.",
+        "1": "## Example: fixing a word with w/b/e and Insert\n\nIn the example we travel with **w/e** to the end of `count`, enter Insert with **a**,\nand type a couple of letters to turn it into `counter`.\nIt highlights the rhythm of navigate first, then make a quick edit.",
+        "2": {
+          "tracks": {
+            "0": "Word + Insert"
+          },
+          "steps": {
+            "0": "w: jump to \"int\".",
+            "1": "w: jump to \"count\".",
+            "2": "e: jump to the end of \"count\".",
+            "3": "a: enter Insert mode just after \"count\".",
+            "4": "Type \"e\" to start adding \"er\".",
+            "5": "Type \"r\" to complete the new name \"counter\".",
+            "6": "Escape: go back to Normal with the fixed name."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Next word start",
+            "1": "Previous word start",
+            "2": "Word end",
+            "3": "Insert before the cursor",
+            "4": "Insert after the cursor",
+            "5": "Back to Normal mode"
+          }
+        },
+        "4": {
+          "goals": {
+            "fix-username": "Fix \"userNmae\" so that all occurrences become \"userName\".",
+            "fix-isactive": "Fix \"isActve\" so that all occurrences become \"isActive\"."
+          }
+        }
+      }
+    },
+    "motions-WORDs": {
+      "title": "Move by WORDs: W, B, E",
+      "shortDescription": "Jump across noisy code using WORD motions that treat symbols as part of the chunk.",
+      "content": {
+        "0": "## Words vs WORDs\n\nSo far, **w/b/e** move by \"words\" (letters, digits, underscores).\n\nSometimes code has lots of symbols:\n\n```js\nt = Math.max(i, 4200), Math.min(j, 4900);\n```\n\nLowercase motions stop at punctuation.\n\n**WORD motions** treat everything between spaces as **one big chunk**:\n\n- **W** – next WORD start\n- **B** – previous WORD start\n- **E** – WORD end\n\nA WORD is \"anything until the next space\".",
+        "1": "## Example: two cursors race\n\nWatch how **w** (lowercase) and **W** (uppercase) behave differently on symbol-heavy code.\n\nThe **blue cursor** uses `w` (stops at punctuation).\nThe **green cursor** uses `W` (treats everything between spaces as one chunk).",
+        "2": {
+          "tracks": {
+            "0": "Using w (word)",
+            "1": "Using W (WORD)"
+          },
+          "steps": {
+            "0": "w: move from \"auto\" to \"result\".",
+            "1": "W: move from \"auto\" to \"result\".",
+            "2": "w: move from \"result\" to \"=\".",
+            "3": "W: jump over \"= std::max(x, 42)\" as one WORD.",
+            "4": "w: step into \"std::max(x, 42)\".",
+            "5": "w: continue stepping over smaller pieces.",
+            "6": "W: jump again over \"+ std::min(y, 7);\" towards the end."
+          }
+        },
+        "3": "Notice how **W** reaches the end in just 4 jumps, while **w** needs many more steps!\n\n**WORDS blaze through symbol-heavy code.**",
+        "4": {
+          "keys": {
+            "0": "Next word start (small word)",
+            "1": "Next WORD start (big chunk)",
+            "2": "Previous WORD start",
+            "3": "WORD end"
+          }
+        },
+        "5": {
+          "goals": {
+            "reach-first-math": "Move the cursor to the M in the first \"Math\".",
+            "reach-second-math": "Move the cursor to the M in the second \"Math\"."
+          }
+        }
+      }
+    },
+    "small-edits-chars": {
+      "title": "Small edits: x, s, r",
+      "shortDescription": "Use x, s, and r to clean up tiny mistakes without full Insert mode.",
+      "content": {
+        "0": "## Three tools for tiny mistakes\n\nFor one-character fixes you do not need a big Insert session.\n\nIn Normal mode:\n\n- **x** – delete the character under the cursor.\n- **s** – delete the character under the cursor **and** enter Insert mode.\n- **r{char}** – replace the character under the cursor with `{char}` and stay in Normal.\n\nThey are perfect for things like:\n\n- Changing `==` into `===`.\n- Fixing a single letter in a word.\n- Removing an extra symbol.",
+        "1": "## Example: quick single-character fixes\n\nThe example line-up shows three tiny edits in one pass:\nuse **x** to drop a digit, **r** to replace a number in place,\nand **s** to swap a wrong letter inside a string while briefly entering Insert mode.",
+        "2": {
+          "tracks": {
+            "0": "Small edits: x, r, s"
+          },
+          "steps": {
+            "0": "w: jump to \"int\".",
+            "1": "w: jump to \"value\".",
+            "2": "w: jump to \"10\".",
+            "3": "x: delete the \"0\" to make the value 1.",
+            "4": "j: move down to the \"count\" line.",
+            "5": "w: jump to \"int\".",
+            "6": "w: jump to \"count\".",
+            "7": "w: jump to the \"0\".",
+            "8": "r: prepare to replace the digit under the cursor.",
+            "9": "Type \"1\" so the assignment becomes count = 1.",
+            "10": "j: move down to the string line.",
+            "11": "w: jump to \"std::string\".",
+            "12": "w: jump to \"text\".",
+            "13": "w: jump to the string literal \"Hxllo\".",
+            "14": "l: move onto the wrong letter \"x\".",
+            "15": "s: delete \"x\" and enter Insert mode at that spot.",
+            "16": "Type \"e\" to fix the word to \"Hello\".",
+            "17": "Escape: back to Normal after the small edit."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Delete character under cursor",
+            "1": "Delete character under cursor and enter Insert",
+            "2": "Replace character under cursor with next typed character",
+            "3": "Back to Normal mode"
+          }
+        },
+        "4": {
+          "goals": {
+            "make-strict-equals": "Change \"==\" into \"===\" in the if condition.",
+            "fix-zerro": "Fix the string so that it reads \"Zero\" instead of \"Zerro\"."
+          }
+        }
+      }
+    },
+    "words-mini-review": {
+      "title": "Mini review: word motions + small edits",
+      "shortDescription": "Combine word motions with x, s, and r to quickly clean up a small snippet.",
+      "content": {
+        "0": "## Putting it together\n\nYou now know how to:\n\n- Move by **words** with **w, b, e**.\n- Jump by **WORDs** with **W, B, E**.\n- Fix tiny mistakes with **x, s, r**.\n- Briefly enter Insert mode with **i/a** and exit with **Esc**.\n\nThis mini review lets you clean up a small piece of code using any combo you like.\n\nFocus on:\n\n- Jumping with word/WORD motions instead of many `h/l`.\n- Using `x/s/r` for tiny edits, not long Insert sessions.",
+        "1": "## Example: comparing h/l, w, and W\n\nThe example animates three cursors: one stepping with **h/l**, one with **w**, and one with **W**.\nWatch how word and WORD motions reach targets in far fewer keystrokes than single-character steps.",
+        "2": {
+          "tracks": {
+            "0": "Using h/l",
+            "1": "Using w (word)",
+            "2": "Using W (WORD)"
+          },
+          "steps": {
+            "0": "h/l cursor: move right one character.",
+            "1": "h/l cursor: move right again.",
+            "2": "h/l cursor: move right again.",
+            "3": "h/l cursor: still stepping through \"std::vector<int>\".",
+            "4": "w cursor: jump to \"values\".",
+            "5": "w cursor: jump to \"=\".",
+            "6": "W cursor: jump over \"std::vector<int>\" as one WORD.",
+            "7": "W cursor: jump to \"{1,\" in a single step."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Next word start",
+            "1": "Previous word start",
+            "2": "Word end",
+            "3": "Next WORD start",
+            "4": "Previous WORD start",
+            "5": "WORD end",
+            "6": "Delete character",
+            "7": "Substitute character and insert",
+            "8": "Replace character",
+            "9": "Insert before cursor",
+            "10": "Insert after cursor",
+            "11": "Open new line below and insert",
+            "12": "Back to Normal"
+          }
+        },
+        "4": {
+          "goals": {
+            "fix-curentCount": "Rename all occurrences of \"curentCount\" to \"currentCount\".",
+            "strict-equals-again": "Change \"==\" to \"===\" in the if condition.",
+            "add-todo-comment-review": "Add a TODO comment line like \"// TODO: check other counters\"."
+          }
+        }
+      }
+    },
+    "operator-delete-basic": {
+      "title": "Delete with d + motion",
+      "shortDescription": "Use d + motion to delete exactly the range you want.",
+      "content": {
+        "0": "## Operator + motion: think \"verb + range\"\n\nSo far you learned motions like **w**, **0**, **$** to move the cursor.\n\nVim adds **operators** that act on a *range* defined by a motion:\n\n- **d** is \"delete\".\n- `d + motion` means \"delete from here to where that motion would move\".\n\nExamples:\n\n- `dw` – delete to the **start of the next word**.\n- `d0` – delete **back to column 0**.\n- `d$` – delete **to the end of the line**.\n\nYou can read them as little sentences:\n\n- `dw` → \"delete a word forward\".\n- `d0` → \"delete back to the start of this line\".\n- `d$` → \"delete to the end of this line\".",
+        "1": "## Example: deleting a word and a comment\n\nThe example jumps onto a variable name and deletes it with `dw`,\nthen moves to a trailing comment and uses `d$` to remove everything to the end of the line.\nIt shows how the delete operator follows whatever motion you pair with it.",
+        "2": {
+          "tracks": {
+            "0": "Delete with d + motion"
+          },
+          "steps": {
+            "0": "w: jump to \"debugValue\".",
+            "1": "d: start the delete operator.",
+            "2": "w: dw – delete the word \"debugValue\".",
+            "3": "w: move to the comment start \"//\".",
+            "4": "d: start another delete.",
+            "5": "$: d$ – delete from here to end of line."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Delete operator (combine with a motion)",
+            "1": "Jump to next word start",
+            "2": "Jump to column 0",
+            "3": "Jump to first non-blank character",
+            "4": "Jump to end of line"
+          }
+        },
+        "4": {
+          "goals": {
+            "remove-debug-word": "Remove the word \"debug\" from the comment on the value line.",
+            "remove-unused-comment": "Remove the entire \"// unused\" comment on the count line."
+          }
+        }
+      }
+    },
+    "operator-change-basic": {
+      "title": "Change with c + motion",
+      "shortDescription": "Use c + motion to delete a range and jump straight into Insert mode.",
+      "content": {
+        "0": "## Change = delete + insert\n\nThe **c** operator is like **d**, but with one extra step:\n\n- **d{motion}** – delete a range and stay in Normal mode.\n- **c{motion}** – delete a range and enter **Insert mode** at that spot.\n\nCommon patterns:\n\n- `cw` – change the word under/after the cursor.\n- `c$` – change from here to the end of the line.\n- `c0` – change from here back to column 0.\n\nThis is perfect for renaming variables or rewriting the rest of a line.",
+        "1": "## Example: renaming with cw\n\nIn the example we start on `userCount`, use `cw` to delete the word and enter Insert,\nthen type a new name. It demonstrates how change both removes the old text and drops you\nright into typing at the same spot.",
+        "2": {
+          "tracks": {
+            "0": "Change with c + motion"
+          },
+          "steps": {
+            "0": "c: start the change operator on \"userCount\".",
+            "1": "w: cw – delete the word \"userCount\" and enter Insert.",
+            "2": "Type \"t\".",
+            "3": "Type \"o\".",
+            "4": "Type \"t\".",
+            "5": "Type \"a\".",
+            "6": "Type \"l\".",
+            "7": "Type \"U\".",
+            "8": "Type \"s\" to complete \"totalUs\".",
+            "9": "Type \"e\".",
+            "10": "Type \"r\" to finish \"totalUser\".",
+            "11": "Type \"s\" to get \"totalUsers\".",
+            "12": "Escape: back to Normal with the new name."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Change operator (delete range and enter Insert)",
+            "1": "Use with c to change a word",
+            "2": "Use with c to change back to column 0",
+            "3": "Use with c to change to end of line",
+            "4": "Leave Insert mode"
+          }
+        },
+        "4": {
+          "goals": {
+            "rename-userCount": "Rename \"userCount\" to \"totalUsers\" everywhere in main."
+          }
+        }
+      }
+    },
+    "operator-yank-basic": {
+      "title": "Copy with y + motion, paste with p/P",
+      "shortDescription": "Use y + motion to yank text and p/P to paste it where you need.",
+      "content": {
+        "0": "## Yank is \"copy\" in Vim\n\nThe **y** operator copies text into a register without deleting it.\n\n- **y{motion}** – yank (copy) the range described by the motion.\n- **yy** – yank the whole current line.\n- **p** – paste **after** the cursor (or below the current line for a yanked line).\n- **P** – paste **before** the cursor (or above the current line for a yanked line).\n\nThink:\n\n- `yw` → \"copy a word\".\n- `y$` → \"copy from here to end of line\".\n- `yy` → \"copy this line\".",
+        "1": "## Example: yank a string and paste it elsewhere\n\nThe example yanks the string literal for `name` with `yw`,\nclears an empty placeholder on the next line, and pastes the copied string with **p**.\nIt highlights how y and p pair to move text without deleting the source.",
+        "2": {
+          "tracks": {
+            "0": "Yank + paste"
+          },
+          "steps": {
+            "0": "w: jump to \"name\".",
+            "1": "w: jump to the string literal \"\"Ada\"\".",
+            "2": "y: start the yank operator on the string.",
+            "3": "w: yw – yank the word \"\"Ada\"\".",
+            "4": "j: move down to the \"copy\" line.",
+            "5": "$: jump to the end of the line (after \";\").",
+            "6": "h: move left onto the empty string \"\".",
+            "7": "d: start delete.",
+            "8": "w: dw – delete the empty string literal.",
+            "9": "p: paste the yanked \"\"Ada\"\" after the cursor."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Yank (copy) operator",
+            "1": "Paste after the cursor / below the line",
+            "2": "Paste before the cursor / above the line",
+            "3": "Yank the whole current line"
+          }
+        },
+        "4": {
+          "goals": {
+            "copy-name-into-copy": "Make the \"copy\" variable store the same string as \"name\".",
+            "duplicate-log-line": "Create a second std::cout line that prints \"copy\" instead of \"name\"."
+          }
+        }
+      }
+    },
+    "count-repeat-undo": {
+      "title": "Counts, repeat, undo",
+      "shortDescription": "Use counts, dot-repeat, and undo/redo to do more with fewer keystrokes.",
+      "content": {
+        "0": "## Do it once, then repeat\n\nVim gives you two big boosters:\n\n- **Counts**: prefix a command with a number to run it multiple times.\n  - `3w` – move 3 words forward.\n  - `2dw` – delete 2 words in one go.\n- **Dot repeat** (`.`):\n  - repeats the **last change** (not just the last key).\n\nAnd if you go too far:\n\n- **u** – undo the last change.\n- **Ctrl-r** – redo the last undone change.\n\nThe idea:\n\n1. Make one good change once.\n2. Repeat it with `.` or a count.\n3. Fix mistakes with `u` and `Ctrl-r`.",
+        "1": "## Example: count, repeat, undo\n\nThe example edits a series of initializers.\nWe change one value to 42, then use **.** to repeat the change on the next lines,\nand finally use **u** / **Ctrl-r** to demonstrate undo and redo on the repeated edits.",
+        "2": {
+          "tracks": {
+            "0": "Counts + dot + undo"
+          },
+          "steps": {
+            "0": "w: jump to \"int\".",
+            "1": "w: jump to \"value1\".",
+            "2": "w: jump to \"0;\".",
+            "3": "c: start a change on the initializer.",
+            "4": "w: cw – delete \"0;\".",
+            "5": "Type \"4\" in Insert mode.",
+            "6": "Type \"2\" to make the value 42;",
+            "7": "Type \";\" to finish the statement.",
+            "8": "Escape: back to Normal. One line is fixed.",
+            "9": "j: move down to value2.",
+            "10": ".: repeat the last change – set initializer to 42 again.",
+            "11": "j: move down to value3.",
+            "12": ".: repeat once more for value3.",
+            "13": "u: undo – revert the last change on value3.",
+            "14": "Ctrl-r: redo – apply the change again."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Counts before a motion or operator",
+            "1": "Repeat the last change",
+            "2": "Undo last change",
+            "3": "Redo last undone change"
+          }
+        },
+        "4": {
+          "goals": {
+            "all-values-42": "Change all four initializers so that value1..value4 are initialized to 42."
+          }
+        }
+      }
+    },
+    "operators-mini-review": {
+      "title": "Mini review: operators + motions",
+      "shortDescription": "Combine d, c, y with motions, counts, and repeat to clean up a small program.",
+      "content": {
+        "0": "## Vim's sentence: operator + motion\n\nBy now you know:\n\n- Motions: **w, b, e, 0, ^, $** and friends.\n- Operators: **d** (delete), **c** (change), **y** (yank/copy).\n- Extras: counts, **.** repeat, **u** undo, **Ctrl-r** redo, **p/P** paste.\n\nThe mental model:\n\n> **Action** = operator + motion\n> > `d` + `w` → delete a word\n> > `c` + `$` → change to end of line\n> > `y` + `0` → copy back to start of line\n\nIn this review you will:\n\n- Remove a debug line,\n- Rename a variable,\n- Duplicate and adjust a line,\n\nusing any combination of these tools.",
+        "1": "## Example: chaining operators in one flow\n\nThe example walks through a tiny program: rename a variable with **cw**, delete a debug line with **dd**,\nthen copy and tweak a computation using **yy**, **p**, and a quick change.\nIt demonstrates how operator + motion pairs read like short sentences you can string together.",
+        "2": {
+          "tracks": {
+            "0": "Operator mini workflow"
+          },
+          "steps": {
+            "0": "w: jump to \"int\".",
+            "1": "w: jump to \"count\".",
+            "2": "c: start change on the variable name.",
+            "3": "w: cw – delete \"count\" and enter Insert.",
+            "4": "Type \"i\".",
+            "5": "Type \"t\".",
+            "6": "Type \"e\".",
+            "7": "Type \"m\".",
+            "8": "Type \"s\" to make \"items\".",
+            "9": "Escape: back to Normal with renamed variable.",
+            "10": "j: move down to the debugValue line.",
+            "11": "d: first d for dd – delete line.",
+            "12": "d: second d – whole debug line is gone.",
+            "13": "k: move back to \"total = items * 2;\" line.",
+            "14": "y: first y for yy – yank the whole line.",
+            "15": "y: second y – the line is copied.",
+            "16": "p: paste the copied line below.",
+            "17": "j: move to the new pasted line.",
+            "18": "0: jump to start of the line.",
+            "19": "w: jump to \"total\".",
+            "20": "w: jump to \"items\".",
+            "21": "w: jump to the multiplier \"2;\".",
+            "22": "c: start changing the multiplier.",
+            "23": "w: cw – delete \"2;\".",
+            "24": "Type \"3\".",
+            "25": "Type \";\" to finish \"3;\".",
+            "26": "Escape: back to Normal – new line uses 3."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Delete operator",
+            "1": "Change operator (delete + Insert)",
+            "2": "Yank (copy) operator",
+            "3": "Paste after cursor / below line",
+            "4": "Paste before cursor / above line",
+            "5": "Repeat last change",
+            "6": "Undo",
+            "7": "Redo"
+          }
+        },
+        "4": {
+          "goals": {
+            "rename-count-to-items": "Rename all occurrences of \"count\" to \"items\" inside main.",
+            "remove-debug-line": "Remove the whole line that declares \"debugValue\".",
+            "add-multiplier-3": "Create a second assignment line \"total = items * 3;\" below the existing \"total = items * 2;\" line."
+          }
+        }
+      }
+    },
+    "find-char": {
+      "title": "Find characters on a line: f, F, ;, ,",
+      "shortDescription": "Jump directly to a character on the current line with f/F and repeat with ; and ,.",
+      "content": {
+        "0": "## Find characters instead of counting\n\nSometimes you know **which character** you want, not how many times to press `l`.\n\nIn Normal mode:\n\n- **f{char}** – move forward to the next `{char}` on this line.\n- **F{char}** – move backward to the previous `{char}`.\n- **;** – repeat the last `f/F/t/T` search in the same direction.\n- **,** – repeat it in the opposite direction.\n\nThis is perfect for lines with multiple commas, quotes, or parentheses.",
+        "1": "## Example: hopping between commas\n\nThe example uses a `std::cout` line with several commas inside a string literal.\nStarting near the beginning of the line, we use `f,` to jump to the first comma,\nthen `;` and `,` to move forward and backward between commas without counting characters.",
+        "2": {
+          "tracks": {
+            "0": "Find commas with f and ; ,"
+          },
+          "steps": {
+            "0": "f: start a forward character search on this line.",
+            "1": "\"f,\" jumps to the first comma inside the string.",
+            "2": "\";\" repeats the last find, moving to the next comma.",
+            "3": "\";\" again: jump to the third comma.",
+            "4": "\",\" goes back to the previous comma."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Find the next comma on this line",
+            "1": "Find the previous comma on this line",
+            "2": "Repeat the last f/F/t/T search (same direction)",
+            "3": "Repeat the last f/F/t/T search (opposite direction)"
+          }
+        },
+        "4": {
+          "goals": {
+            "first-comma": "Move the cursor to the first comma in the line.",
+            "last-comma": "Move the cursor to the last comma in the line."
+          }
+        }
+      }
+    },
+    "delete-with-find": {
+      "title": "Delete using find motions: d f/t",
+      "shortDescription": "Combine the delete operator d with f/t to remove precise ranges inside a line.",
+      "content": {
+        "0": "## Delete to a character, not just by words\n\nOnce you know **f** and **t**, you can combine them with **d**:\n\n- **df{char}** – delete from cursor **through** the next `{char}`.\n- **dt{char}** – delete from cursor **until just before** the next `{char}`.\n\nTypical uses:\n\n- `df;` – delete from here up to the semicolon.\n- `dt)` – delete everything inside parentheses, but keep the closing `) `.",
+        "1": "## Example: deleting a vector initializer\n\nThe example uses a `std::vector<int>` initialization with values inside braces.\nWith the cursor on the equals sign, we run `df;` to delete everything from `=`\nthrough the semicolon, leaving just the declaration and a clean trailing `;`.",
+        "2": {
+          "tracks": {
+            "0": "Delete with d f{char}"
+          },
+          "steps": {
+            "0": "d: start the delete operator on the equals sign.",
+            "1": "f: prepare to find a character forward.",
+            "2": "\"df;\" deletes from \"=\" through the semicolon, removing the initializer."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Delete from cursor through the next semicolon",
+            "1": "Delete from cursor until just before the closing parenthesis"
+          }
+        },
+        "4": {
+          "goals": {
+            "clear-func-args": "Remove the arguments inside func(…) so the call becomes func().",
+            "remove-debug-init": "Remove the initializer \"= 42;\" from the debug line (keep the variable name)."
+          }
+        }
+      }
+    },
+    "change-with-find": {
+      "title": "Change using find motions: c f/t",
+      "shortDescription": "Use c f/t to rewrite precise slices of text inside a line.",
+      "content": {
+        "0": "## Change up to a character\n\nThe **c** operator can also be combined with find/till motions:\n\n- **cf{char}** – change from cursor **through** the next `{char}`.\n- **ct{char}** – change from cursor **until just before** the next `{char}`.\n\nThey both:\n\n1. Delete that range.\n2. Enter **Insert mode** so you can type a replacement.\n\nCommon use cases:\n\n- `ct\"` – replace the contents of a string until the closing quote.\n- `ct)` – rewrite arguments until the closing parenthesis (keep the `) `).",
+        "1": "## Example: rewriting a name string\n\nThe example starts with `std::string name = \"Ada\";` in a small C++ program.\nWith the cursor inside the string, we use `ct\"` to delete up to (but not including)\nthe closing quote, then type a new name while keeping the surrounding quotes intact.",
+        "2": {
+          "tracks": {
+            "0": "Change with c t\""
+          },
+          "steps": {
+            "0": "c: start the change operator inside the string.",
+            "1": "t: choose a till motion (stop before a character).",
+            "2": "\"ct\\\"\": delete up to but not including the closing quote and enter Insert.",
+            "3": "Type \"B\".",
+            "4": "Type \"o\".",
+            "5": "Type \"b\" to make the new value \"Bob\".",
+            "6": "Escape: finish the change and return to Normal mode."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Change inside the string until just before the closing quote",
+            "1": "Change up to but not including the closing parenthesis",
+            "2": "Change through the closing quote (include it in the change)"
+          }
+        },
+        "4": {
+          "goals": {
+            "change-greeting": "Change the greeting string to \"Hi\".",
+            "change-name": "Change the name string to \"Ada Lovelace\"."
+          }
+        }
+      }
+    },
+    "in-line-precision-review": {
+      "title": "Mini review: precise in-line edits",
+      "shortDescription": "Combine f/F/t/T with d and c to surgically edit function calls and strings.",
+      "content": {
+        "0": "## Precise surgery inside a line\n\nYou now have:\n\n- **f/F** – jump *on* a character.\n- **t/T** – jump *just before/after* a character.\n- **; / ,** – repeat the last in-line search.\n- **d{motion}** – delete a range.\n- **c{motion}** – delete a range and enter Insert mode.\n\nTogether they let you do surgical edits like:\n\n- Remove one parameter from a long function call.\n- Rewrite a string message without touching quotes.\n- Trim or extend initializer lists.",
+        "1": "## Example: precise edits inside add(10, 20, 30)\n\nThe example focuses on the call `add(10, 20, 30)` inside a small C++ program.\nWe first use `dt,` to delete the leading `10,`, then move to the end of the argument list\nand use `ct)` to replace the remaining arguments with a single `42`, without disturbing the rest of the line.",
+        "2": {
+          "tracks": {
+            "0": "Precise in-line edits"
+          },
+          "steps": {
+            "0": "f: move forward inside the call.",
+            "1": "\"f(\" jumps to the opening parenthesis.",
+            "2": "d: start delete to remove the first argument.",
+            "3": "t: till motion (stop before a character).",
+            "4": "\"dt,\" deletes \"10,\" but keeps the comma after the remaining arguments.",
+            "5": "f: move again towards the end of the argument list.",
+            "6": "\"f)\" jumps to the closing parenthesis.",
+            "7": "c: start a change to rewrite the remaining arguments.",
+            "8": "t: \"ct)\" will change up to but not including \")\".",
+            "9": "\"ct)\" deletes the current arguments and enters Insert mode.",
+            "10": "Type \"4\".",
+            "11": "Type \"2\" to make a single argument 42.",
+            "12": "Escape: finish the change with add(42)."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Jump to the next \"(\" in the line",
+            "1": "Move just before the next comma",
+            "2": "Delete until (but not including) the next comma",
+            "3": "Change until (but not including) the closing parenthesis",
+            "4": "Repeat last in-line search forward",
+            "5": "Repeat last in-line search backward"
+          }
+        },
+        "4": {
+          "goals": {
+            "simplify-add-call": "Change the add(...) call so it only has a single argument 42: add(42).",
+            "update-message": "Update the message string to say \"INFO: done\" (inside the quotes).",
+            "keep-structure": "Make sure the std::cout line still prints message followed by \"\\n\"."
+          }
+        }
+      }
+    },
+    "textobjects-words": {
+      "title": "Word text objects: iw, aw",
+      "shortDescription": "Use iw and aw to select whole words instead of guessing motions.",
+      "content": {
+        "0": "## Text objects: operator + i/a + object\n\nSo far you combined operators with motions:\n\n- `d + w` → delete to the next word.\n- `c + $` → change to the end of the line.\n\n**Text objects** add a new pattern:\n\n> **operator + i/a + object**\n\nHere:\n\n- **i** = \"inner\"\n- **a** = \"a... including surrounding space or delimiter\"\n- **w** = \"word\"\n\nSo you get:\n\n- **diw** – delete inner word (just the word).\n- **daw** – delete a word and its surrounding space.\n- **ciw** – change the whole word and enter Insert mode.\n- **yiw** – yank (copy) the word.",
+        "1": "## Example: renaming with ciw\n\nHere we start on `totalCount`, use **ciw** to wipe the whole word, and type a new name.\nBecause it's a text object, you do not have to measure the motion—Vim knows you mean \"this word\".",
+        "2": {
+          "tracks": {
+            "0": "Rename with ciw"
+          },
+          "steps": {
+            "0": "c: start a change on the current word.",
+            "1": "i: choose the inner word text object.",
+            "2": "w: ciw – delete the whole word and enter Insert mode.",
+            "3": "Type \"i\".",
+            "4": "Type \"t\".",
+            "5": "Type \"e\".",
+            "6": "Type \"m\".",
+            "7": "Type \"C\".",
+            "8": "Type \"o\".",
+            "9": "Type \"u\".",
+            "10": "Type \"n\".",
+            "11": "Type \"t\" to complete \"itemCount\".",
+            "12": "Escape: finish the rename and return to Normal."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Delete the inner word under the cursor",
+            "1": "Delete the word plus surrounding space or punctuation",
+            "2": "Change the inner word and enter Insert mode",
+            "3": "Yank (copy) the inner word"
+          }
+        },
+        "4": {
+          "goals": {
+            "rename-oldValue": "Rename \"oldValue\" to \"newValue\" everywhere.",
+            "rename-oldCount": "Rename \"oldCount\" to \"newCount\" everywhere."
+          }
+        }
+      }
+    },
+    "textobjects-paragraphs": {
+      "title": "Paragraph text objects: ip, ap",
+      "shortDescription": "Treat consecutive non-empty lines as a paragraph and operate on them as one unit.",
+      "content": {
+        "0": "## Paragraphs as text objects\n\nA **paragraph** in Vim is a block of non-empty lines separated by empty lines.\n\nText objects:\n\n- **ip** – \"inner paragraph\": just the block of text.\n- **ap** – \"a paragraph\": the block plus one surrounding blank line.\n\nYou can combine them with operators:\n\n- **dip** – delete the inner paragraph.\n- **yip** – yank the paragraph.\n- **cip** – change the paragraph and enter Insert mode.\n\nThis is useful for comment blocks and documentation inside code.",
+        "1": "## Example: deleting a comment block with dip\n\nThe example sits inside a two-line comment paragraph.\nUsing **d i p** deletes the whole block at once, showing how paragraph text objects save you\nfrom counting lines when working on documentation-style sections.",
+        "2": {
+          "tracks": {
+            "0": "Delete a whole paragraph with dip"
+          },
+          "steps": {
+            "0": "d: start delete operator on the comment block.",
+            "1": "i: choose the inner text object.",
+            "2": "p: dip – delete the whole comment paragraph at once."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Delete the inner paragraph around the cursor",
+            "1": "Yank (copy) the paragraph",
+            "2": "Change the paragraph and enter Insert mode",
+            "3": "Delete the paragraph plus one surrounding blank line"
+          }
+        },
+        "4": {
+          "goals": {
+            "remove-note-paragraph": "Delete the NOTE paragraph (but keep the Description paragraph).",
+            "duplicate-description": "Make a second copy of the Description paragraph above std::string name."
+          }
+        }
+      }
+    },
+    "textobjects-brackets": {
+      "title": "Bracket text objects: (), {}, []",
+      "shortDescription": "Quickly operate on everything inside parentheses, braces, or brackets.",
+      "content": {
+        "0": "## Bracket text objects\n\nYou often need to edit:\n\n- Function argument lists: `add(10, 20, 30)`\n- Initializer lists: `values{1, 2, 3, 4}`\n- Arrays or vectors: `values[0]`\n\nText objects:\n\n- **i(** / **a(** – inner / around parentheses.\n- **i{** / **a{** – inner / around braces.\n- **i[** / **a[** – inner / around brackets.\n\nCombine with operators:\n\n- **di(** – delete everything inside `(...)`.\n- **ci{** – change everything inside `{...}`, then type new content.\n- **yi(** – yank (copy) the inside of `(...)`.",
+        "1": "## Example: clearing arguments with di(\n\nIn this example we move into a function call and run **d i (** to wipe the arguments,\nleaving the surrounding parentheses intact. This shows how bracket text objects\nlet you act on structured code without counting characters.",
+        "2": {
+          "tracks": {
+            "0": "Clear arguments with di("
+          },
+          "steps": {
+            "0": "f: find the \"(\".",
+            "1": "Target \"(\": jump to the opening parenthesis.",
+            "2": "l: move inside the parentheses.",
+            "3": "d: start delete operator.",
+            "4": "i: choose the inner parentheses text object.",
+            "5": "(: di( – delete all arguments, leaving add()."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Delete inside (...), keeping the parentheses",
+            "1": "Delete inside {...}, keeping the braces",
+            "2": "Change inside (...), then type new arguments",
+            "3": "Yank inside an initializer list {...}"
+          }
+        },
+        "4": {
+          "goals": {
+            "clear-initializer": "Change the initializer list so that values become an empty list: values{};",
+            "clear-add-arguments": "Change the add(...) call so that it becomes add();"
+          }
+        }
+      }
+    },
+    "textobjects-quotes": {
+      "title": "Quote text objects: strings",
+      "shortDescription": "Edit the inside of strings cleanly with ci\", di\", and friends.",
+      "content": {
+        "0": "## Quote text objects\n\nStrings are everywhere in code. Text objects let you edit them without counting characters.\n\nFor quotes:\n\n- **i\"** / **a\"** – inner / around double-quoted string.\n- **i'** / **a'** – inner / around single-quoted string.\n- **i`** / **a`** – inner / around backtick string (in other languages).\n\nCombined with operators:\n\n- **ci\"** – change the contents of the string, keep the quotes.\n- **di\"** – delete the contents of the string, keep the quotes.\n- **yi\"** – yank the contents of the string.",
+        "1": "## Example: changing a string with ci\"\n\nThe example jumps into a string literal, uses **ci\"** to clear its contents,\nand types a shorter message. Because the quotes stay in place, you never have to count characters\ninside the string.",
+        "2": {
+          "tracks": {
+            "0": "Change string with ci\""
+          },
+          "steps": {
+            "0": "f: find the opening double quote.",
+            "1": "Target \"\\\"\": jump to the start of the string.",
+            "2": "l: move inside the string.",
+            "3": "c: start a change.",
+            "4": "i: choose inner double-quote text object.",
+            "5": "\"ci\\\"\": delete \"Hello, world\" and enter Insert.",
+            "6": "Type \"H\".",
+            "7": "Type \"i\".",
+            "8": "Type \"!\" to make \"Hi!\".",
+            "9": "Escape: finish the change and return to Normal."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Change the inside of a double-quoted string",
+            "1": "Delete the inside of a double-quoted string",
+            "2": "Yank the inside of a double-quoted string"
+          }
+        },
+        "4": {
+          "goals": {
+            "change-level-to-debug": "Change the level string so it becomes \"DEBUG\".",
+            "change-message-to-shutdown": "Change the message string so it becomes \"Shutting down\"."
+          }
+        }
+      }
+    },
+    "textobjects-mega-review": {
+      "title": "Text objects mega review",
+      "shortDescription": "Combine word, bracket, and quote text objects to refactor a small C++ snippet.",
+      "content": {
+        "0": "## Text objects: the big picture\n\nYou now know several text objects:\n\n- **iw/aw** – words.\n- **ip/ap** – paragraphs.\n- **i(/a(**, **i{/a{**, **i[/a[** – brackets.\n- **i\"/a\"** – strings.\n\nCombined with operators, they become small sentences:\n\n- **ciw** – change this word.\n- **di(** – delete inside these parentheses.\n- **ci\"** – rewrite this string.\n- **dip** – delete this whole comment block.\n\nIn this review, you will use them together to clean up a small program.",
+        "1": "## Example: mix strings and braces in one pass\n\nThe example changes the message inside `logError` with **ci\"**, then clears an if-block with **di{**.\nIt shows how different text objects can be combined back-to-back to reshape structured code.",
+        "2": {
+          "tracks": {
+            "0": "Combine ci\" and di{"
+          },
+          "steps": {
+            "0": "f: find the double quote in the logError call.",
+            "1": "Target \"\\\"\": jump to the start of the string.",
+            "2": "l: move inside the string.",
+            "3": "c: start a change on the string content.",
+            "4": "i: choose inner double-quote text object.",
+            "5": "\"ci\\\"\": delete \"Name is empty\" and enter Insert.",
+            "6": "Type \"I\".",
+            "7": "Type \"n\".",
+            "8": "Type \"v\".",
+            "9": "Type \"a\".",
+            "10": "Type \"l\".",
+            "11": "Type \"i\".",
+            "12": "Type \"d\" to start \"Invalid name\".",
+            "13": "Type space.",
+            "14": "Type \"n\".",
+            "15": "Type \"a\".",
+            "16": "Type \"m\".",
+            "17": "Type \"e\" to complete \"Invalid name\".",
+            "18": "Escape: finish the string change.",
+            "19": "k: move up to the if-line with the opening brace.",
+            "20": "f: find the opening \"{\".",
+            "21": "Target \"{\": jump to the brace.",
+            "22": "j: move inside the block.",
+            "23": "d: start delete operator.",
+            "24": "i: choose inner-brace text object.",
+            "25": "\"di{\": delete everything inside the if-block."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Change the inner word",
+            "1": "Change the inside of a string",
+            "2": "Delete inside parentheses",
+            "3": "Delete inside braces",
+            "4": "Delete inner paragraph"
+          }
+        },
+        "4": {
+          "goals": {
+            "rename-userName-to-name": "Rename \"userName\" to \"name\" everywhere.",
+            "change-greeting-to-hi": "Change the greeting string to \"Hi\".",
+            "update-error-call": "In the if-branch, change the logMessage call to use \"FATAL\" and \"name is empty\"."
+          }
+        }
+      }
+    },
+    "search-basic": {
+      "title": "Search and repeat: /, n, N, *, #",
+      "shortDescription": "Use / and * to jump between matches, and repeat with n/N.",
+      "content": {
+        "0": "## Search across the buffer\n\nInstead of moving line by line, you can **search** for what you want:\n\n- **/pattern** – search forward for `pattern`.\n- **?pattern** – search backward.\n- **n** – jump to the next match.\n- **N** – jump to the previous match.\n\nVim can also search for the **word under the cursor**:\n\n- *** – search forward for the word under the cursor.\n- **#** – search backward for the word under the cursor.",
+        "1": "## Example: jumping through all \"Ada\"\n\nThe example uses a small C++ snippet with three occurrences of the string \"Ada\".\nWe start with the cursor on the first \"Ada\", then use `*` to search for that word\nand `n`/`N` to move forward and backward through each match in the buffer.",
+        "2": {
+          "tracks": {
+            "0": "Search with * and n/N"
+          },
+          "steps": {
+            "0": "*: search for the word \"Ada\" under the cursor and jump to the next match.",
+            "1": "n: jump to the next \"Ada\".",
+            "2": "n: jump again to the next \"Ada\".",
+            "3": "N: go back to the previous match.",
+            "4": "N: go back to the first \"Ada\"."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Search forward for a pattern",
+            "1": "Jump to the next search match",
+            "2": "Jump to the previous search match",
+            "3": "Search forward for the word under the cursor",
+            "4": "Search backward for the word under the cursor"
+          }
+        },
+        "4": {
+          "goals": {
+            "replace-todo-with-done": "Replace all occurrences of \"TODO\" with \"DONE\".",
+            "cursor-on-start-server-comment": "Move the cursor onto the comment that mentions \"start server\"."
+          }
+        }
+      }
+    },
+    "search-with-operators": {
+      "title": "Search + operators: refactor quickly",
+      "shortDescription": "Use search to find matches, then combine with operators and dot-repeat.",
+      "content": {
+        "0": "## Search first, then operate\n\nSearch is powerful when combined with **operators**:\n\n1. Use **/**, **?**, or *** to jump to the first match.\n2. Use an operator + motion or text object:\n   - `ciw` – change the whole word.\n   - `ci\"` – change inside a string.\n3. Use **n** to move to the next match.\n4. Use **.** to repeat the last change.\n\nThis lets you refactor many similar places with just a few key presses.",
+        "1": "## Example: change DEBUG to INFO\n\nThe example starts with two \"DEBUG\" strings in a small C++ snippet.\nWe land on the first \"DEBUG\" (for example with `/DEBUG`), use `ci\"` once to change it to \"INFO\",\nthen move to the second \"DEBUG\" and press `.` to repeat exactly the same change.",
+        "2": {
+          "tracks": {
+            "0": "ci\" + dot repeat"
+          },
+          "steps": {
+            "0": "c: start a change on the string content.",
+            "1": "i: choose the inner double-quote text object.",
+            "2": "\": ci\\\" deletes \"DEBUG\" and enters Insert mode.",
+            "3": "Type \"I\".",
+            "4": "Type \"N\".",
+            "5": "Type \"F\".",
+            "6": "Type \"O\".",
+            "7": "Escape: finish editing, string is now \"INFO\".",
+            "8": "j: move down to the second \"DEBUG\".",
+            "9": ".: repeat the last change, turning it into \"INFO\" as well."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Search for a pattern",
+            "1": "Jump to next match",
+            "2": "Search word under cursor",
+            "3": "Change inside a string and enter Insert",
+            "4": "Repeat the last change"
+          }
+        },
+        "4": {
+          "goals": {
+            "rename-logdebug-to-loginfo": "Rename the function and all calls from logDebug to logInfo.",
+            "change-debug-prefix-to-info": "Change the log prefix from \"[DEBUG]\" to \"[INFO]\"."
+          }
+        }
+      }
+    },
+    "realworld-cleanup-1": {
+      "title": "Real-world cleanup: remove debug noise",
+      "shortDescription": "Use search, operators, and repeat to clean up a noisy main function.",
+      "content": {
+        "0": "## Clean up noisy code with search\n\nIn real projects you often need to:\n\n- Remove temporary debug blocks.\n- Fix a wrong constant used many times.\n- Update a status message.\n\nInstead of scrolling and editing by hand, you can:\n\n- **/pattern** to jump to each place.\n- Use **d** or **c** with motions or text objects.\n- Use **.** to repeat fixes.\n- Use **u** / **Ctrl-r** to correct mistakes.",
+        "1": "## Example: remove one debug line\n\nThe example shows a tiny `main` function with a single debug comment line.\nWe search for \"DEBUG\" with `/`, land on that line, and then use `dd`\nto delete the whole comment in a single command.",
+        "2": {
+          "tracks": {
+            "0": "Search and delete a debug line"
+          },
+          "steps": {
+            "0": "/: start a forward search.",
+            "1": "Type \"D\".",
+            "2": "Type \"E\".",
+            "3": "Type \"B\".",
+            "4": "Type \"U\".",
+            "5": "Type \"G\".",
+            "6": "Enter: jump to the match \"DEBUG\".",
+            "7": "d: first d of dd – delete the whole line.",
+            "8": "d: second d – the debug comment line is removed."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Search forward for a pattern",
+            "1": "Jump to the next match",
+            "2": "Delete the current line",
+            "3": "Repeat the last change",
+            "4": "Undo the last change",
+            "5": "Redo the last undone change"
+          }
+        },
+        "4": {
+          "goals": {
+            "remove-debug-block": "Remove the debug-only if (debug) block and its log line.",
+            "change-port-to-80": "Change the port so that it is initialized to 80 instead of 8080.",
+            "improve-info-message": "Update the info message so it reads \"[INFO] server ready\"."
+          }
+        }
+      }
+    },
+    "speedrun-challenge": {
+      "title": "Speedrun drills: small tasks, fast moves",
+      "shortDescription": "Practice small, repeatable edits with search, text objects, and dot-repeat.",
+      "content": {
+        "0": "## Speed drills for muscle memory\n\nThis lesson is your **practice arena**.\n\nYou already know how to:\n\n- Move by words and WORDs.\n- Search with **/**, **n**, and ***.\n- Edit with operators and text objects.\n- Repeat with **.**.\n\nNow you will solve several tiny tasks on one snippet.  \nTry to perform them **cleanly and quickly** – even if the website does not time you yet.",
+        "1": "## Example: rename a repeated variable\n\nThe example works on a short function that uses the variable `value` several times.\nWe search for \"value\" with `*`, rename it once with `ciw`,\nthen use `n` and `.` to repeat the same change on the remaining occurrences.",
+        "2": {
+          "tracks": {
+            "0": "Search + ciw + dot"
+          },
+          "steps": {
+            "0": "*: search for the word \"value\" and jump to the next match.",
+            "1": "c: start a change on the word under the cursor.",
+            "2": "i: choose inner word.",
+            "3": "w: ciw – delete the word and enter Insert mode.",
+            "4": "Type \"x\" as the new short name.",
+            "5": "Escape: finish editing this occurrence.",
+            "6": "n: jump to the next \"value\".",
+            "7": ".: repeat the change and rename the next occurrence to \"x\"."
+          }
+        },
+        "3": {
+          "keys": {
+            "0": "Search for the word under the cursor",
+            "1": "Change the inner word",
+            "2": "Jump to next match",
+            "3": "Repeat the last change"
+          }
+        },
+        "4": {
+          "goals": {
+            "rename-value-to-count": "Rename \"value\" to \"count\" everywhere in the snippet.",
+            "change-initializer-to-42": "Change the initializer so that count is initialized to 42.",
+            "remove-todo-comment": "Remove the trailing TODO comment from the declaration line."
+          }
+        }
+      }
+    }
+  }
+}

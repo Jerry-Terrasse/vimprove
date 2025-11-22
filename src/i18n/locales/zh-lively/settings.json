@@ -1,0 +1,11 @@
+{
+  "title": "设置",
+  "appearance": {
+    "tab": "外观",
+    "fontFamily": "字体",
+    "fontSize": "字号",
+    "preview": "预览"
+  },
+  "reset": "恢复默认",
+  "done": "完成"
+}
