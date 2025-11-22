@@ -100,9 +100,12 @@ right into typing at the same spot.`
             id: 'rename-userCount',
             type: 'change',
             description: 'Rename "userCount" to "totalUsers" everywhere in main.',
-            validator: (prev, next) => {
+            validator: (_prev, next) => {
               const text = next.buffer.join('\n');
-              return text.includes('totalUsers') && !text.includes('userCount');
+              // Must have exactly 2 occurrences of 'totalUsers' and 0 of 'userCount'
+              const totalUsersCount = (text.match(/totalUsers/g) || []).length;
+              const userCountCount = (text.match(/userCount/g) || []).length;
+              return totalUsersCount === 2 && userCountCount === 0;
             }
           }
         ]

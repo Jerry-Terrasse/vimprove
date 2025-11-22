@@ -40,9 +40,8 @@
         },
         "5": {
           "goals": {
-            "add-vim-word": "在第一行的注释中优雅地加入 “Vim” 一词，让读者一眼就知道这节课在讲什么。",
-            "add-todo-comment": "再加一行 TODO 注释，比如 \"// TODO: log the message\"，就像真实项目里给自己留一个小备忘。",
-            "add-done-log": "再写一条 log，打印 \"done\"，让这个小程序真正“说句话”告诉你它跑完了。"
+            "enter-insert-mode": "使用 i、a、o 或 O 进入 Insert 模式。",
+            "return-normal-mode": "按 Escape 返回 Normal 模式。"
           }
         }
       }
@@ -167,7 +166,7 @@
           "goals": {
             "add-semicolon-message": "在定义 \"message\" 的那一行末尾加上分号，让语句变得完整、规范。",
             "add-semicolon-log": "在 console.log 那行的末尾也补上分号，顺便养成一致的代码风格习惯。",
-            "add-todo-comment": "加一行 TODO 注释，比如 \"// TODO: print greeting\"，像真实项目一样给自己留个“以后要改进”的小标记。"
+            "add-todo-comment": "添加一行 TODO 注释，例如 \"// TODO: print greeting\"。"
           }
         }
       }
@@ -371,7 +370,7 @@
           "goals": {
             "fix-curentCount": "把所有拼错的 \"curentCount\" 改成 \"currentCount\"，让变量名更专业。",
             "strict-equals-again": "把 if 条件中的 \"==\" 改成 \"===\"，再次巩固严格比较的修法。",
-            "add-todo-comment-review": "添加一行 TODO 注释，如 \"// TODO: check other counters\"，模拟真实项目里的“以后要检查”标记。"
+            "add-todo-comment-review": "添加一行 TODO 注释，例如 \"// TODO: check other counters\"。"
           }
         }
       }

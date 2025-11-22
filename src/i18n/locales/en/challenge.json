@@ -13,6 +13,7 @@
   "complete": {
     "title": "Lesson Complete!",
     "subtitle": "You finished in {{time}} seconds.",
-    "next": "Next Lesson"
+    "next": "Next Lesson",
+    "hint": "Press Enter to continue"
   }
 }

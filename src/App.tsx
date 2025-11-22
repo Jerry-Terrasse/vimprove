@@ -12,14 +12,27 @@ import { useTranslationSafe } from '@/hooks/useI18n';
 
 type View = 'home' | 'lesson';
 
-const LEARNING_STARTED_KEY = 'vimprove_learning_started';
+const CURRENT_LESSON_KEY = 'vimprove_current_lesson';
+const LEGACY_LEARNING_STARTED_KEY = 'vimprove_learning_started'; // For migration
 
 const App = () => {
-  // Check if user has started learning before
-  const hasStartedLearning = localStorage.getItem(LEARNING_STARTED_KEY) === 'true';
+  // Migrate legacy localStorage key
+  const legacyStarted = localStorage.getItem(LEGACY_LEARNING_STARTED_KEY);
+  const currentSaved = localStorage.getItem(CURRENT_LESSON_KEY);
+  if (legacyStarted === 'true' && !currentSaved) {
+    // Migrate: assume user was at first lesson
+    localStorage.setItem(CURRENT_LESSON_KEY, LESSONS[0].slug);
+    localStorage.removeItem(LEGACY_LEARNING_STARTED_KEY);
+  }
 
-  const [currentView, setCurrentView] = useState<View>(hasStartedLearning ? 'lesson' : 'home');
-  const [currentLessonSlug, setCurrentLessonSlug] = useState(LESSONS[0].slug);
+  // Load last lesson from localStorage
+  const savedLessonSlug = localStorage.getItem(CURRENT_LESSON_KEY);
+  const hasValidSavedLesson = savedLessonSlug && LESSONS.some(l => l.slug === savedLessonSlug);
+
+  const [currentView, setCurrentView] = useState<View>(hasValidSavedLesson ? 'lesson' : 'home');
+  const [currentLessonSlug, setCurrentLessonSlug] = useState(
+    hasValidSavedLesson ? savedLessonSlug : LESSONS[0].slug
+  );
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { t } = useTranslationSafe('layout');
 
@@ -56,19 +69,24 @@ const App = () => {
 
   const handleNext = () => {
     if (currentLessonIdx < LESSONS.length - 1) {
-      setCurrentLessonSlug(LESSONS[currentLessonIdx + 1].slug);
+      const nextSlug = LESSONS[currentLessonIdx + 1].slug;
+      setCurrentLessonSlug(nextSlug);
+      localStorage.setItem(CURRENT_LESSON_KEY, nextSlug);
     }
   };
 
   const handlePrev = () => {
     if (currentLessonIdx > 0) {
-      setCurrentLessonSlug(LESSONS[currentLessonIdx - 1].slug);
+      const prevSlug = LESSONS[currentLessonIdx - 1].slug;
+      setCurrentLessonSlug(prevSlug);
+      localStorage.setItem(CURRENT_LESSON_KEY, prevSlug);
     }
   };
 
   const handleLessonSelect = (slug: string) => {
     setCurrentLessonSlug(slug);
     setCurrentView('lesson');
+    localStorage.setItem(CURRENT_LESSON_KEY, slug);
     // Close sidebar on mobile after selection
     if (window.innerWidth < 768) {
       setSidebarOpen(false);
@@ -76,13 +94,14 @@ const App = () => {
   };
 
   const handleStartLearning = () => {
-    localStorage.setItem(LEARNING_STARTED_KEY, 'true');
+    const firstLessonSlug = LESSONS[0].slug;
+    localStorage.setItem(CURRENT_LESSON_KEY, firstLessonSlug);
     setCurrentView('lesson');
-    setCurrentLessonSlug(LESSONS[0].slug);
+    setCurrentLessonSlug(firstLessonSlug);
   };
 
   const handleHomeClick = () => {
-    localStorage.removeItem(LEARNING_STARTED_KEY);
+    localStorage.removeItem(CURRENT_LESSON_KEY);
     setCurrentView('home');
   };
 

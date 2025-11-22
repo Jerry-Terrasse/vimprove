@@ -99,9 +99,12 @@ Watch how word and WORD motions reach targets in far fewer keystrokes than singl
             id: 'fix-curentCount',
             type: 'change',
             description: 'Rename all occurrences of "curentCount" to "currentCount".',
-            validator: (prev, next) => {
+            validator: (_prev, next) => {
               const text = next.buffer.join('\n');
-              return text.includes('currentCount') && !text.includes('curentCount');
+              // Must have exactly 2 occurrences of 'currentCount' and 0 of 'curentCount'
+              const currentCountOccurrences = (text.match(/currentCount/g) || []).length;
+              const curentCountOccurrences = (text.match(/curentCount/g) || []).length;
+              return currentCountOccurrences === 2 && curentCountOccurrences === 0;
             }
           },
           {
@@ -117,11 +120,9 @@ Watch how word and WORD motions reach targets in far fewer keystrokes than singl
           {
             id: 'add-todo-comment-review',
             type: 'insert',
-            description: 'Add a TODO comment line like "// TODO: check other counters".',
-            validator: (prev, next) => {
-              return next.buffer.some(line =>
-                line.includes('// TODO: check other counters')
-              );
+            description: 'Add a TODO comment line, for example "// TODO: check other counters".',
+            validator: (_prev, next) => {
+              return next.buffer.some(line => line.includes('// TODO'));
             }
           }
         ]

@@ -13,6 +13,7 @@
   "complete": {
     "title": "课程完成！",
     "subtitle": "你在 {{time}} 秒内完成。",
-    "next": "下一节"
+    "next": "下一节",
+    "hint": "按 Enter 继续"
   }
 }

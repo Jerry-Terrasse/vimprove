@@ -126,12 +126,9 @@ then drop another comment below. It highlights the Normal → Insert → Normal 
           {
             id: 'add-todo-comment',
             type: 'insert',
-            description: 'Add a TODO comment line like "// TODO: print greeting" (for the log).',
-            validator: (prev, next) => {
-              const hasTodo = next.buffer.some(line =>
-                line.includes('// TODO: print greeting')
-              );
-              return hasTodo;
+            description: 'Add a TODO comment line, for example "// TODO: print greeting".',
+            validator: (_prev, next) => {
+              return next.buffer.some(line => line.includes('// TODO'));
             }
           }
         ]

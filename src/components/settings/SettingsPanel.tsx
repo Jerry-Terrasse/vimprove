@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { X, Palette } from 'lucide-react';
+import { Palette, Terminal, Code } from 'lucide-react';
 import { useSettingsContext } from '@/contexts/SettingsContext';
 import { AppearanceTab } from './AppearanceTab';
+import { VimStatusTab } from './VimStatusTab';
+import { VimPlaygroundTab } from './VimPlaygroundTab';
 import { useTranslationSafe } from '@/hooks/useI18n';
 
-type Tab = 'appearance';
+type Tab = 'appearance' | 'vim-status' | 'playground';
 
 type SettingsPanelProps = {
   isOpen: boolean;
@@ -41,6 +43,28 @@ export const SettingsPanel = ({ isOpen, onClose }: SettingsPanelProps) => {
             <Palette size={18} />
             {t('appearance.tab', 'Appearance')}
           </button>
+          <button
+            onClick={() => setActiveTab('vim-status')}
+            className={`flex items-center gap-2 px-4 py-3 text-sm transition-colors border-b-2 ${
+              activeTab === 'vim-status'
+                ? 'border-green-500 text-white'
+                : 'border-transparent text-stone-400 hover:text-white'
+            }`}
+          >
+            <Terminal size={18} />
+            {t('vimStatus.tab', 'Vim Status')}
+          </button>
+          <button
+            onClick={() => setActiveTab('playground')}
+            className={`flex items-center gap-2 px-4 py-3 text-sm transition-colors border-b-2 ${
+              activeTab === 'playground'
+                ? 'border-green-500 text-white'
+                : 'border-transparent text-stone-400 hover:text-white'
+            }`}
+          >
+            <Code size={18} />
+            {t('playground.tab', 'Playground')}
+          </button>
         </div>
 
         {/* Content */}
@@ -51,6 +75,8 @@ export const SettingsPanel = ({ isOpen, onClose }: SettingsPanelProps) => {
               onUpdate={updateEditorSettings}
             />
           )}
+          {activeTab === 'vim-status' && <VimStatusTab />}
+          {activeTab === 'playground' && <VimPlaygroundTab />}
         </div>
 
         {/* Footer */}

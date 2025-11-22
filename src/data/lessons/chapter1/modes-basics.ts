@@ -97,39 +97,23 @@ Watch how Insert changes the buffer immediately, while Esc drops you back to com
           'console.log(message);'
         ],
         initialCursor: { line: 1, col: 0 },
-        goalsRequired: 3,
+        goalsRequired: 2,
         enabledCommands: ['h', 'j', 'k', 'l', 'i', 'a', 'o', 'O', 'Escape'],
         goals: [
           {
-            id: 'add-vim-word',
+            id: 'enter-insert-mode',
             type: 'insert',
-            description: 'Add the word "Vim" to the lesson comment on the first line.',
+            description: 'Enter Insert mode using i, a, o, or O.',
             validator: (_prev, next) => {
-              if (!next.buffer.length) return false;
-              const first = next.buffer[0];
-              return first.includes('Lesson 1.1') && first.toLowerCase().includes('vim');
+              return next.mode === 'insert';
             }
           },
           {
-            id: 'add-todo-comment',
-            type: 'insert',
-            description: 'Add a TODO comment line, for example "// TODO: log the message".',
-            validator: (_prev, next) => {
-              return next.buffer.some(line =>
-                line.includes('// TODO: log the message')
-              );
-            }
-          },
-          {
-            id: 'add-done-log',
-            type: 'insert',
-            description: 'Add a second log call that prints "done".',
-            validator: (_prev, next) => {
-              const text = next.buffer.join('\n');
-              return (
-                text.includes("console.log('done')") ||
-                text.includes('console.log("done")')
-              );
+            id: 'return-normal-mode',
+            type: 'custom',
+            description: 'Return to Normal mode by pressing Escape.',
+            validator: (_prev, next, lastCommand) => {
+              return next.mode === 'normal' && lastCommand?.type === 'mode-switch' && lastCommand.to === 'normal';
             }
           }
         ]

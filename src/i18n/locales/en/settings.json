@@ -6,6 +6,20 @@
     "fontSize": "Font Size",
     "preview": "Preview"
   },
+  "vimStatus": {
+    "tab": "Vim Status",
+    "testResults": "Neovim Parity Tests",
+    "supportMatrix": "Command Support Matrix",
+    "supported": "Supported",
+    "partial": "Partial",
+    "notSupported": "Not Supported"
+  },
+  "playground": {
+    "tab": "Playground",
+    "language": "Language",
+    "hint": "Try Vim commands in this playground",
+    "tip": "This is a mostly functional Vim editor. Try commands like h/j/k/l, w/b/e, d/c/y, i/a/o, and more!"
+  },
   "reset": "Reset to Defaults",
   "done": "Done"
 }

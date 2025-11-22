@@ -37,8 +37,28 @@ export const VimChallenge = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    // Reset vim state when config changes (e.g., switching lessons)
+    dispatch({
+      type: 'RESET',
+      payload: { buffer: config.initialBuffer, cursor: config.initialCursor }
+    });
     inputRef.current?.focus();
-  }, [config]);
+  }, [config, dispatch]);
+
+  // Handle Enter key to proceed to next lesson when challenge is complete
+  useEffect(() => {
+    if (!isComplete) return;
+
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        onComplete({ next: true, time: elapsed });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [isComplete, elapsed, onComplete]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock'].includes(e.key)) return;
@@ -187,7 +207,7 @@ export const VimChallenge = ({
 
         {isComplete && (
           <div className="absolute inset-0 z-20 bg-stone-950/90 flex flex-col items-center justify-center animate-in fade-in duration-500">
-            <div className="bg-stone-900 p-8 rounded-2xl border border-green-900/50 shadow-2xl text-center max-w-md">
+            <div className="bg-stone-900 px-12 py-10 rounded-2xl border border-green-900/50 shadow-2xl text-center max-w-lg mx-4">
               <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
               <h3 className="text-2xl font-bold text-white mb-2">
                 {t('complete.title', 'Lesson Complete!', { ns: 'challenge' })}
@@ -204,6 +224,9 @@ export const VimChallenge = ({
               >
                 {t('complete.next', 'Next Lesson', { ns: 'challenge' })}
               </button>
+              <p className="text-stone-500 text-sm mt-4">
+                {t('complete.hint', 'Press Enter to continue', { ns: 'challenge' })}
+              </p>
             </div>
           </div>
         )}

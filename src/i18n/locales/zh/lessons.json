@@ -40,9 +40,8 @@
         },
         "5": {
           "goals": {
-            "add-vim-word": "在第一行的注释中加入 “Vim” 一词。",
-            "add-todo-comment": "添加一行 TODO 注释，例如 \"// TODO: log the message\"。",
-            "add-done-log": "再添加一条 log，打印 \"done\"。"
+            "enter-insert-mode": "使用 i、a、o 或 O 进入 Insert 模式。",
+            "return-normal-mode": "按 Escape 返回 Normal 模式。"
           }
         }
       }
@@ -167,7 +166,7 @@
           "goals": {
             "add-semicolon-message": "在定义 \"message\" 的行末加分号。",
             "add-semicolon-log": "在 console.log 那行末尾加分号。",
-            "add-todo-comment": "加一行 TODO 注释，如 \"// TODO: print greeting\"。"
+            "add-todo-comment": "添加一行 TODO 注释，例如 \"// TODO: print greeting\"。"
           }
         }
       }
@@ -371,7 +370,7 @@
           "goals": {
             "fix-curentCount": "把所有 \"curentCount\" 改成 \"currentCount\"。",
             "strict-equals-again": "把 if 条件中的 \"==\" 改成 \"===\"。",
-            "add-todo-comment-review": "添加一行 TODO 注释，如 \"// TODO: check other counters\"。"
+            "add-todo-comment-review": "添加一行 TODO 注释，例如 \"// TODO: check other counters\"。"
           }
         }
       }

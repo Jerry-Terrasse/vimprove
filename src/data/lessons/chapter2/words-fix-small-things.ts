@@ -78,18 +78,24 @@ It highlights the rhythm of navigate first, then make a quick edit.`
             id: 'fix-username',
             type: 'change',
             description: 'Fix "userNmae" so that all occurrences become "userName".',
-            validator: (prev, next) => {
+            validator: (_prev, next) => {
               const text = next.buffer.join('\n');
-              return text.includes('userName') && !text.includes('userNmae');
+              // Must have exactly 2 occurrences of 'userName' and 0 of 'userNmae'
+              const userNameCount = (text.match(/userName/g) || []).length;
+              const userNmaeCount = (text.match(/userNmae/g) || []).length;
+              return userNameCount === 2 && userNmaeCount === 0;
             }
           },
           {
             id: 'fix-isactive',
             type: 'change',
             description: 'Fix "isActve" so that all occurrences become "isActive".',
-            validator: (prev, next) => {
+            validator: (_prev, next) => {
               const text = next.buffer.join('\n');
-              return text.includes('isActive') && !text.includes('isActve');
+              // Must have exactly 2 occurrences of 'isActive' and 0 of 'isActve'
+              const isActiveCount = (text.match(/isActive/g) || []).length;
+              const isActveCount = (text.match(/isActve/g) || []).length;
+              return isActiveCount === 2 && isActveCount === 0;
             }
           }
         ]

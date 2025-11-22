@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { VimState, ChallengeConfig } from '@/core/types';
 
 export const useChallenge = (
@@ -10,6 +10,18 @@ export const useChallenge = (
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const prevConfigRef = useRef(config);
+
+  // Reset challenge state when config changes (e.g., switching lessons)
+  useEffect(() => {
+    if (prevConfigRef.current !== config) {
+      setGoalsStatus({});
+      setStartTime(null);
+      setElapsed(0);
+      setIsComplete(false);
+      prevConfigRef.current = config;
+    }
+  }, [config]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;

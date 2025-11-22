@@ -6,6 +6,20 @@
     "fontSize": "字号",
     "preview": "预览"
   },
+  "vimStatus": {
+    "tab": "Vim 状态",
+    "testResults": "Neovim 对拍测试",
+    "supportMatrix": "命令支持矩阵",
+    "supported": "支持",
+    "partial": "部分支持",
+    "notSupported": "不支持"
+  },
+  "playground": {
+    "tab": "练习场",
+    "language": "语言",
+    "hint": "在这个练习场中尝试 Vim 命令",
+    "tip": "这是一个功能基本完整的 Vim 编辑器。试试 h/j/k/l、w/b/e、d/c/y、i/a/o 等命令！"
+  },
   "reset": "恢复默认",
   "done": "完成"
 }

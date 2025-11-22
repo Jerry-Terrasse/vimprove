@@ -10,7 +10,7 @@ Vimprove 是一个交互式 Vim 学习网站。核心功能是通过浏览器中
 
 **课程范围**: 已完成 Chapter 1-6（基础、进阶编辑、行内 find/till、文本对象、搜索/重构），共 27 节课。
 
-**版本管理**: 版本号在 `src/version.ts` 和 `package.json` 中维护，CHANGELOG 见 `README.md`（当前 0.11.0）
+**版本管理**: 版本号在 `src/version.ts` 和 `package.json` 中维护，CHANGELOG 见 `README.md`（当前 1.0.0）
 
 ## Development Commands
 
@@ -105,6 +105,12 @@ src/
 - 渲染时优先使用 `lessons.{slug}.*` 翻译键，回退到原始字符串
 - Markdown 内容、Run Example 步骤、Challenge 目标均可翻译
 - 课程分类（categories）通过 `i18nKey` 关联到翻译文件
+
+**课程内容翻译结构**（重要设计决策）:
+- **英文内容直接位于课程 .ts 文件中**（如 `src/data/lessons/chapter1/modes-basics.ts`），用于定义课程结构和默认内容
+- **其他语言（zh, zh-lively 等）使用 JSON 翻译文件**（如 `src/i18n/locales/zh/lessons.json`）
+- **网站其他部分（设置、布局等）所有语言都有独立 JSON 文件**（包括英文）
+- 这种设计避免了英文课程内容的重复存储，课程 .ts 文件既是代码也是英文数据源
 
 **App 初始化**:
 - App 根组件包裹 `I18nextProvider` + `Suspense`（loading fallback）
@@ -459,5 +465,11 @@ ls src/data/lessons/chapter3/
 - 添加新核心功能（如 undo/redo、yank/paste、dot command、testing）→ MINOR++
 - 修复 Bug → PATCH++
 - 每次提交前检查是否需要更新版本
+
+**CHANGELOG 编写规则**：
+- **每个版本最多 4 条更新条目**（精简为主，合并相关变更）
+- 按重要性排序：新功能 > Bug 修复 > 优化改进
+- 相关条目合并（如多个相关 bug 修复合并为一条）
+- 使用简洁描述，必要时用括号补充关键细节
 
 **重要**: CLAUDE.md 不记录具体版本号，只记录重要的结构性变化和功能说明
