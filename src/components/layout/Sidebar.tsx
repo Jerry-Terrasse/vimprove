@@ -26,6 +26,7 @@ export const Sidebar = ({
   const { t } = useTranslationSafe('layout');
   const { locale, setLocale } = useLocale();
   const [isLangOpen, setIsLangOpen] = useState(false);
+  const translateLessons = locale !== 'en';
 
   return (
     <div
@@ -48,7 +49,9 @@ export const Sidebar = ({
           {CATEGORIES.map(cat => (
             <div key={cat.id} className="mb-5">
               <h3 className="text-sm font-bold text-green-400 uppercase tracking-wide mb-2 px-2 py-1 border-l-2 border-green-500">
-                {t(`categories.${cat.id}`, cat.title, { ns: 'lessons' })}
+                {translateLessons
+                  ? t(`categories.${cat.id}`, cat.title, { ns: 'lessons' })
+                  : cat.title}
               </h3>
               <div className="space-y-0.5">
                 {lessons
@@ -65,7 +68,9 @@ export const Sidebar = ({
                       }
                     `}
                     >
-                      {t(`lessons.${lesson.slug}.title`, lesson.title, { ns: 'lessons' })}
+                      {translateLessons
+                        ? t(`lessons.${lesson.slug}.title`, lesson.title, { ns: 'lessons' })
+                        : lesson.title}
                       {currentLessonSlug === lesson.slug && (
                         <ChevronRight size={14} className="text-stone-500" />
                       )}

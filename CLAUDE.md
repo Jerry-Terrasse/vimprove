@@ -63,7 +63,7 @@ src/
 ├── components/        # UI 组件
 │   ├── common/       # 通用组件（MarkdownBlock, KeyListBlock）
 │   ├── lesson/       # 课程相关（LessonView, LessonNav）
-│   ├── challenge/    # 挑战相关（VimChallenge, VimEditor, GoalsList）
+│   ├── challenge/    # 挑战相关（VimChallenge 内置编辑器 + GoalsList）
 │   └── layout/       # 布局组件（Sidebar, Header）
 │
 ├── pages/            # 页面组件
@@ -136,7 +136,7 @@ vimReducer (Core) → motions.ts / operators.ts
     ↓
 New VimState
     ↓
-├─→ VimEditor (Render Buffer)
+├─→ VimChallenge 内置编辑器 (Render Buffer)
 └─→ useChallenge (Validate Goals) → useProgress (Persist)
 ```
 
