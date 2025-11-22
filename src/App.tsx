@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Settings, SkipBack, SkipForward, Github } from 'lucide-react';
 import { LESSONS } from '@/data';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import { HomePage } from '@/pages/HomePage';
 import { LessonPage } from '@/pages/LessonPage';
 import { SettingsProvider } from '@/contexts/SettingsContext';
@@ -19,9 +20,23 @@ const App = () => {
 
   const [currentView, setCurrentView] = useState<View>(hasStartedLearning ? 'lesson' : 'home');
   const [currentLessonSlug, setCurrentLessonSlug] = useState(LESSONS[0].slug);
-  const [sidebarOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { t } = useTranslationSafe('layout');
+
+  // Sidebar state: default closed on mobile, open on desktop
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      // Auto-open sidebar on desktop (md breakpoint is 768px)
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const currentLessonIdx = LESSONS.findIndex(l => l.slug === currentLessonSlug);
   const currentLesson = LESSONS[currentLessonIdx];
@@ -44,6 +59,10 @@ const App = () => {
     setCurrentLessonSlug(slug);
     setCurrentView('lesson');
     window.scrollTo(0, 0);
+    // Close sidebar on mobile after selection
+    if (window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
   };
 
   const handleStartLearning = () => {
@@ -61,6 +80,26 @@ const App = () => {
     <SettingsProvider>
       <EditorStyleApplier />
       <div className="h-screen bg-stone-950 text-stone-200 font-sans flex overflow-hidden">
+        {/* Mobile Header */}
+        <MobileHeader
+          isVisible={currentView === 'lesson'}
+          sidebarOpen={sidebarOpen}
+          onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+          onSettingsClick={() => setSettingsOpen(true)}
+          showPrevButton={currentLessonIdx > 0}
+          showNextButton={currentLessonIdx < LESSONS.length - 1}
+          onPrevClick={currentLessonIdx > 0 ? handlePrev : undefined}
+          onNextClick={currentLessonIdx < LESSONS.length - 1 ? handleNext : undefined}
+        />
+
+        {/* Mobile Overlay */}
+        {sidebarOpen && currentView === 'lesson' && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
         <Sidebar
           lessons={LESSONS}
           currentLessonSlug={currentLessonSlug}
@@ -82,8 +121,8 @@ const App = () => {
           )}
         </div>
 
-        {/* Floating Action Buttons */}
-        <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-40">
+        {/* Floating Action Buttons (Desktop Only) */}
+        <div className="hidden md:flex fixed bottom-6 right-6 flex-col gap-3 z-40">
           {currentView === 'lesson' && currentLessonIdx > 0 && (
             <button
               onClick={handlePrev}
@@ -104,7 +143,7 @@ const App = () => {
           )}
           <button
             onClick={() => setSettingsOpen(true)}
-            className="p-4 bg-stone-700 hover:bg-stone-600 border border-stone-600 rounded-full shadow-2xl transition-all hover:scale-110 text-stone-200 hover:text-white"
+            className="w-14 h-14 p-4 bg-stone-700 hover:bg-stone-600 border border-stone-600 rounded-full shadow-2xl transition-all hover:scale-110 text-stone-200 hover:text-white"
             title={t('settings', 'Settings')}
           >
             <Settings size={24} />
@@ -113,7 +152,7 @@ const App = () => {
             href="https://github.com/Jerry-Terrasse/vimprove"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-4 bg-stone-700 hover:bg-stone-600 border border-stone-600 rounded-full shadow-2xl transition-all hover:scale-110 text-stone-200 hover:text-white"
+            className="w-14 h-14 p-4 bg-stone-700 hover:bg-stone-600 border border-stone-600 rounded-full shadow-2xl transition-all hover:scale-110 text-stone-200 hover:text-white"
             title={t('starOnGithub', 'Give me a Star!')}
           >
             <Github size={24} />

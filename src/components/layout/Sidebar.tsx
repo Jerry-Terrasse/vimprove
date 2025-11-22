@@ -30,14 +30,15 @@ export const Sidebar = ({
   return (
     <div
       className={`
-        fixed inset-y-0 left-0 z-50 w-72 h-screen bg-stone-900 border-r border-stone-800 transform transition-transform duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] h-screen bg-stone-900 border-r border-stone-800 transform transition-transform duration-300 ease-in-out
         flex flex-col
         ${!isVisible ? '-translate-x-full' : isOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:relative md:translate-x-0 md:h-screen
+        md:relative md:translate-x-0 md:h-screen md:max-w-none
         ${!isVisible ? 'md:hidden' : ''}
       `}
     >
-      <div className="px-4 py-3 border-b border-stone-800 flex items-center gap-4">
+      {/* Header: hidden on mobile to save vertical space */}
+      <div className="px-4 py-3 border-b border-stone-800 flex items-center gap-4 hidden md:flex">
         <img src="/favicon.png" alt="Vimprove" className="w-16 h-16 flex-shrink-0" />
         <span className="font-bold text-4xl logo-text">Vimprove</span>
       </div>

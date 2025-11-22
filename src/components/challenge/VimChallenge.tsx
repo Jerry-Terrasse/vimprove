@@ -113,7 +113,7 @@ export const VimChallenge = ({ config, onComplete, lessonSlug, i18nBaseKey }: Vi
   };
 
   return (
-    <div className="bg-stone-900 rounded-xl overflow-hidden border border-stone-800 shadow-2xl flex flex-col h-[600px]">
+    <div className="bg-stone-900 rounded-xl overflow-hidden border border-stone-800 shadow-2xl flex flex-col h-[500px] md:h-[600px]">
       {/* Header / Status Bar */}
       <div className="bg-stone-950 border-b border-stone-800 p-3 flex items-center justify-between text-sm font-mono">
         <div className="flex items-center gap-4">

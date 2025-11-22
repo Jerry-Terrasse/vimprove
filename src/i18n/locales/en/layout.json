@@ -3,5 +3,8 @@
   "home": "Home",
   "backToHome": "Back to Home",
   "settings": "Settings",
-  "starOnGithub": "Please give me a Star!"
+  "starOnGithub": "Please give me a Star!",
+  "menu": "Menu",
+  "prevLesson": "Previous Lesson",
+  "nextLesson": "Next Lesson"
 }
