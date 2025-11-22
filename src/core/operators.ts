@@ -372,11 +372,12 @@ export const applyOperatorWithMotion = (
     const newBuffer = [...buffer];
     const newLine = lineText.slice(0, start.col) + lineText.slice(endCol);
     newBuffer[start.line] = newLine;
+    const newCursorCol = Math.min(start.col, Math.max(0, newLine.length - 1));
 
     return {
       ...stateWithHistory,
       buffer: newBuffer,
-      cursor: start,
+      cursor: { line: start.line, col: newCursorCol },
       pendingOperator: null,
       pendingTextObject: null,
       mode: operator === 'c' ? 'insert' : 'normal',

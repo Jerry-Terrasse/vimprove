@@ -42,8 +42,17 @@ describe('operators', () => {
         const result = applyOperatorWithMotion(state, 'd', '$');
 
         expect(result.buffer).toEqual(['hello ']);
-        expect(result.cursor).toEqual({ line: 0, col: 6 });
+        expect(result.cursor).toEqual({ line: 0, col: 5 });
         expect(result.register).toBe('world');
+      });
+
+      it('should place cursor on last remaining character after d$ at line end', () => {
+        const state = createState(['abc'], { line: 0, col: 2 }, { pendingOperator: 'd' });
+        const result = applyOperatorWithMotion(state, 'd', '$');
+
+        expect(result.buffer).toEqual(['ab']);
+        expect(result.cursor).toEqual({ line: 0, col: 1 });
+        expect(result.register).toBe('c');
       });
 
       it('should delete to start of line (d0)', () => {
@@ -109,7 +118,7 @@ describe('operators', () => {
 
         expect(result.buffer).toEqual(['hello ']);
         expect(result.mode).toBe('insert');
-        expect(result.cursor).toEqual({ line: 0, col: 6 });
+        expect(result.cursor).toEqual({ line: 0, col: 5 });
         expect(result.register).toBe('world');
       });
 

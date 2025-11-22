@@ -41,6 +41,7 @@ export const VimChallenge = ({
   }, [config]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock'].includes(e.key)) return;
     e.preventDefault();
 
     if (isComplete) return;
@@ -80,6 +81,11 @@ export const VimChallenge = ({
                 const c = charIndex++;
                 const isCursor = state.cursor.line === r && state.cursor.col === c;
                 const isNormalMode = state.mode === 'normal';
+                const cursorTextClass = isCursor
+                  ? isNormalMode
+                    ? 'relative z-10 text-stone-900 font-bold'
+                    : 'relative z-10'
+                  : '';
 
                 return (
                   <span
@@ -95,9 +101,7 @@ export const VimChallenge = ({
                         }`}
                       />
                     )}
-                    <span className={`${isCursor ? 'relative z-10 text-stone-900 font-bold' : ''}`}>
-                      {char}
-                    </span>
+                    <span className={cursorTextClass}>{char}</span>
                   </span>
                 );
               });
