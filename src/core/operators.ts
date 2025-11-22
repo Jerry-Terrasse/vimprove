@@ -313,6 +313,9 @@ export const applyOperatorWithMotion = (
     const stateWithHistory = pushHistory(state);
     const { buffer, cursor } = deleteRange(stateWithHistory.buffer, range);
 
+    // For 'c' operator with text objects, insertCol equals cursor.col
+    const insertCol = operator === 'c' ? cursor.col : undefined;
+
     return {
       ...stateWithHistory,
       buffer,
@@ -321,18 +324,30 @@ export const applyOperatorWithMotion = (
       pendingTextObject: null,
       mode: operator === 'c' ? 'insert' : 'normal',
       register: registerText,
+      insertCol,
       lastCommand: { type: 'delete-range', operator, motion }
     };
   }
 
   const { buffer, cursor } = state;
-  const target = getMotionTarget(state, motion, true);
+
+  // Special case: cw and cW behave like ce/cE when cursor is on a word character
+  // This matches Vim's behavior where cw doesn't include trailing whitespace
+  let actualMotion = motion;
+  const startChar = buffer[cursor.line]?.[cursor.col] ?? '';
+  if (operator === 'c' && motion === 'w' && !isWhitespace(startChar)) {
+    actualMotion = 'e';
+  }
+  if (operator === 'c' && motion === 'W' && !isWhitespace(startChar)) {
+    actualMotion = 'E';
+  }
+
+  const target = getMotionTarget(state, actualMotion, true);
 
   let start = cursor;
   let end = target;
 
    // If we're changing a word from a whitespace position, keep the range empty
-  const startChar = buffer[start.line]?.[start.col] ?? '';
   if (operator === 'c' && motion === 'w' && isWhitespace(startChar)) {
     end = start;
   }
@@ -352,7 +367,7 @@ export const applyOperatorWithMotion = (
     // Determine if motion is inclusive (should include the target character)
     // In Vim: $ and e/E are inclusive for operator ranges
     const inclusiveMotions: Motion[] = ['$', 'e', 'E'];
-    const isInclusive = inclusiveMotions.includes(motion);
+    const isInclusive = inclusiveMotions.includes(actualMotion);
 
     // For inclusive motions, include the target character
     const endCol = isInclusive ? Math.min(end.col + 1, lineText.length) : end.col;
@@ -377,8 +392,32 @@ export const applyOperatorWithMotion = (
     const newBuffer = [...buffer];
     const newLine = lineText.slice(0, start.col) + lineText.slice(endCol);
     newBuffer[start.line] = newLine;
-    const maxCursor = Math.max(0, newLine.length - 1);
-    const newCursorCol = Math.min(start.col, maxCursor);
+
+    // Calculate cursor position and insert position
+    let newCursorCol: number;
+    let insertCol: number | undefined;
+
+    if (operator === 'c') {
+      // For change operator entering Insert mode
+      if (newLine.length === 0) {
+        // Empty line: cursor and insertion point both at 0
+        newCursorCol = 0;
+        insertCol = 0;
+      } else if (motion === '$') {
+        // Special case for c$: cursor on last char, insertion point after it
+        newCursorCol = newLine.length - 1;
+        insertCol = newLine.length;
+      } else {
+        // General case (cw, ce, etc.): cursor and insertion at deletion point
+        const maxCursor = Math.max(0, newLine.length - 1);
+        newCursorCol = Math.min(start.col, maxCursor);
+        insertCol = Math.min(start.col, newLine.length);  // insertCol can be 0..len
+      }
+    } else {
+      // For delete operator staying in Normal mode
+      const maxCursor = Math.max(0, newLine.length - 1);
+      newCursorCol = Math.min(start.col, maxCursor);
+    }
 
     return {
       ...stateWithHistory,
@@ -388,6 +427,7 @@ export const applyOperatorWithMotion = (
       pendingTextObject: null,
       mode: operator === 'c' ? 'insert' : 'normal',
       register: registerText,
+      insertCol,
       lastCommand: { type: 'delete-range', operator, motion }
     };
   }

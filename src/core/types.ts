@@ -53,6 +53,10 @@ export type VimState = {
   // Yank/Paste support
   register: string;
 
+  // Insert position (for Insert mode only, 0..len)
+  // This is the actual insertion point, while cursor.col is the display position
+  insertCol?: number;
+
   // Count prefix (e.g., "3" in "3dw")
   count: string;
 

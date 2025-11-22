@@ -195,7 +195,9 @@ const handleInsertKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
     const stateToFinish = hasBufferChanged && state.changeRecording
       ? recordKey(state, key, ctrlKey || false)
       : state;
-    const exitCursor = { ...cursor, col: Math.max(0, cursor.col - 1) };
+    // With insertCol model, cursor.col is already on the correct character
+    // No need to move back (cursor.col is display position, not insertion point)
+    const exitCursor = cursor;
     const stateWithCursors = {
       ...stateToFinish,
       recordingExitCursor: exitCursor,
@@ -208,6 +210,7 @@ const handleInsertKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
       ...stateAfterRecording,
       mode: 'normal',
       cursor: exitCursor,
+      insertCol: undefined,  // Clear insertCol when exiting Insert mode
       lastCommand: { type: 'mode-switch', to: 'normal' }
     };
   }
@@ -216,37 +219,66 @@ const handleInsertKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
 
   if (key === 'Backspace') {
     const lineText = stateAfterRecord.buffer[cursor.line];
-    if (cursor.col > 0) {
-      const newLine = lineText.slice(0, cursor.col - 1) + lineText.slice(cursor.col);
+    const insertCol = stateAfterRecord.insertCol ?? cursor.col;
+    if (insertCol > 0) {
+      const newLine = lineText.slice(0, insertCol - 1) + lineText.slice(insertCol);
       const newBuffer = [...stateAfterRecord.buffer];
       newBuffer[cursor.line] = newLine;
-      return { ...stateAfterRecord, buffer: newBuffer, cursor: { ...cursor, col: cursor.col - 1 } };
+      const newInsertCol = insertCol - 1;
+      const newCursorCol = newInsertCol > 0 ? newInsertCol - 1 : 0;
+      return {
+        ...stateAfterRecord,
+        buffer: newBuffer,
+        cursor: { ...cursor, col: newCursorCol },
+        insertCol: newInsertCol
+      };
     } else if (cursor.line > 0) {
       const prevLine = stateAfterRecord.buffer[cursor.line - 1];
       const newBuffer = [...stateAfterRecord.buffer];
       newBuffer[cursor.line - 1] = prevLine + lineText;
       newBuffer.splice(cursor.line, 1);
-      return { ...stateAfterRecord, buffer: newBuffer, cursor: { line: cursor.line - 1, col: prevLine.length } };
+      const newInsertCol = prevLine.length;
+      const newCursorCol = newInsertCol > 0 ? newInsertCol - 1 : 0;
+      return {
+        ...stateAfterRecord,
+        buffer: newBuffer,
+        cursor: { line: cursor.line - 1, col: newCursorCol },
+        insertCol: newInsertCol
+      };
     }
     return stateAfterRecord;
   }
 
   if (key === 'Enter') {
     const lineText = stateAfterRecord.buffer[cursor.line];
-    const before = lineText.slice(0, cursor.col);
-    const after = lineText.slice(cursor.col);
+    const insertCol = stateAfterRecord.insertCol ?? cursor.col;
+    const before = lineText.slice(0, insertCol);
+    const after = lineText.slice(insertCol);
     const newBuffer = [...stateAfterRecord.buffer];
     newBuffer[cursor.line] = before;
     newBuffer.splice(cursor.line + 1, 0, after);
-    return { ...stateAfterRecord, buffer: newBuffer, cursor: { line: cursor.line + 1, col: 0 } };
+    return {
+      ...stateAfterRecord,
+      buffer: newBuffer,
+      cursor: { line: cursor.line + 1, col: 0 },
+      insertCol: 0
+    };
   }
 
   if (key.length === 1 && !ctrlKey) {
     const lineText = stateAfterRecord.buffer[cursor.line];
-    const newLine = lineText.slice(0, cursor.col) + key + lineText.slice(cursor.col);
+    const insertCol = stateAfterRecord.insertCol ?? cursor.col;
+    const newLine = lineText.slice(0, insertCol) + key + lineText.slice(insertCol);
     const newBuffer = [...stateAfterRecord.buffer];
     newBuffer[cursor.line] = newLine;
-    return { ...stateAfterRecord, buffer: newBuffer, cursor: { ...cursor, col: cursor.col + 1 } };
+    const newInsertCol = insertCol + 1;
+    const newCursorCol = newInsertCol - 1;  // Cursor on the just-inserted character
+    return {
+      ...stateAfterRecord,
+      buffer: newBuffer,
+      cursor: { ...cursor, col: newCursorCol },
+      insertCol: newInsertCol
+    };
   }
 
   return stateAfterRecord;
@@ -631,17 +663,29 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
     const stateWithRecording = startRecording(stateWithHistory, key, ctrlKey || false);
     const lineText = buffer[cursor.line];
     if (lineText.length > 0) {
-      const newLine = lineText.slice(0, cursor.col) + lineText.slice(cursor.col + 1);
+      const deleteCol = cursor.col;
+      const newLine = lineText.slice(0, deleteCol) + lineText.slice(deleteCol + 1);
       const newBuffer = [...buffer];
       newBuffer[cursor.line] = newLine;
+      const insertCol = deleteCol;
+      // Cursor should be on the character before insertion point (if exists)
+      const newCursorCol = deleteCol > 0 ? Math.min(deleteCol - 1, Math.max(0, newLine.length - 1)) : 0;
       return {
         ...stateWithRecording,
         mode: 'insert',
         buffer: newBuffer,
+        cursor: { ...cursor, col: newCursorCol },
+        insertCol,
         lastCommand: { type: 'delete-char' }
       };
     }
-    return { ...stateWithRecording, mode: 'insert', lastCommand: { type: 'enter-insert' } };
+    return {
+      ...stateWithRecording,
+      mode: 'insert',
+      cursor: { ...cursor, col: 0 },
+      insertCol: 0,
+      lastCommand: { type: 'enter-insert' }
+    };
   }
 
   if (key === 'r') {
@@ -652,7 +696,12 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
   if (key === 'i') {
     const stateWithHistory = pushHistory(state);
     const stateWithRecording = startRecording(stateWithHistory, key, ctrlKey || false);
-    return { ...stateWithRecording, mode: 'insert', lastCommand: { type: 'enter-insert' } };
+    return {
+      ...stateWithRecording,
+      mode: 'insert',
+      insertCol: cursor.col,  // Insert before current character
+      lastCommand: { type: 'enter-insert' }
+    };
   }
   if (key === 'I') {
     const stateWithHistory = pushHistory(state);
@@ -660,25 +709,37 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
     const lineText = buffer[cursor.line];
     let col = lineText.search(/\S/);
     if (col === -1) col = lineText.length;
-    return { ...stateWithRecording, mode: 'insert', cursor: { ...cursor, col }, lastCommand: { type: 'enter-insert' } };
+    return {
+      ...stateWithRecording,
+      mode: 'insert',
+      cursor: { ...cursor, col },
+      insertCol: col,  // Insert at first non-blank
+      lastCommand: { type: 'enter-insert' }
+    };
   }
   if (key === 'a') {
     const stateWithHistory = pushHistory(state);
     const stateWithRecording = startRecording(stateWithHistory, key, ctrlKey || false);
+    const newCol = Math.min(buffer[cursor.line].length, cursor.col + 1);
     return {
       ...stateWithRecording,
       mode: 'insert',
-      cursor: { ...cursor, col: Math.min(buffer[cursor.line].length, cursor.col + 1) },
+      cursor: { ...cursor, col: newCol },
+      insertCol: newCol,  // Insert after current character
       lastCommand: { type: 'enter-insert' }
     };
   }
   if (key === 'A') {
     const stateWithHistory = pushHistory(state);
     const stateWithRecording = startRecording(stateWithHistory, key, ctrlKey || false);
+    const lineText = buffer[cursor.line];
+    const lineLen = lineText.length;
+    const cursorCol = lineLen > 0 ? lineLen - 1 : 0;
     return {
       ...stateWithRecording,
       mode: 'insert',
-      cursor: { ...cursor, col: buffer[cursor.line].length },
+      cursor: { ...cursor, col: cursorCol },  // Cursor on last char (or 0 if empty)
+      insertCol: lineLen,  // Insert at EOL
       lastCommand: { type: 'enter-insert' }
     };
   }
@@ -692,6 +753,7 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
       mode: 'insert',
       buffer: newBuffer,
       cursor: { line: cursor.line + 1, col: 0 },
+      insertCol: 0,  // Insert at start of new line
       lastCommand: { type: 'open-line' }
     };
   }
@@ -705,6 +767,7 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
       mode: 'insert',
       buffer: newBuffer,
       cursor: { line: cursor.line, col: 0 },
+      insertCol: 0,  // Insert at start of new line
       lastCommand: { type: 'open-line-above' }
     };
   }

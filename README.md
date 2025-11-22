@@ -144,6 +144,12 @@ src/
 <details>
 <summary><b>点击展开完整版本历史</b></summary>
 
+### v0.15.0
+- 🔧 修复 Insert 模式核心问题：引入 `insertCol` 分离光标显示与插入位置，修复 c$/cw/Escape 等命令行为
+- ✅ 建立 Neovim 对拍测试系统：headless 模式对比真实 Vim，生成全面组合测试（序列长度 1-3，覆盖所有已实现功能）
+- 📊 大幅提升测试通过率：从 72% (291/404) 提升到 79% (319/404)
+- 🐛 修复 d$ 等操作符边界情况 bug
+
 ### v0.14.0
 - 🧩 英文课程文案全部迁移到 `en/lessons.json`，页面不再依赖 defaultValue，彻底消除 TRANSLATION MISSING
 - ✅ 新增 i18n 结构与完整性测试：校验所有 locale 的 lessons/namespace 键类型一致、覆盖全部分类与课程序号
