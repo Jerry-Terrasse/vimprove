@@ -27,20 +27,9 @@ export const SettingsPanel = ({ isOpen, onClose }: SettingsPanelProps) => {
       />
 
       {/* Panel */}
-      <div className="relative bg-stone-900 rounded-2xl border border-stone-700 shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="border-b border-stone-800 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-white">{t('title', 'Settings')}</h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-stone-800 rounded-lg transition-colors text-stone-400 hover:text-white"
-          >
-            <X size={24} />
-          </button>
-        </div>
-
+      <div className="relative bg-stone-900 rounded-2xl border border-stone-700 shadow-2xl w-full max-w-[95vw] md:max-w-4xl max-h-[85vh] overflow-hidden flex flex-col mx-4">
         {/* Tab Bar */}
-        <div className="border-b border-stone-800 px-6 flex gap-2">
+        <div className="border-b border-stone-800 px-4 md:px-6 flex gap-2">
           <button
             onClick={() => setActiveTab('appearance')}
             className={`flex items-center gap-2 px-4 py-3 text-sm transition-colors border-b-2 ${
@@ -55,7 +44,7 @@ export const SettingsPanel = ({ isOpen, onClose }: SettingsPanelProps) => {
         </div>
 
         {/* Content */}
-        <div className="flex-1 p-6 overflow-y-auto">
+        <div className="flex-1 p-4 md:p-6 overflow-y-auto">
           {activeTab === 'appearance' && (
             <AppearanceTab
               settings={settings.editor}

@@ -12,28 +12,38 @@ export const AppearanceTab = ({ settings, onUpdate }: AppearanceTabProps) => {
   const { t } = useTranslationSafe('settings');
   useFontLoader(settings.fontFamily);
 
+  const isMobile = window.innerWidth < 768;
+
   const renderPreview = () => {
-    const code = [
-      '[[nodiscard]] constexpr auto fast_inv_sqrt(float x) noexcept -> float {',
-      '    using std::uint32_t;',
-      '',
-      '    constexpr auto magic        = 0x5f3759dfu;',
-      '    constexpr auto half         = 0.5f;',
-      '    constexpr auto three_halfs  = 1.5f;',
-      '',
-      '    if (x <= 0.0f || !std::isfinite(x)) {',
-      '        return std::numeric_limits<float>::quiet_NaN();',
-      '    }',
-      '',
-      '    auto i = std::bit_cast<uint32_t>(x);        // float -> bits',
-      '    i = magic - (i >> 1);                       // magic initial guess',
-      '    auto y = std::bit_cast<float>(i);           // bits -> float',
-      '',
-      '    y = y * (three_halfs - half * x * y * y);   // Newton-Raphson step',
-      '',
-      '    return y;',
-      '}'
-    ];
+    const code = isMobile
+      ? [
+          'int fibonacci(int n) {',
+          '    if (n <= 1) return n;',
+          '    return fibonacci(n-1)',
+          '         + fibonacci(n-2);',
+          '}'
+        ]
+      : [
+          '[[nodiscard]] constexpr auto fast_inv_sqrt(float x) noexcept -> float {',
+          '    using std::uint32_t;',
+          '',
+          '    constexpr auto magic        = 0x5f3759dfu;',
+          '    constexpr auto half         = 0.5f;',
+          '    constexpr auto three_halfs  = 1.5f;',
+          '',
+          '    if (x <= 0.0f || !std::isfinite(x)) {',
+          '        return std::numeric_limits<float>::quiet_NaN();',
+          '    }',
+          '',
+          '    auto i = std::bit_cast<uint32_t>(x);        // float -> bits',
+          '    i = magic - (i >> 1);                       // magic initial guess',
+          '    auto y = std::bit_cast<float>(i);           // bits -> float',
+          '',
+          '    y = y * (three_halfs - half * x * y * y);   // Newton-Raphson step',
+          '',
+          '    return y;',
+          '}'
+        ];
 
     return code.map((line, idx) => {
       const tokens = tokenizeLine(line, 'cpp', code);
@@ -50,18 +60,18 @@ export const AppearanceTab = ({ settings, onUpdate }: AppearanceTabProps) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Font Family */}
       <div>
-        <label className="block text-sm font-semibold text-stone-200 mb-3">
+        <label className="block text-sm font-semibold text-stone-200 mb-2 md:mb-3">
           {t('appearance.fontFamily', 'Font Family')}
         </label>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 md:grid-cols-2 gap-2">
           {FONT_CONFIGS.map(config => (
             <button
               key={config.name}
               onClick={() => onUpdate({ fontFamily: config.name })}
-              className={`px-4 py-2 rounded-lg text-sm transition-all ${
+              className={`px-2 md:px-4 py-2 rounded-lg text-xs md:text-sm transition-all ${
                 settings.fontFamily === config.name
                   ? 'bg-green-600 text-white'
                   : 'bg-stone-800 text-stone-300 hover:bg-stone-700'
@@ -76,7 +86,7 @@ export const AppearanceTab = ({ settings, onUpdate }: AppearanceTabProps) => {
 
       {/* Font Size */}
       <div>
-        <label className="block text-sm font-semibold text-stone-200 mb-3">
+        <label className="block text-sm font-semibold text-stone-200 mb-2 md:mb-3">
           {t('appearance.fontSize', 'Font Size')}: {settings.fontSize}px
         </label>
         <div className="flex items-center gap-4">
@@ -98,10 +108,10 @@ export const AppearanceTab = ({ settings, onUpdate }: AppearanceTabProps) => {
 
       {/* Preview */}
       <div>
-        <label className="block text-sm font-semibold text-stone-200 mb-3">
+        <label className="block text-sm font-semibold text-stone-200 mb-2 md:mb-3">
           {t('appearance.preview', 'Preview')}
         </label>
-        <div className="bg-stone-900 rounded-lg p-4 border border-stone-700">
+        <div className="bg-stone-900 rounded-lg p-3 md:p-4 border border-stone-700 overflow-x-auto">
           <div
             className="whitespace-pre"
             style={{

@@ -41,24 +41,34 @@ const App = () => {
   const currentLessonIdx = LESSONS.findIndex(l => l.slug === currentLessonSlug);
   const currentLesson = LESSONS[currentLessonIdx];
 
+  // Scroll to top when lesson changes
+  useEffect(() => {
+    if (currentView === 'lesson') {
+      // Use requestAnimationFrame to ensure DOM has updated (Firefox compatibility)
+      requestAnimationFrame(() => {
+        const scrollContainer = document.querySelector('.flex-1.h-screen.overflow-y-auto');
+        if (scrollContainer) {
+          scrollContainer.scrollTop = 0;
+        }
+      });
+    }
+  }, [currentLessonSlug, currentView]);
+
   const handleNext = () => {
     if (currentLessonIdx < LESSONS.length - 1) {
       setCurrentLessonSlug(LESSONS[currentLessonIdx + 1].slug);
-      window.scrollTo(0, 0);
     }
   };
 
   const handlePrev = () => {
     if (currentLessonIdx > 0) {
       setCurrentLessonSlug(LESSONS[currentLessonIdx - 1].slug);
-      window.scrollTo(0, 0);
     }
   };
 
   const handleLessonSelect = (slug: string) => {
     setCurrentLessonSlug(slug);
     setCurrentView('lesson');
-    window.scrollTo(0, 0);
     // Close sidebar on mobile after selection
     if (window.innerWidth < 768) {
       setSidebarOpen(false);

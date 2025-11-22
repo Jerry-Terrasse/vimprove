@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, Settings, Github, SkipBack, SkipForward } from 'lucide-react';
-import { useTranslationSafe } from '@/hooks/useI18n';
+import { Menu, X, Settings, Github, SkipBack, SkipForward, Languages, ChevronDown } from 'lucide-react';
+import { useTranslationSafe, useLocale } from '@/hooks/useI18n';
+import { supportedLocales } from '@/i18n';
 
 type MobileHeaderProps = {
   isVisible: boolean;
@@ -24,8 +25,10 @@ export const MobileHeader = ({
   onNextClick
 }: MobileHeaderProps) => {
   const { t } = useTranslationSafe('layout');
+  const { locale, setLocale } = useLocale();
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [isLangOpen, setIsLangOpen] = useState(false);
 
   useEffect(() => {
     // Find the scrollable content container
@@ -66,23 +69,14 @@ export const MobileHeader = ({
       `}
     >
       <div className="flex items-center justify-between px-4 py-3">
-        {/* Left: Menu button */}
-        <button
-          onClick={onMenuToggle}
-          className="p-2 hover:bg-stone-800 rounded-lg transition-colors"
-          aria-label={t('menu', 'Menu')}
-        >
-          {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-
-        {/* Center: Logo and Title */}
-        <div className="flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
+        {/* Left: Logo and Title */}
+        <div className="flex items-center gap-2">
           <img src="/favicon.png" alt="Vimprove" className="w-8 h-8" />
           <span className="font-bold text-lg logo-text">Vimprove</span>
         </div>
 
-        {/* Right: Action buttons */}
-        <div className="flex items-center gap-2">
+        {/* Right: All buttons evenly spaced */}
+        <div className="flex items-center gap-1 relative">
           {showPrevButton && onPrevClick && (
             <button
               onClick={onPrevClick}
@@ -101,12 +95,52 @@ export const MobileHeader = ({
               <SkipForward size={20} />
             </button>
           )}
+          {/* Language Switcher */}
+          <div className="relative">
+            <button
+              onClick={() => setIsLangOpen(!isLangOpen)}
+              className="p-2 hover:bg-stone-800 rounded-lg transition-colors"
+              title={t('language', 'Language')}
+            >
+              <Languages size={20} />
+            </button>
+            {isLangOpen && (
+              <div
+                className="absolute right-0 top-full mt-2 w-36 bg-stone-900 border border-stone-800 rounded-lg shadow-xl overflow-hidden z-50"
+                onMouseLeave={() => setIsLangOpen(false)}
+              >
+                {supportedLocales.map(lng => (
+                  <button
+                    key={lng.code}
+                    onClick={() => {
+                      setLocale(lng.code);
+                      setIsLangOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                      locale === lng.code
+                        ? 'bg-green-700/30 text-white'
+                        : 'text-stone-200 hover:bg-stone-800'
+                    }`}
+                  >
+                    {lng.nativeLabel}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <button
             onClick={onSettingsClick}
             className="p-2 hover:bg-stone-800 rounded-lg transition-colors"
             title={t('settings', 'Settings')}
           >
             <Settings size={20} />
+          </button>
+          <button
+            onClick={onMenuToggle}
+            className="p-2 hover:bg-stone-800 rounded-lg transition-colors"
+            aria-label={t('menu', 'Menu')}
+          >
+            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
           <a
             href="https://github.com/Jerry-Terrasse/vimprove"

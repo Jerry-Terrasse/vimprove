@@ -63,6 +63,7 @@
     cursor: pointer;
     border-radius: 50%;
     transition: all 0.2s;
+    margin-top: -5px; /* Center align with 8px track */
   }
 
   input[type="range"].slider::-webkit-slider-thumb:hover {
@@ -78,6 +79,7 @@
     border-radius: 50%;
     border: none;
     transition: all 0.2s;
+    margin-top: -5px; /* Center align with 8px track */
   }
 
   input[type="range"].slider::-moz-range-thumb:hover {
