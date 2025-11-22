@@ -102,7 +102,7 @@ const getParagraphRange = (state: VimState, includeBlank: boolean): Range | null
   while (startLine > 0 && !isBlank(buffer[startLine - 1])) startLine--;
   while (endLine < buffer.length - 1 && !isBlank(buffer[endLine + 1])) endLine++;
 
-  if (includeBlank && startLine > 0 && isBlank(buffer[startLine - 1])) startLine--;
+  // For 'ap', include trailing blank line(s) but not leading ones
   if (includeBlank && endLine < buffer.length - 1 && isBlank(buffer[endLine + 1])) endLine++;
 
   return {
@@ -241,7 +241,7 @@ const getTextObjectRange = (state: VimState, motion: TextObject): Range | null =
   }
 };
 
-const buildRegisterText = (buffer: string[], range: Range): string => {
+export const buildRegisterText = (buffer: string[], range: Range): string => {
   if (range.isLinewise) {
     const lines = buffer.slice(range.start.line, range.end.line + 1);
     return lines.join('\n') + '\n';
@@ -260,7 +260,7 @@ const buildRegisterText = (buffer: string[], range: Range): string => {
   return parts.join('\n');
 };
 
-const deleteRange = (buffer: string[], range: Range): { buffer: string[]; cursor: Cursor } => {
+export const deleteRange = (buffer: string[], range: Range): { buffer: string[]; cursor: Cursor } => {
   if (range.isLinewise) {
     const newBuffer = [...buffer];
     newBuffer.splice(range.start.line, range.end.line - range.start.line + 1);
@@ -285,6 +285,81 @@ const deleteRange = (buffer: string[], range: Range): { buffer: string[]; cursor
   newBuffer.splice(range.start.line, range.end.line - range.start.line + 1, merged);
   const cursor = clampCursor({ line: range.start.line, col: range.start.col }, newBuffer);
   return { buffer: newBuffer, cursor };
+};
+
+export const applyOperatorWithFindMotion = (
+  state: VimState,
+  operator: Operator,
+  targetCol: number
+): VimState => {
+  const { cursor, buffer } = state;
+
+  // Build range from cursor to targetCol (inclusive)
+  const start = cursor.col;
+  const end = targetCol;
+
+  let rangeStart: number;
+  let rangeEnd: number;
+
+  if (start <= end) {
+    rangeStart = start;
+    rangeEnd = end + 1; // Inclusive, so we need +1 for slice
+  } else {
+    rangeStart = end;
+    rangeEnd = start + 1;
+  }
+
+  const lineText = buffer[cursor.line];
+  const range: Range = {
+    start: { line: cursor.line, col: rangeStart },
+    end: { line: cursor.line, col: rangeEnd }
+  };
+
+  const registerText = buildRegisterText(buffer, range);
+
+  if (operator === 'y') {
+    return {
+      ...state,
+      register: registerText,
+      pendingOperator: null,
+      pendingFind: null,
+      lastCommand: { type: 'yank' }
+    };
+  }
+
+  const stateWithHistory = pushHistory(state);
+  const newBuffer = [...buffer];
+  const newLine = lineText.slice(0, rangeStart) + lineText.slice(rangeEnd);
+  newBuffer[cursor.line] = newLine;
+
+  let newCursorCol: number;
+  let insertCol: number | undefined;
+
+  if (operator === 'c') {
+    if (newLine.length === 0) {
+      newCursorCol = 0;
+      insertCol = 0;
+    } else {
+      const maxCursor = Math.max(0, newLine.length - 1);
+      newCursorCol = Math.min(rangeStart, maxCursor);
+      insertCol = Math.min(rangeStart, newLine.length);
+    }
+  } else {
+    const maxCursor = Math.max(0, newLine.length - 1);
+    newCursorCol = Math.min(rangeStart, maxCursor);
+  }
+
+  return {
+    ...stateWithHistory,
+    buffer: newBuffer,
+    cursor: { line: cursor.line, col: newCursorCol },
+    pendingOperator: null,
+    pendingFind: null,
+    mode: operator === 'c' ? 'insert' : 'normal',
+    register: registerText,
+    insertCol,
+    lastCommand: { type: 'delete-range', operator }
+  };
 };
 
 export const applyOperatorWithMotion = (
@@ -371,10 +446,7 @@ export const applyOperatorWithMotion = (
 
     // For inclusive motions, include the target character
     const endCol = isInclusive ? Math.min(end.col + 1, lineText.length) : end.col;
-    const yankedText = lineText.slice(start.col, endCol);
-    const registerText = operator === 'y' && motion === 'w' && endCol === lineText.length
-      ? `${yankedText} `
-      : yankedText;
+    const registerText = lineText.slice(start.col, endCol);
 
     if (operator === 'y') {
       // Yank: copy to register, don't modify buffer

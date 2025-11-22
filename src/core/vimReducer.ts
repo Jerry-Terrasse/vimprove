@@ -1,6 +1,6 @@
 import type { VimState, VimAction, Motion, KeyPress, Operator, OperatorMotion, TextObject } from './types';
 import { getMotionTarget, findCharOnLine } from './motions';
-import { applyOperatorWithMotion } from './operators';
+import { applyOperatorWithMotion, applyOperatorWithFindMotion } from './operators';
 import { isWhitespace, isWordChar } from './utils';
 import {
   clearPendingStates,
@@ -40,13 +40,25 @@ const findPatternFromCursor = (
   if (!pattern) return null;
 
   if (direction === 'forward') {
+    // Search from cursor to end of buffer
     for (let line = cursor.line; line < buffer.length; line++) {
       const lineText = buffer[line];
       const startCol = line === cursor.line ? cursor.col + 1 : 0;
       const idx = lineText.indexOf(pattern, startCol);
       if (idx !== -1) return { line, col: idx };
     }
+    // Wrap around: search from start to cursor line
+    for (let line = 0; line < cursor.line; line++) {
+      const lineText = buffer[line];
+      const idx = lineText.indexOf(pattern, 0);
+      if (idx !== -1) return { line, col: idx };
+    }
+    // Check cursor line from start to cursor position
+    const cursorLineText = buffer[cursor.line];
+    const idx = cursorLineText.indexOf(pattern, 0);
+    if (idx !== -1 && idx <= cursor.col) return { line: cursor.line, col: idx };
   } else {
+    // Search from cursor to start of buffer
     for (let line = cursor.line; line >= 0; line--) {
       const lineText = buffer[line];
       const startCol = line === cursor.line ? Math.max(0, cursor.col - 1) : lineText.length - 1;
@@ -55,6 +67,16 @@ const findPatternFromCursor = (
       const idx = segment.lastIndexOf(pattern);
       if (idx !== -1) return { line, col: idx };
     }
+    // Wrap around: search from end to cursor line
+    for (let line = buffer.length - 1; line > cursor.line; line--) {
+      const lineText = buffer[line];
+      const idx = lineText.lastIndexOf(pattern);
+      if (idx !== -1) return { line, col: idx };
+    }
+    // Check cursor line from end to cursor position
+    const cursorLineText = buffer[cursor.line];
+    const idx = cursorLineText.lastIndexOf(pattern);
+    if (idx !== -1 && idx >= cursor.col) return { line: cursor.line, col: idx };
   }
 
   return null;
@@ -170,10 +192,7 @@ const applyPaste = (state: VimState, before: boolean): VimState => {
 
   const lineText = buffer[cursor.line];
   const insertCol = before ? cursor.col : Math.min(cursor.col + 1, lineText.length);
-  let newLine = lineText.slice(0, insertCol) + register + lineText.slice(insertCol);
-  if (register.endsWith(' ') && lineText.slice(insertCol).length > 0 && !newLine.endsWith(' ')) {
-    newLine = `${newLine} `;
-  }
+  const newLine = lineText.slice(0, insertCol) + register + lineText.slice(insertCol);
   const newBuffer = [...buffer];
   newBuffer[cursor.line] = newLine;
   return {
@@ -374,6 +393,17 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
       const newCol = findCharOnLine(lineText, cursor.col, key, state.pendingFind);
 
       if (newCol !== null) {
+        // If there's a pending operator, apply it with the find motion
+        if (pendingOperator) {
+          const resultState = applyOperatorWithFindMotion(state, pendingOperator, newCol);
+          return {
+            ...resultState,
+            lastFind: { type: state.pendingFind, char: key },
+            count: ''
+          };
+        }
+
+        // No operator, just move cursor
         return {
           ...state,
           cursor: { ...cursor, col: newCol },
@@ -384,11 +414,16 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
         };
       }
     }
-    return { ...state, pendingFind: null, count: '' };
+    return { ...state, pendingFind: null, pendingOperator: null, count: '' };
   }
 
   if (!pendingOperator && !pendingReplace && !state.pendingFind && /^[1-9]$/.test(key)) {
     return { ...state, count: state.count + key };
+  }
+
+  // Handle find motion keys (can be used standalone or with operators)
+  if (['f', 'F', 't', 'T'].includes(key)) {
+    return { ...state, pendingFind: key as 'f' | 'F' | 't' | 'T' };
   }
 
   if (key === '/' || key === '?') {
@@ -571,10 +606,6 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
     }
 
     return { ...state, cursor: newPos, count: '', lastCommand: { type: 'move', motion: key as Motion } };
-  }
-
-  if (['f', 'F', 't', 'T'].includes(key)) {
-    return { ...state, pendingFind: key as 'f' | 'F' | 't' | 'T' };
   }
 
   if (key === ';' && state.lastFind) {
