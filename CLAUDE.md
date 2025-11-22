@@ -10,7 +10,7 @@ Vimprove 是一个交互式 Vim 学习网站。核心功能是通过浏览器中
 
 **课程范围**: 已完成 Chapter 1-6（基础、进阶编辑、行内 find/till、文本对象、搜索/重构），共 27 节课。
 
-**版本管理**: 版本号在 `src/version.ts` 和 `package.json` 中维护，CHANGELOG 见 `README.md`（当前 0.9.0）
+**版本管理**: 版本号在 `src/version.ts` 和 `package.json` 中维护，CHANGELOG 见 `README.md`（当前 0.11.0）
 
 ## Development Commands
 
@@ -94,7 +94,7 @@ src/
 - 使用 Vite 的 `import.meta.glob` 动态加载所有语言包（eager 模式）
 - 语言检测顺序: querystring → localStorage → navigator
 - 自动持久化到 localStorage
-- 默认语言: `en`，支持: `en`, `zh`
+- 默认语言: `en`，支持: `en`, `zh`, `zh-lively`
 
 **自定义 Hooks** (`src/hooks/useI18n.ts`):
 - `useTranslationSafe`: 封装 `useTranslation`，支持 defaultValue 回退
@@ -113,13 +113,15 @@ src/
 
 **Sidebar 语言切换设计模式**:
 - 底部行：左侧"首页"按钮 + 右侧"语言"按钮（等宽布局）
-- 语言菜单从按钮右侧弹出（grid 布局，每行 2 按钮）
-- 添加新语言时保持此模式（修改 `supportedLocales` 和添加语言包）
+- 语言按钮显示短标签（`shortLabel`）如 Eng/中/活，避免文字过长压缩图标
+- 语言菜单从按钮右侧弹出，显示完整的 `nativeLabel`
+- 添加新语言时保持此模式（修改 `supportedLocales` 并添加 `shortLabel` 字段和语言包）
 
 **重要约束**:
 - Run Example 初始化顺序：`executeStepImmediately` 必须在首次调用前声明（避免 TDZ 错误）
 - 翻译键命名约定: `{namespace}.{category}.{key}` (如 `lessons.basics-intro.title`)
 - 新增语言只需: 1) 添加语言包文件夹 2) 更新 `supportedLocales` 配置
+ - i18n 结构易错点：`LessonView` 按 `lessons.{slug}.content.{idx}` 渲染；翻译文件的所有块必须放在 `content` 对象里，键为字符串数字（"0","1"...），顺序与英文 contentBlocks 一致。不要用顶层 `content.n`，也不要让 markdown 段落落到对象类型，否则会出现 “returned an object instead of string”。
 
 ### Key Data Flow
 
@@ -321,12 +323,17 @@ export const LESSONS: Lesson[] = [..., newLesson];
    - 必须 `preventDefault()` 避免浏览器默认行为
    - 失焦时提示用户点击恢复
 
-3. **禁止的操作**:
+3. **页面加载优化** (`index.html` + `main.tsx`):
+   - `index.html` 中设置深色背景 (`body { background-color: #0c0a09 }`) 和加载动画 (`#loading`)
+   - React 渲染完成后在 `main.tsx` 中淡出并移除加载动画元素
+   - 避免白屏闪烁问题
+
+4. **禁止的操作**:
    - 不要创建文档/脚本文件（除非用户明确要求）
    - 避免使用 emoji（除非用户要求）
    - 注释只在非平凡（non-trivial）位置添加
 
-4. **i18n 相关约束**:
+5. **i18n 相关约束**:
    - 新增 UI 组件必须使用 `useTranslationSafe` 或 `useTranslation` 获取文案
    - 硬编码文案只允许在语言包 JSON 文件中
    - 添加新课程时，必须同时提供 `en` 和 `zh` 翻译（通过 `i18nKey` 或直接在 `lessons.json` 中）
@@ -388,25 +395,12 @@ ls src/data/lessons/chapter3/
 - ✅ Run Example 可播放示例（`src/components/example/RunExamplePlayer.tsx`）
 - ✅ 网站图标和 PWA 支持
 - ✅ 课程编写协作文档（`tmp/` 目录）
-- ✅ 完整的 i18n 支持（i18next，当前支持 en/zh，课程内容可翻译）
+- ✅ 完整的 i18n 支持（i18next，当前支持 en/zh/zh-lively，课程内容可翻译）
+- ✅ 学习进度记忆（localStorage 记录"已开始学习"状态，自动跳过首页）
+- ✅ 课程导航悬浮按钮（上一课/下一课快捷跳转）
+- ✅ 页面加载优化（深色背景加载动画，消除白屏闪烁）
 
-### 下一步任务（参考）
-
-**课程扩展**:
-1. Visual 模式相关课程与命令支持
-2. 更多高级命令或篇章（如寄存器、多文件场景）
-3. 更多语言支持（当前 en/zh，i18n 架构已完成）
-
-**功能增强**:
-1. 进度统计和展示（`useProgress` hook 已实现，但 UI 未完成）
-2. 成就系统
-
-**优化**:
-1. 性能优化
-2. 移动端适配
-3. 提高测试覆盖率（当前 86%+）
-
-### 重要文件位置
+## 重要文件位置
 
 **课程相关**:
 - **课程协作文档**: `tmp/README-COURSE-COLLAB.md`（协作总览）
