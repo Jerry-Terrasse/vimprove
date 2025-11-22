@@ -372,7 +372,8 @@ export const applyOperatorWithMotion = (
     const newBuffer = [...buffer];
     const newLine = lineText.slice(0, start.col) + lineText.slice(endCol);
     newBuffer[start.line] = newLine;
-    const newCursorCol = Math.min(start.col, Math.max(0, newLine.length - 1));
+    const maxCursor = operator === 'c' ? newLine.length : Math.max(0, newLine.length - 1);
+    const newCursorCol = Math.min(start.col, maxCursor);
 
     return {
       ...stateWithHistory,
