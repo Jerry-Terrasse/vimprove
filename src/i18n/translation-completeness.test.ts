@@ -50,10 +50,11 @@ const compareStructure = (enVal: JSONValue, otherVal: JSONValue, pathLabel: stri
   }
 };
 
-describe('i18n completeness vs en baseline', () => {
+describe('i18n completeness vs baselines', () => {
   const namespaces = getAllNamespaceFiles(enDir);
+  const nonLessonNamespaces = namespaces.filter(ns => ns !== 'lessons.json');
 
-  namespaces.forEach(nsFile => {
+  nonLessonNamespaces.forEach(nsFile => {
     it(`en/${nsFile} should not be empty`, () => {
       const enJson = readJson(path.join(enDir, nsFile));
       expect(typeof enJson).toBe('object');
@@ -63,7 +64,7 @@ describe('i18n completeness vs en baseline', () => {
   });
 
   OTHER_LOCALES.forEach(locale => {
-    namespaces.forEach(nsFile => {
+    nonLessonNamespaces.forEach(nsFile => {
       it(`${locale} should match keys/types of en/${nsFile}`, () => {
         const enPath = path.join(enDir, nsFile);
         const otherPath = path.join(localesDir, locale, nsFile);
@@ -76,29 +77,58 @@ describe('i18n completeness vs en baseline', () => {
     });
   });
 
-  it('en lessons.json should cover all categories and lesson slugs', () => {
-    const lessonsJson = readJson(path.join(enDir, 'lessons.json')) as JSONObject;
-    expect(lessonsJson && typeof lessonsJson === 'object').toBe(true);
-    const categories = (lessonsJson as JSONObject).categories as JSONObject;
-    const lessons = (lessonsJson as JSONObject).lessons as JSONObject;
-
-    expect(categories && typeof categories === 'object', 'categories missing').toBe(true);
-    expect(lessons && typeof lessons === 'object', 'lessons missing').toBe(true);
-
-    const categoryIds = CATEGORIES.map(cat => cat.id);
-    categoryIds.forEach(catId => {
-      expect(
-        Object.prototype.hasOwnProperty.call(categories, catId),
-        `category "${catId}" missing in en lessons.json`
-      ).toBe(true);
+  const buildLessonsBaseline = () => {
+    const categories: Record<string, string> = {};
+    CATEGORIES.forEach(cat => {
+      categories[cat.id] = cat.title;
     });
 
+    const lessons: Record<string, JSONObject> = {};
     LESSONS.forEach(lesson => {
-      const entry = lessons[lesson.slug] as JSONObject | undefined;
-      expect(entry, `lesson "${lesson.slug}" missing in en lessons.json`).toBeTruthy();
-      expect(typeof entry?.title).toBe('string');
-      expect(typeof entry?.shortDescription).toBe('string');
-      expect(entry?.content && typeof entry.content === 'object').toBe(true);
+      const content: Record<string, JSONValue> = {};
+      lesson.contentBlocks.forEach((block, idx) => {
+        const key = String(idx);
+        if (block.type === 'markdown') {
+          content[key] = '';
+        } else if (block.type === 'key-list') {
+          content[key] = {
+            keys: Object.fromEntries(block.keys.map((k, i) => [String(i), '']))
+          };
+        } else if (block.type === 'run-example') {
+          content[key] = {
+            tracks: Object.fromEntries(
+              (block.config.tracks || []).map((track, i) => [String(i), ''])
+            ),
+            steps: Object.fromEntries(
+              (block.config.steps || []).map((step, i) => [String(i), ''])
+            )
+          };
+        } else if (block.type === 'challenge') {
+          content[key] = {
+            goals: Object.fromEntries(
+              (block.config.goals || []).map(goal => [goal.id, ''])
+            )
+          };
+        }
+      });
+
+      lessons[lesson.slug] = {
+        title: '',
+        shortDescription: '',
+        content
+      };
+    });
+
+    return { categories, lessons };
+  };
+
+  OTHER_LOCALES.forEach(locale => {
+    it(`${locale}/lessons.json should match lessons baseline from source`, () => {
+      const localePath = path.join(localesDir, locale, 'lessons.json');
+      expect(fs.existsSync(localePath), `${locale}/lessons.json is missing`).toBe(true);
+      const localeJson = readJson(localePath);
+      const baseline = buildLessonsBaseline();
+      compareStructure(baseline, localeJson, `${locale}/lessons.json`);
     });
   });
 });

@@ -11,9 +11,16 @@ type VimChallengeProps = {
   onComplete: (result: { next?: boolean; time: number }) => void;
   lessonSlug?: string;
   i18nBaseKey?: string;
+  disableContentI18n?: boolean;
 };
 
-export const VimChallenge = ({ config, onComplete, lessonSlug, i18nBaseKey }: VimChallengeProps) => {
+export const VimChallenge = ({
+  config,
+  onComplete,
+  lessonSlug,
+  i18nBaseKey,
+  disableContentI18n
+}: VimChallengeProps) => {
   const { state, dispatch } = useVimEngine({
     buffer: config.initialBuffer,
     cursor: config.initialCursor
@@ -218,13 +225,15 @@ export const VimChallenge = ({ config, onComplete, lessonSlug, i18nBaseKey }: Vi
                   className={goalsStatus[g.id] ? 'fill-green-900' : 'text-stone-700'}
                 />
               <span className={goalsStatus[g.id] ? 'line-through' : ''}>
-                {t(
-                  i18nBaseKey && lessonSlug
-                    ? `${i18nBaseKey}.goals.${g.id}`
-                    : `lessons.${lessonSlug ?? 'unknown'}.goals.${g.id}`,
-                  g.description,
-                  { ns: 'lessons' }
-                )}
+                {disableContentI18n
+                  ? g.description
+                  : t(
+                      i18nBaseKey && lessonSlug
+                        ? `${i18nBaseKey}.goals.${g.id}`
+                        : `lessons.${lessonSlug ?? 'unknown'}.goals.${g.id}`,
+                      g.description,
+                      { ns: 'lessons' }
+                    )}
               </span>
             </div>
           ))}

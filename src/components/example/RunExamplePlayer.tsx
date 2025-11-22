@@ -9,9 +9,15 @@ type RunExamplePlayerProps = {
   config: RunExampleConfig;
   lessonSlug?: string;
   i18nBaseKey?: string;
+  disableI18n?: boolean;
 };
 
-export const RunExamplePlayer = ({ config, lessonSlug, i18nBaseKey }: RunExamplePlayerProps) => {
+export const RunExamplePlayer = ({
+  config,
+  lessonSlug,
+  i18nBaseKey,
+  disableI18n
+}: RunExamplePlayerProps) => {
   const [currentStep, setCurrentStep] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [states, setStates] = useState<VimState[]>([]);
@@ -216,7 +222,7 @@ export const RunExamplePlayer = ({ config, lessonSlug, i18nBaseKey }: RunExample
 
   const currentStepData = currentStep >= 0 ? config.steps[currentStep] : null;
   const resolveStepDesc = (index: number, fallback: string) => {
-    if (!lessonSlug) return fallback;
+    if (disableI18n || !lessonSlug) return fallback;
     const key = i18nBaseKey
       ? `${i18nBaseKey}.steps.${index}`
       : `lessons.${lessonSlug}.runExample.steps.${index}`;
@@ -236,15 +242,15 @@ export const RunExamplePlayer = ({ config, lessonSlug, i18nBaseKey }: RunExample
               <div key={idx} className="flex items-center gap-2">
                 <div className={`w-3 h-3 rounded-full ${bgColor}`} />
                 <span className="text-xs text-stone-400">
-                  {lessonSlug
-                    ? t(
+                  {disableI18n || !lessonSlug
+                    ? track.label
+                    : t(
                         i18nBaseKey
                           ? `${i18nBaseKey}.tracks.${idx}`
                           : `lessons.${lessonSlug}.runExample.tracks.${idx}`,
                         track.label,
                         { ns: 'lessons' }
-                      )
-                    : track.label}
+                      )}
                 </span>
               </div>
             );

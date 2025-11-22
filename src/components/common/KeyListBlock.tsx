@@ -4,9 +4,10 @@ import { useTranslationSafe } from '@/hooks/useI18n';
 type KeyListBlockProps = {
   keys: KeyItem[];
   i18nBaseKey?: string;
+  disableI18n?: boolean;
 };
 
-export const KeyListBlock = ({ keys, i18nBaseKey }: KeyListBlockProps) => {
+export const KeyListBlock = ({ keys, i18nBaseKey, disableI18n }: KeyListBlockProps) => {
   const { t } = useTranslationSafe('lessons');
 
   return (
@@ -27,10 +28,12 @@ export const KeyListBlock = ({ keys, i18nBaseKey }: KeyListBlockProps) => {
             ))}
           </div>
           <span className="text-sm text-stone-400 font-medium">
-            {t(
-              i18nBaseKey ? `${i18nBaseKey}.keys.${i}` : k.i18nKey || `key.${i}`,
-              k.desc
-            )}
+            {disableI18n
+              ? k.desc
+              : t(
+                  i18nBaseKey ? `${i18nBaseKey}.keys.${i}` : k.i18nKey || `key.${i}`,
+                  k.desc
+                )}
           </span>
         </div>
       ))}

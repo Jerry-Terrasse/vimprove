@@ -5,6 +5,7 @@ import { KeyListBlock } from '@/components/common/KeyListBlock';
 import { VimChallenge } from '@/components/challenge/VimChallenge';
 import { RunExamplePlayer } from '@/components/example/RunExamplePlayer';
 import { useTranslationSafe } from '@/hooks/useI18n';
+import { useLocale } from '@/hooks/useI18n';
 
 type LessonViewProps = {
   lesson: Lesson;
@@ -14,11 +15,15 @@ type LessonViewProps = {
 
 export const LessonView = ({ lesson, onNext, onPrev }: LessonViewProps) => {
   const { t } = useTranslationSafe('lessons');
-  const title = t(`lessons.${lesson.slug}.title`, lesson.title);
-  const shortDescription = t(
-    `lessons.${lesson.slug}.shortDescription`,
-    lesson.shortDescription
-  );
+  const { locale } = useLocale();
+  const translateLessons = locale !== 'en';
+
+  const title = translateLessons
+    ? t(`lessons.${lesson.slug}.title`, lesson.title)
+    : lesson.title;
+  const shortDescription = translateLessons
+    ? t(`lessons.${lesson.slug}.shortDescription`, lesson.shortDescription)
+    : lesson.shortDescription;
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6 pt-16 md:pt-6 pb-32 animate-in slide-in-from-right duration-300">
@@ -31,7 +36,7 @@ export const LessonView = ({ lesson, onNext, onPrev }: LessonViewProps) => {
         const blockKey = block.i18nKey || `lessons.${lesson.slug}.content.${idx}`;
 
         if (block.type === 'markdown') {
-          const content = t(blockKey, block.content);
+          const content = translateLessons ? t(blockKey, block.content) : block.content;
           return <MarkdownBlock key={idx} content={content} />;
         }
         if (block.type === 'key-list') {
@@ -39,7 +44,8 @@ export const LessonView = ({ lesson, onNext, onPrev }: LessonViewProps) => {
             <KeyListBlock
               key={idx}
               keys={block.keys}
-              i18nBaseKey={`${blockKey}`}
+              i18nBaseKey={translateLessons ? `${blockKey}` : undefined}
+              disableI18n={!translateLessons}
             />
           );
         }
@@ -48,8 +54,9 @@ export const LessonView = ({ lesson, onNext, onPrev }: LessonViewProps) => {
             <div key={idx} className="my-12">
               <RunExamplePlayer
                 config={block.config}
-                lessonSlug={lesson.slug}
-                i18nBaseKey={blockKey}
+                lessonSlug={translateLessons ? lesson.slug : undefined}
+                i18nBaseKey={translateLessons ? blockKey : undefined}
+                disableI18n={!translateLessons}
               />
             </div>
           );
@@ -59,8 +66,9 @@ export const LessonView = ({ lesson, onNext, onPrev }: LessonViewProps) => {
             <div key={idx} className="my-12">
               <VimChallenge
                 config={block.config}
-                lessonSlug={lesson.slug}
-                i18nBaseKey={blockKey}
+                lessonSlug={translateLessons ? lesson.slug : undefined}
+                i18nBaseKey={translateLessons ? blockKey : undefined}
+                disableContentI18n={!translateLessons}
                 onComplete={({ next }) => {
                   if (next && onNext) onNext();
                 }}
