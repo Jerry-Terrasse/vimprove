@@ -25,3 +25,4 @@ dist-ssr
 
 tmp/
 .playwright-mcp/
+.nvimlog
