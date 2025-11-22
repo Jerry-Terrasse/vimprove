@@ -39,8 +39,8 @@ const ENABLED_FEATURES: FeatureConfig = {
 };
 
 const SCENARIOS: Scenario[] = [
-  { name: 'sentence', lines: ['foo bar baz'], cursor: { line: 1, col: 1 } },
-  { name: 'punctuation', lines: ['foo,bar baz', 'second line'], cursor: { line: 1, col: 1 } }
+  { name: 'sentence', lines: ['foo bar baz'], cursor: { line: 1, col: 2 } },
+  { name: 'punctuation', lines: ['foo,bar baz', 'second line'], cursor: { line: 1, col: 2 } }
 ];
 
 const toKeySeq = (cmd: CommandKind): string => {

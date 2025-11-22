@@ -42,7 +42,7 @@ export const getMotionTarget = (state: VimState, motion: Motion, forOperator = f
       return { line, col: Math.max(0, col - 1) };
 
     case 'l':
-      return { line, col: Math.min(currentLine.length - 1, col + 1) };
+      return { line, col: Math.min(Math.max(0, currentLine.length - 1), col + 1) };
 
     case 'j': {
       const nextLineIdx = Math.min(buffer.length - 1, line + 1);

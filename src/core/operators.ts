@@ -341,6 +341,11 @@ export const applyOperatorWithMotion = (
     [start, end] = [end, start];
   }
 
+  // For dw/cw that would cross lines, truncate to EOL (Vim behavior)
+  if (start.line !== end.line && (motion === 'w' || motion === 'W')) {
+    end = { line: start.line, col: buffer[start.line].length };
+  }
+
   if (start.line === end.line) {
     const lineText = buffer[start.line];
 
@@ -372,7 +377,7 @@ export const applyOperatorWithMotion = (
     const newBuffer = [...buffer];
     const newLine = lineText.slice(0, start.col) + lineText.slice(endCol);
     newBuffer[start.line] = newLine;
-    const maxCursor = operator === 'c' ? newLine.length : Math.max(0, newLine.length - 1);
+    const maxCursor = Math.max(0, newLine.length - 1);
     const newCursorCol = Math.min(start.col, maxCursor);
 
     return {

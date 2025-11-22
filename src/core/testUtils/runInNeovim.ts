@@ -26,23 +26,47 @@ const toLuaLongString = (content: string) => {
   throw new Error('Unable to encode content for Lua command');
 };
 
+const tokenizeKeySeq = (keySeq: string): string[] => {
+  const tokens: string[] = [];
+  for (let i = 0; i < keySeq.length; i++) {
+    const ch = keySeq[i];
+    if (ch === '<') {
+      const end = keySeq.indexOf('>', i);
+      if (end !== -1) {
+        const token = keySeq.slice(i, end + 1);
+        tokens.push(token);
+        i = end;
+        continue;
+      }
+    }
+    tokens.push(ch);
+  }
+  return tokens;
+};
+
 const buildLuaCommand = (lines: string[], cursor: { line: number; col: number }, keySeq: string) => {
   const jsonLines = JSON.stringify(lines);
   const luaLines = toLuaLongString(jsonLines);
-  const luaKeys = toLuaLongString(keySeq);
+  const luaTokens = toLuaLongString(JSON.stringify(tokenizeKeySeq(keySeq)));
   const colZeroBased = Math.max(cursor.col - 1, 0);
   return [
+    'local orig_undolevels = vim.api.nvim_buf_get_option(0, "undolevels")',
     `local initial = vim.fn.json_decode(${luaLines})`,
     'vim.api.nvim_buf_set_lines(0, 0, -1, false, initial)',
+    'vim.api.nvim_buf_set_option(0, "undolevels", -1)',
+    'vim.api.nvim_buf_set_option(0, "undolevels", orig_undolevels)',
     `vim.api.nvim_win_set_cursor(0, {${cursor.line}, ${colZeroBased}})`,
-    `local keys = vim.api.nvim_replace_termcodes(${luaKeys}, true, false, true)`,
-    'vim.api.nvim_feedkeys(keys, "nx", false)',
-    'vim.cmd("redraw")',
+  `local tokens = vim.fn.json_decode(${luaTokens})`,
+  'local all_keys = ""',
+  'for _,tok in ipairs(tokens) do',
+  '  all_keys = all_keys .. vim.api.nvim_replace_termcodes(tok, true, false, true)',
+  'end',
+  'vim.fn.feedkeys(all_keys, "x")',
     'local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)',
     'local pos = vim.api.nvim_win_get_cursor(0)',
     'local mode = vim.api.nvim_get_mode().mode',
     'print(vim.fn.json_encode({ lines = lines, cursor = pos, mode = mode }))',
-  ].join('; ');
+  ].join('\n');
 };
 
 export const runInNeovim = (
