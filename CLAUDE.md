@@ -477,5 +477,9 @@ ls src/data/lessons/chapter3/
 - 按重要性排序：新功能 > Bug 修复 > 优化改进
 - 相关条目合并（如多个相关 bug 修复合并为一条）
 - 使用简洁描述，必要时用括号补充关键细节
+- 发布标记与展示：
+  - 未特别强调为正式/重要更新的版本，均按 Alpha 归类；dev 分支显示 Alpha 标签
+  - Alpha 版本的 CHANGELOG 条目放在 README 折叠区内，正式发布（Release）才放在折叠区外
+  - 仅在需要的文件同步版本号：`src/version.ts`、`package.json`、`README.md`（CHANGELOG）
 
 **重要**: CLAUDE.md 不记录具体版本号，只记录重要的结构性变化和功能说明

@@ -121,7 +121,12 @@ src/
 - 💾 改进学习体验：记住上次学习位置，支持 Enter 快速进入下一课
 
 <details>
-<summary><b>点击展开完整版本历史</b></summary>
+<summary><b>点击展开Alpha版本历史</b></summary>
+
+### v1.5.1
+- 🐛 Fix replace-wait state: `ru` writes literal `u` instead of triggering undo, matching Vim behavior
+- 🧭 Word motion细化：`w` 从标点起跳会先停在 `/` 等分隔符，不再直接跳到下一个单词
+- ✅ Parity 覆盖：vimParity 补充上述场景用例，保持 Neovim 行为一致
 
 ### v1.4.3
 - 🐛 `.` 重播对齐 Vim：cw 光标、末行 jw 落点、paste 重播行为与对拍一致

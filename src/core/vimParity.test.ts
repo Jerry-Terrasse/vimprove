@@ -178,6 +178,13 @@ const MANUAL_CASES: Case[] = [
     requires: ['motion_word']
   },
   {
+    name: 'Ch2: w stops at slash after punctuation',
+    initLines: ['aaa; // TODO'],
+    cursor: { line: 1, col: 4 },
+    keySeq: 'w',
+    requires: ['motion_word']
+  },
+  {
     name: 'Ch2: b jumps back to word start',
     initLines: ['foo bar baz'],
     cursor: { line: 1, col: 9 },
@@ -231,6 +238,13 @@ const MANUAL_CASES: Case[] = [
     initLines: ['abc'],
     cursor: { line: 1, col: 2 },
     keySeq: 'rX',
+    requires: ['edit_chars']
+  },
+  {
+    name: 'Ch2: ru replaces with literal u',
+    initLines: ['abc'],
+    cursor: { line: 1, col: 2 },
+    keySeq: 'ru',
     requires: ['edit_chars']
   },
 

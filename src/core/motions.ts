@@ -86,18 +86,22 @@ export const getMotionTarget = (state: VimState, motion: Motion, forOperator = f
       if (r >= buffer.length || c >= buffer[r].length) return fallback;
 
       const startChar = buffer[r][c];
-      const startIsWord = isWordChar(startChar);
       const startIsWhite = isWhitespace(startChar);
+      const startIsWord = isWordChar(startChar);
+      const startCategory = startIsWord ? 'word' : 'other';
 
       // Skip current word or punctuation
       if (!startIsWhite) {
         while (r < buffer.length && c < buffer[r].length) {
           const char = buffer[r][c];
+          if (isWhitespace(char)) break;
+
           const charIsWord = isWordChar(char);
+          const charCategory = charIsWord ? 'word' : 'other';
 
           // If we started on word char, skip while still on word chars
           // If we started on punctuation, skip while still on punctuation
-          if (startIsWord !== charIsWord) break;
+          if (startCategory !== charCategory) break;
 
           c++;
           if (c >= buffer[r].length) {

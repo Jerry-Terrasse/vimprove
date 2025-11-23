@@ -493,7 +493,7 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
     return { ...state, count: '' };
   }
 
-  if (key === 'u' && !ctrlKey) {
+  if (key === 'u' && !ctrlKey && !pendingReplace) {
     if (state.historyIndex > 0) {
       let targetIndex = state.historyIndex - 1;
       while (targetIndex > 0 && isSameContent(state.history[targetIndex], state.history[targetIndex - 1])) {
