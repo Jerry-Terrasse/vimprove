@@ -386,7 +386,7 @@ export const RunExamplePlayer = ({
       </div>
 
       {/* Right: Key History Panel */}
-      <div className="w-64 border-l border-stone-800 bg-stone-950/50 flex-shrink-0">
+      <div className="w-64 border-l border-stone-800 bg-stone-950/50 flex-shrink-0 hidden lg:flex">
         <KeyHistoryPanel history={getHistory()} />
       </div>
     </div>

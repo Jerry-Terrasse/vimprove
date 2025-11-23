@@ -37,7 +37,7 @@ export const VimChallenge = ({
   const { t } = useTranslationSafe(['challenge', 'lessons']);
   const { recordKey, getHistory, clearHistory } = useKeyHistory();
 
-  const [isFocused, setIsFocused] = useState(true);
+  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const isComposingRef = useRef(false);
   const compositionDataRef = useRef('');
@@ -49,7 +49,7 @@ export const VimChallenge = ({
       payload: { buffer: config.initialBuffer, cursor: config.initialCursor }
     });
     clearHistory();
-    inputRef.current?.focus();
+    setIsFocused(false);
   }, [config, dispatch, clearHistory]);
 
   // Handle Enter key to proceed to next lesson when challenge is complete
@@ -154,7 +154,7 @@ export const VimChallenge = ({
     });
     restart();
     clearHistory();
-    setTimeout(() => inputRef.current?.focus(), 10);
+    setIsFocused(false);
   };
 
   const renderBuffer = () => {
@@ -268,7 +268,6 @@ export const VimChallenge = ({
           ref={inputRef}
           type="text"
           className="opacity-0 absolute top-0 left-0 h-full w-full cursor-none"
-          autoFocus
           onBlur={() => setIsFocused(false)}
           onFocus={() => setIsFocused(true)}
           onKeyDown={handleKeyDown}
@@ -349,7 +348,7 @@ export const VimChallenge = ({
       </div>
 
       {/* Right: Key History Panel */}
-      <div className="w-64 border-l border-stone-800 bg-stone-950/50 flex-shrink-0">
+      <div className="w-64 border-l border-stone-800 bg-stone-950/50 flex-shrink-0 hidden lg:flex">
         <KeyHistoryPanel history={getHistory()} />
       </div>
     </div>
