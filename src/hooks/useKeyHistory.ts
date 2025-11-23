@@ -1,5 +1,5 @@
 import { useRef, useCallback } from 'react';
-import type { VimState } from '@/core/types';
+import type { VimState, KeyPress } from '@/core/types';
 import type {
   KeyHistory,
   KeyGroup,
@@ -21,6 +21,13 @@ const formatKeyDisplay = (key: string, ctrlKey: boolean): string => {
   if (key === 'Backspace') return '⌫';
   if (key === ' ') return 'Space';
   return key;
+};
+
+const formatLastChange = (lastChange: KeyPress[] | null): string | undefined => {
+  if (!lastChange || lastChange.length === 0) return undefined;
+
+  const keys = lastChange.map(kp => formatKeyDisplay(kp.key, kp.ctrlKey)).join('');
+  return `→ ${keys}`;
 };
 
 const getKeyKind = (
@@ -124,8 +131,8 @@ const detectGroupType = (
     return 'search';
   }
 
-  // Count prefix (if count exists and not part of operator)
-  if (prevState.count && !prevState.pendingOperator) {
+  // Count prefix (only when key is digit or already building count)
+  if (/^[1-9]$/.test(key) || (prevState.count && /^[0-9]$/.test(key))) {
     return 'countPrefix';
   }
 
@@ -181,9 +188,12 @@ const shouldStartNewGroup = (
     if (prevState.pendingSearch) return false;
   }
 
-  if (currentGroup.pendingKind === 'countPrefix') {
-    // Can accept: more digits or motion
-    if (prevState.count || /^[0-9]$/.test(key)) return false;
+  if (currentGroup.pendingKind === 'countPrefix' || currentGroup.type === 'countPrefix') {
+    // Can accept: more digits or any command that uses the count
+    // If count is still present in prevState, the motion hasn't been executed yet
+    if (prevState.count) return false;
+    // If key is a digit, keep adding to count
+    if (/^[0-9]$/.test(key)) return false;
   }
 
   return true;
@@ -210,6 +220,23 @@ const determineGroupStatus = (
       return 'applied';
     }
     return 'cancelled';
+  }
+
+  // countPrefix: stay pending while count exists, applied when count is consumed
+  if (groupType === 'countPrefix') {
+    if (nextState.count) {
+      return 'pending';
+    }
+    // Count was consumed - check if command executed
+    const bufferChanged = prevState.buffer.length !== nextState.buffer.length ||
+                         prevState.buffer.some((line, i) => line !== nextState.buffer[i]);
+    const cursorMoved = prevState.cursor.line !== nextState.cursor.line ||
+                       prevState.cursor.col !== nextState.cursor.col;
+    const modeChanged = prevState.mode !== nextState.mode;
+    if (bufferChanged || cursorMoved || modeChanged) {
+      return 'applied';
+    }
+    return 'ignored';
   }
 
   // Check if command was executed (no more pending states)
@@ -269,6 +296,7 @@ const getRoleInGroup = (
   groupType: KeyGroupType,
   prevState: VimState
 ): string => {
+  if (key === '.') return 'dotRepeat';
   if (kind === 'operator') return 'operator';
   if (kind === 'motion') return 'motion';
   if (kind === 'count') return 'count';
@@ -308,6 +336,9 @@ export const useKeyHistory = () => {
       const pendingKind = getPendingKind(nextState);
       const role = getRoleInGroup(key, kind, groupType, prevState);
 
+      // For dot command, add description of replayed action
+      const description = key === '.' ? formatLastChange(prevState.lastChange) : undefined;
+
       const newAtom: KeyAtom = {
         id: globalKeyId++,
         rawKey: key,
@@ -315,7 +346,13 @@ export const useKeyHistory = () => {
         kind,
         status: groupStatus,
         roleInGroup: role,
+        description,
       };
+
+      // For dot command, add summary to group
+      const summary = key === '.' && prevState.lastChange
+        ? formatLastChange(prevState.lastChange)
+        : undefined;
 
       const newGroup: KeyGroup = {
         id: globalGroupId++,
@@ -323,6 +360,7 @@ export const useKeyHistory = () => {
         type: groupType,
         status: groupStatus,
         pendingKind,
+        summary,
       };
 
       historyRef.current = [...historyRef.current, newGroup];

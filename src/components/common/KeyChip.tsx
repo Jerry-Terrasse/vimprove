@@ -1,9 +1,11 @@
 import type { KeyAtom } from '@/core/keyHistory.types';
 import { useTranslationSafe } from '@/hooks/useI18n';
+import { Tooltip } from './Tooltip';
 
 type KeyChipProps = {
   keyAtom: KeyAtom;
-  groupStatus: 'pending' | 'applied' | 'ignored' | 'cancelled';
+  groupStatus?: 'pending' | 'applied' | 'ignored' | 'cancelled';
+  showTooltip?: boolean;
 };
 
 const getKeyKindColor = (kind: KeyAtom['kind']): string => {
@@ -33,8 +35,8 @@ const getStatusStyle = (status: KeyAtom['status']): string => {
   }
 };
 
-export const KeyChip: React.FC<KeyChipProps> = ({ keyAtom, groupStatus }) => {
-  const { t } = useTranslationSafe(['keyHistory']);
+export const KeyChip: React.FC<KeyChipProps> = ({ keyAtom, showTooltip = true }) => {
+  const { t } = useTranslationSafe('keyHistory');
 
   const kindColor = getKeyKindColor(keyAtom.kind);
   const statusStyle = getStatusStyle(keyAtom.status);
@@ -45,23 +47,37 @@ export const KeyChip: React.FC<KeyChipProps> = ({ keyAtom, groupStatus }) => {
     const kindText = t(`kind.${keyAtom.kind}`, keyAtom.kind, { ns: 'keyHistory' });
     const desc = keyAtom.description || '';
 
-    return `${keyAtom.display} - ${roleText} (${kindText})${desc ? '\n' + desc : ''}`;
+    return (
+      <div>
+        <div className="font-bold text-stone-100 mb-1">{keyAtom.display}</div>
+        <div className="text-stone-400">
+          {roleText} <span className="text-stone-500">({kindText})</span>
+        </div>
+        {desc && <div className="mt-1 text-stone-300 border-t border-stone-600 pt-1">{desc}</div>}
+      </div>
+    );
   };
 
-  return (
+  const chip = (
     <span
       className={`
         inline-flex items-center justify-center
         px-1.5 py-0.5 rounded
         text-[11px] font-mono
         border
+        cursor-default
         ${kindColor}
         ${statusStyle}
         transition-all
       `}
-      title={getTooltipContent()}
     >
       {keyAtom.display}
     </span>
   );
+
+  if (!showTooltip) {
+    return chip;
+  }
+
+  return <Tooltip content={getTooltipContent()}>{chip}</Tooltip>;
 };

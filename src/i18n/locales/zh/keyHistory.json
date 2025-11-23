@@ -5,6 +5,7 @@
   "truncated": "显示最近 {{count}} 条，共 {{total}} 条命令",
   "cancelled": "已取消",
   "ignored": "无效果",
+  "replay": "重放",
 
   "role": {
     "operator": "操作符",
@@ -18,6 +19,7 @@
     "searchOperator": "搜索操作符",
     "searchControl": "搜索控制",
     "insertTrigger": "插入模式",
+    "dotRepeat": "重复上次修改",
     "cancel": "取消",
     "confirm": "确认",
     "other": "其他"

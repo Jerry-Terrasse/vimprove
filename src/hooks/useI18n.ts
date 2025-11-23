@@ -4,7 +4,7 @@ import type { LocaleCode } from '@/i18n';
 
 const MISSING_FALLBACK = 'TRANSLATION MISSING';
 
-export const useTranslationSafe = <T extends string = string>(ns?: T) => {
+export const useTranslationSafe = (ns?: string | string[]) => {
   const { t, i18n } = useTranslation(ns);
   const translate = useCallback(
     (key: string, _defaultValue?: string, options?: Record<string, unknown>) =>

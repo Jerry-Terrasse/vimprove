@@ -10,7 +10,7 @@ type KeyHistoryPanelProps = {
 export const KeyHistoryPanel: React.FC<KeyHistoryPanelProps> = ({
   history
 }) => {
-  const { t } = useTranslationSafe(['keyHistory']);
+  const { t } = useTranslationSafe('keyHistory');
   const containerRef = useRef<HTMLDivElement>(null);
   const shouldAutoScroll = useRef(true);
   const prevHistoryLength = useRef(history.length);

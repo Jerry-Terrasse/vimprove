@@ -5,6 +5,7 @@
   "truncated": "Showing last {{count}} of {{total}} commands",
   "cancelled": "Cancelled",
   "ignored": "No effect",
+  "replay": "Replay",
 
   "role": {
     "operator": "operator",
@@ -18,6 +19,7 @@
     "searchOperator": "search operator",
     "searchControl": "search control",
     "insertTrigger": "insert mode",
+    "dotRepeat": "repeat last change",
     "cancel": "cancel",
     "confirm": "confirm",
     "other": "other"

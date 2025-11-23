@@ -1,5 +1,6 @@
 import type { KeyGroup } from '@/core/keyHistory.types';
 import { KeyChip } from './KeyChip';
+import { Tooltip } from './Tooltip';
 import { useTranslationSafe } from '@/hooks/useI18n';
 
 type KeyGroupBlockProps = {
@@ -28,81 +29,101 @@ const getGroupStatusBorder = (status: KeyGroup['status']): string => {
   }
 };
 
-const getGroupSummary = (group: KeyGroup, t: (key: string, defaultValue?: string, options?: unknown) => string): string => {
-  if (group.summary) return group.summary;
-
-  // Generate summary based on type and keys
-  const keysStr = group.keys.map(k => k.display).join('');
-
-  if (group.status === 'pending') {
-    const pendingMsg = t(`pending.${group.pendingKind || 'unknown'}`, 'Waiting for input', { ns: 'keyHistory' });
-    return `${keysStr} - ${pendingMsg}`;
-  }
-
-  if (group.status === 'cancelled') {
-    return t('cancelled', `${keysStr} - Cancelled`, { ns: 'keyHistory' });
-  }
-
-  if (group.status === 'ignored') {
-    return t('ignored', `${keysStr} - No effect`, { ns: 'keyHistory' });
-  }
-
-  // Applied - try to generate meaningful summary
-  const typeLabel = t(`groupType.${group.type}`, group.type, { ns: 'keyHistory' });
-  return `${keysStr} - ${typeLabel}`;
-};
-
 export const KeyGroupBlock: React.FC<KeyGroupBlockProps> = ({ group }) => {
-  const { t } = useTranslationSafe(['keyHistory']);
+  const { t } = useTranslationSafe('keyHistory');
 
   const groupColor = getGroupTypeColor(group.type);
   const statusBorder = getGroupStatusBorder(group.status);
-  const summary = getGroupSummary(group, t);
 
   // Single key without border
   if (group.keys.length === 1 && group.type === 'standalone') {
     return <KeyChip keyAtom={group.keys[0]} groupStatus={group.status} />;
   }
 
-  return (
-    <div
-      className={`
-        relative
-        px-2 py-1.5
-        rounded-md
-        border
-        ${groupColor}
-        ${statusBorder}
-        transition-all
-        hover:shadow-md
-      `}
-      title={summary}
-    >
-      {/* Pending indicator */}
-      {group.status === 'pending' && (
-        <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-500 rounded-full animate-pulse" />
-      )}
+  const getTooltipContent = () => {
+    const keysStr = group.keys.map(k => k.display).join('');
+    const typeLabel = t(`groupType.${group.type}`, group.type, { ns: 'keyHistory' });
 
-      {/* Cancelled indicator */}
-      {group.status === 'cancelled' && (
-        <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-600/80 rounded-full flex items-center justify-center text-[9px] text-white">
-          ×
+    let statusText = '';
+    if (group.status === 'pending') {
+      statusText = t(`pending.${group.pendingKind || 'unknown'}`, 'Waiting for input', { ns: 'keyHistory' });
+    } else if (group.status === 'cancelled') {
+      statusText = t('cancelled', 'Cancelled', { ns: 'keyHistory' });
+    } else if (group.status === 'ignored') {
+      statusText = t('ignored', 'No effect', { ns: 'keyHistory' });
+    }
+
+    // Aggregate key details
+    const keyDetails = group.keys.map(k => {
+      const role = k.roleInGroup || k.kind;
+      const roleText = t(`role.${role}`, role, { ns: 'keyHistory' });
+      return { display: k.display, role: roleText, desc: k.description };
+    });
+
+    return (
+      <div>
+        <div className="font-bold text-stone-100 mb-1">{keysStr}</div>
+        <div className="text-stone-400 text-[10px] mb-1">{typeLabel}</div>
+
+        {/* Key breakdown */}
+        <div className="space-y-0.5 text-[10px]">
+          {keyDetails.map((k, i) => (
+            <div key={i} className="flex gap-2">
+              <span className="text-stone-200 font-mono">{k.display}</span>
+              <span className="text-stone-500">{k.role}</span>
+            </div>
+          ))}
         </div>
-      )}
 
-      {/* Keys */}
-      <div className="flex flex-wrap gap-0.5 items-center">
-        {group.keys.map((key) => (
-          <KeyChip key={key.id} keyAtom={key} groupStatus={group.status} />
-        ))}
+        {statusText && <div className="text-yellow-400 mt-1.5 text-[10px]">{statusText}</div>}
+        {group.summary && (
+          <div className="mt-1.5 text-stone-300 border-t border-stone-600 pt-1">{group.summary}</div>
+        )}
       </div>
+    );
+  };
 
-      {/* Summary text (optional, for better UX) */}
-      {group.status === 'pending' && (
-        <div className="mt-1 text-[9px] text-yellow-400/80">
-          {t(`pending.${group.pendingKind || 'unknown'}`, '...', { ns: 'keyHistory' })}
+  return (
+    <Tooltip content={getTooltipContent()}>
+      <div
+        className={`
+          relative
+          px-2 py-1.5
+          rounded-md
+          border
+          cursor-default
+          ${groupColor}
+          ${statusBorder}
+          transition-all
+          hover:shadow-md
+        `}
+      >
+        {/* Pending indicator */}
+        {group.status === 'pending' && (
+          <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-500 rounded-full animate-pulse" />
+        )}
+
+        {/* Cancelled indicator */}
+        {group.status === 'cancelled' && (
+          <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-600/80 rounded-full flex items-center justify-center text-[9px] text-white">
+            ×
+          </div>
+        )}
+
+        {/* Keys */}
+        <div className="flex flex-wrap gap-0.5 items-center">
+          {group.keys.map((key) => (
+            <KeyChip key={key.id} keyAtom={key} groupStatus={group.status} showTooltip={false} />
+          ))}
         </div>
-      )}
-    </div>
+
+        {/* Summary text (optional, for better UX) */}
+        {group.status === 'pending' && (
+          <div className="mt-1 text-[9px] text-yellow-400/80">
+            {t(`pending.${group.pendingKind || 'unknown'}`, '...', { ns: 'keyHistory' })}
+          </div>
+        )}
+      </div>
+    </Tooltip>
   );
 };
