@@ -83,7 +83,7 @@ Notice how every move is a single keypress, keeping your hands on the home row t
           {
             id: 'reach-TARGET',
             type: 'move',
-            description: 'Move the cursor to the T in "TARGET" on the last line.',
+            description: 'Move the cursor to the first T (the capital T at the start) in "TARGET" on the last line.',
             validator: (prev, next) => {
               return next.cursor.line === 2 && next.cursor.col === 3;
             }

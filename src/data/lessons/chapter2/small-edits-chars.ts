@@ -15,8 +15,8 @@ For one-character fixes you do not need a big Insert session.
 In Normal mode:
 
 - **x** – delete the character under the cursor.
-- **s** – delete the character under the cursor **and** enter Insert mode.
-- **r{char}** – replace the character under the cursor with \`{char}\` and stay in Normal.
+- **s** – **substitute**: delete the character under the cursor **and** enter Insert mode.
+- **r{char}** – **replace**: replace the character under the cursor with \`{char}\` and stay in Normal.
 
 They are perfect for things like:
 

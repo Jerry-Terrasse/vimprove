@@ -30,12 +30,10 @@ A WORD is "anything until the next space".`
     },
     {
       type: 'markdown',
-      content: `## Example: two cursors race
+      content: `## Example: comparing w vs W on symbol-heavy code
 
-Watch how **w** (lowercase) and **W** (uppercase) behave differently on symbol-heavy code.
-
-The **blue cursor** uses \`w\` (stops at punctuation).
-The **green cursor** uses \`W\` (treats everything between spaces as one chunk).`
+First, we'll press **w** multiple times to see how it stops at every symbol.
+Then we'll press **W** to see how it jumps over entire chunks between spaces.`
     },
     {
       type: 'run-example',
@@ -46,25 +44,24 @@ The **green cursor** uses \`W\` (treats everything between spaces as one chunk).
         initialCursor: { line: 0, col: 0 },
         autoPlaySpeed: 800,
         tracks: [
-          { label: 'Using w (word)', keys: [], color: 'bg-blue-500' },
-          { label: 'Using W (WORD)', keys: [], color: 'bg-green-500' }
+          { label: 'Comparing w and W', keys: [] }
         ],
         steps: [
-          { key: 'w', description: 'w: move from "auto" to "result".', cursorIndex: 0 },
-          { key: 'W', description: 'W: move from "auto" to "result".', cursorIndex: 1 },
-          { key: 'w', description: 'w: move from "result" to "=".', cursorIndex: 0 },
-          { key: 'W', description: 'W: jump over "= std::max(x, 42)" as one WORD.', cursorIndex: 1 },
-          { key: 'w', description: 'w: step into "std::max(x, 42)".', cursorIndex: 0 },
-          { key: 'w', description: 'w: continue stepping over smaller pieces.', cursorIndex: 0 },
-          { key: 'W', description: 'W: jump again over "+ std::min(y, 7);" towards the end.', cursorIndex: 1 }
+          { key: 'w', description: 'w: move from "auto" to "result" (both w and W do the same here).', cursorIndex: 0 },
+          { key: 'w', description: 'w: move to "=" (stops at the symbol).', cursorIndex: 0 },
+          { key: 'w', description: 'w: move to "std" (stops at the word).', cursorIndex: 0 },
+          { key: 'w', description: 'w: move to "::" (stops at punctuation).', cursorIndex: 0 },
+          { key: 'w', description: 'w: move to "max" (still inside the function call).', cursorIndex: 0 },
+          { key: 'W', description: 'W: now using W, jump over "(x, 42)" as one WORD to "+".', cursorIndex: 0 },
+          { key: 'W', description: 'W: jump over the entire "std::min(y, 7);" as one WORD.', cursorIndex: 0 }
         ]
       }
     },
     {
       type: 'markdown',
-      content: `Notice how **W** reaches the end in just 4 jumps, while **w** needs many more steps!
+      content: `Notice the difference: **w** stops at every symbol (=, ::, punctuation), requiring many small steps, while **W** treats everything between spaces as one big chunk and jumps much faster!
 
-**WORDS blaze through symbol-heavy code.**`
+**Use W to blaze through symbol-heavy code.**`
     },
     {
       type: 'key-list',

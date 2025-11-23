@@ -1,7 +1,7 @@
 {
   "name": "vimprove",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -33,6 +33,7 @@
     "@types/react-dom": "^19.2.2",
     "@types/react-router-dom": "^5.3.3",
     "@vitejs/plugin-react": "^5.1.0",
+    "@vitest/coverage-v8": "^4.0.10",
     "@vitest/ui": "^4.0.10",
     "autoprefixer": "^10.4.22",
     "eslint": "^9.39.1",

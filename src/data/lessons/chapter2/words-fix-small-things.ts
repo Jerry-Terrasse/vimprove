@@ -66,36 +66,36 @@ It highlights the rhythm of navigate first, then make a quick edit.`
       type: 'challenge',
       config: {
         initialBuffer: [
-          "const userNmae = 'Ada';",
-          'const isActve = true;',
-          'console.log(userNmae, isActve);'
+          "const cXrrent = 'Ada';",
+          'const vXlue = 42;',
+          'console.log(cXrrent, vXlue);'
         ],
         initialCursor: { line: 0, col: 0 },
         goalsRequired: 2,
         enabledCommands: ['h', 'j', 'k', 'l', 'w', 'b', 'e', 'i', 'a', 'Escape'],
         goals: [
           {
-            id: 'fix-username',
+            id: 'fix-current',
             type: 'change',
-            description: 'Fix "userNmae" so that all occurrences become "userName".',
+            description: 'Fix "cXrrent" so that all occurrences become "current".',
             validator: (_prev, next) => {
               const text = next.buffer.join('\n');
-              // Must have exactly 2 occurrences of 'userName' and 0 of 'userNmae'
-              const userNameCount = (text.match(/userName/g) || []).length;
-              const userNmaeCount = (text.match(/userNmae/g) || []).length;
-              return userNameCount === 2 && userNmaeCount === 0;
+              // Must have exactly 2 occurrences of 'current' and 0 of 'cXrrent'
+              const currentCount = (text.match(/current/g) || []).length;
+              const cXrrentCount = (text.match(/cXrrent/g) || []).length;
+              return currentCount === 2 && cXrrentCount === 0;
             }
           },
           {
-            id: 'fix-isactive',
+            id: 'fix-value',
             type: 'change',
-            description: 'Fix "isActve" so that all occurrences become "isActive".',
+            description: 'Fix "vXlue" so that all occurrences become "value".',
             validator: (_prev, next) => {
               const text = next.buffer.join('\n');
-              // Must have exactly 2 occurrences of 'isActive' and 0 of 'isActve'
-              const isActiveCount = (text.match(/isActive/g) || []).length;
-              const isActveCount = (text.match(/isActve/g) || []).length;
-              return isActiveCount === 2 && isActveCount === 0;
+              // Must have exactly 2 occurrences of 'value' and 0 of 'vXlue'
+              const valueCount = (text.match(/value/g) || []).length;
+              const vXlueCount = (text.match(/vXlue/g) || []).length;
+              return valueCount === 2 && vXlueCount === 0;
             }
           }
         ]
