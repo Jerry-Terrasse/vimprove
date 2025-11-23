@@ -34,15 +34,16 @@ export const LessonView = ({ lesson, onNext, onPrev }: LessonViewProps) => {
 
       {lesson.contentBlocks.map((block, idx) => {
         const blockKey = block.i18nKey || `lessons.${lesson.slug}.content.${idx}`;
+        const reactKey = `${lesson.slug}-${idx}`;
 
         if (block.type === 'markdown') {
           const content = translateLessons ? t(blockKey, block.content) : block.content;
-          return <MarkdownBlock key={idx} content={content} />;
+          return <MarkdownBlock key={reactKey} content={content} />;
         }
         if (block.type === 'key-list') {
           return (
             <KeyListBlock
-              key={idx}
+              key={reactKey}
               keys={block.keys}
               i18nBaseKey={translateLessons ? `${blockKey}` : undefined}
               disableI18n={!translateLessons}
@@ -51,7 +52,7 @@ export const LessonView = ({ lesson, onNext, onPrev }: LessonViewProps) => {
         }
         if (block.type === 'run-example') {
           return (
-            <div key={idx} className="my-12">
+            <div key={reactKey} className="my-12">
               <RunExamplePlayer
                 config={block.config}
                 lessonSlug={translateLessons ? lesson.slug : undefined}
@@ -63,7 +64,7 @@ export const LessonView = ({ lesson, onNext, onPrev }: LessonViewProps) => {
         }
         if (block.type === 'challenge') {
           return (
-            <div key={idx} className="my-12">
+            <div key={reactKey} className="my-12">
               <VimChallenge
                 config={block.config}
                 lessonSlug={translateLessons ? lesson.slug : undefined}

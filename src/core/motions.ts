@@ -76,8 +76,14 @@ export const getMotionTarget = (state: VimState, motion: Motion, forOperator = f
 
     case 'w': {
       let r = line, c = col;
+      const lastLineIdx = Math.max(0, buffer.length - 1);
+      const lastLine = buffer[lastLineIdx] ?? '';
+      const fallback: Cursor = {
+        line: lastLineIdx,
+        col: forOperator ? lastLine.length : Math.max(0, lastLine.length - 1)
+      };
 
-      if (r >= buffer.length || c >= buffer[r].length) return cursor;
+      if (r >= buffer.length || c >= buffer[r].length) return fallback;
 
       const startChar = buffer[r][c];
       const startIsWord = isWordChar(startChar);
@@ -118,11 +124,8 @@ export const getMotionTarget = (state: VimState, motion: Motion, forOperator = f
       }
 
       if (r >= buffer.length) {
-        const lastLine = Math.max(0, buffer.length - 1);
-        const fallbackCol = forOperator
-          ? buffer[lastLine].length
-          : Math.max(0, buffer[lastLine].length - 1);
-        return { line: lastLine, col: fallbackCol };
+        // No next word found
+        return startIsWhite ? cursor : fallback;
       }
       const maxCol = forOperator ? buffer[r].length : Math.max(0, buffer[r].length - 1);
       return { line: r, col: Math.min(c, maxCol) };

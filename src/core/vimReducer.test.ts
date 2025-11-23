@@ -282,7 +282,7 @@ describe('vimReducer', () => {
       const initial = { ...INITIAL_VIM_STATE, buffer: ['hello world'], cursor: { line: 0, col: 0 } };
       const state = typeKeys(initial, 'cwtest<Esc>');
 
-      expect(state.buffer[0]).toBe('testworld');
+      expect(state.buffer[0]).toBe('test world');
       expect(state.mode).toBe('normal');
     });
   });
@@ -325,6 +325,20 @@ describe('vimReducer', () => {
       state = typeKeys(state, 'yw$p');
 
       expect(state.buffer[0]).toBe('hello worldhello ');
+    });
+
+    it('should paste linewise register with multiple lines correctly', () => {
+      let state = {
+        ...INITIAL_VIM_STATE,
+        buffer: ['para 1', 'para 2', '', 'tail'],
+        cursor: { line: 0, col: 0 }
+      };
+      state = typeKeys(state, 'yip'); // yank paragraph
+      expect(state.register).toBe('para 1\npara 2\n');
+
+      state = typeKeys(state, '3jp'); // go to 'tail' line then paste below
+      expect(state.buffer).toEqual(['para 1', 'para 2', '', 'tail', 'para 1', 'para 2']);
+      expect(state.cursor).toEqual({ line: 4, col: 0 });
     });
   });
 

@@ -180,11 +180,24 @@ describe('Dot command (.) - repeat last change', () => {
   describe('change operations', () => {
     it('should repeat change word (cw)', () => {
       let state = { ...INITIAL_VIM_STATE, buffer: ['foo bar baz'], cursor: { line: 0, col: 0 } };
-      state = typeKeys(state, 'cwhello<Esc>'); // change 'foo ' to 'hello'
-      expect(state.buffer[0]).toBe('hellobar baz');
+      state = typeKeys(state, 'cwhello<Esc>'); // change 'foo' to 'hello' (keep space)
+      expect(state.buffer[0]).toBe('hello bar baz');
 
       state = typeKeys(state, 'w.'); // move to 'bar' and repeat
-      expect(state.buffer[0]).toBe('hellobarhello baz');
+      expect(state.buffer[0]).toBe('hello hello baz');
+    });
+
+    it('should move to next word when repeating cw from indentation', () => {
+      let state = {
+        ...INITIAL_VIM_STATE,
+        buffer: ['    int first;', '    int second;'],
+        cursor: { line: 0, col: 4 }
+      };
+      state = typeKeys(state, 'cwx<Esc>'); // change first int to x
+      expect(state.buffer[0]).toBe('    x first;');
+
+      state = typeKeys(state, 'j.'); // cursor on indentation, dot should target next word
+      expect(state.buffer[1]).toBe('    x second;');
     });
 
     it('should repeat change to end (c$)', () => {
@@ -265,14 +278,14 @@ describe('Dot command (.) - repeat last change', () => {
       expect(state.buffer[0]).toBe('wow wow hello world');
     });
 
-    it('should not repeat paste operations', () => {
+    it('should repeat paste operations', () => {
       let state = { ...INITIAL_VIM_STATE, buffer: ['hello'], cursor: { line: 0, col: 0 } };
       state = typeKeys(state, 'yw'); // yank
       state = typeKeys(state, 'ix<Esc>'); // insert 'x' (this is the last change)
-      state = typeKeys(state, 'p'); // paste (should not update lastChange)
-      state = typeKeys(state, '.'); // should repeat insert 'x', not paste
+      state = typeKeys(state, 'p'); // paste (last change becomes paste)
+      state = typeKeys(state, '.'); // dot should repeat the paste
 
-      expect(state.buffer[0]).toBe('xhello xhello ');
+      expect(state.buffer[0]).toBe('xhellohellohello');
     });
 
     it('should work after undo', () => {
@@ -334,7 +347,7 @@ describe('Dot command (.) - repeat last change', () => {
       expect(state.buffer[0]).toBe('abcdefghijklmnopqrstuvwxyz');
 
       state = typeKeys(state, '.'); // repeat long insert
-      expect(state.buffer[0]).toBe('abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz');
+      expect(state.buffer[0]).toBe('abcdefghijklmnopqrstuvwxyabcdefghijklmnopqrstuvwxyzz');
     });
   });
 
@@ -353,12 +366,12 @@ describe('Dot command (.) - repeat last change', () => {
 
     it('should handle change followed by movement and dot', () => {
       let state = { ...INITIAL_VIM_STATE, buffer: ['foo bar baz'], cursor: { line: 0, col: 0 } };
-      state = typeKeys(state, 'cwhello<Esc>'); // change 'foo ' to 'hello'
-      expect(state.buffer[0]).toBe('hellobar baz');
+      state = typeKeys(state, 'cwhello<Esc>'); // change 'foo' to 'hello' (keep space)
+      expect(state.buffer[0]).toBe('hello bar baz');
 
       state = typeKeys(state, '0w'); // move to 'bar'
       state = typeKeys(state, '.'); // repeat change
-      expect(state.buffer[0]).toBe('hellobarhello baz');
+      expect(state.buffer[0]).toBe('hello hello baz');
     });
   });
 });

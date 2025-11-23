@@ -127,6 +127,15 @@ const findWordStart = (line: string, col: number): number => {
   return idx;
 };
 
+const isSameContent = (a: VimState, b: VimState): boolean => {
+  if (a.mode !== b.mode) return false;
+  if (a.buffer.length !== b.buffer.length) return false;
+  for (let i = 0; i < a.buffer.length; i++) {
+    if (a.buffer[i] !== b.buffer[i]) return false;
+  }
+  return true;
+};
+
 const applyOperatorMotion = (state: VimState, operator: Operator, motion: OperatorMotion): VimState => {
   const count = getCount(state);
   let resultState = state;
@@ -186,10 +195,11 @@ const applyPaste = (state: VimState, before: boolean): VimState => {
 
     if (isLinewise) {
       const content = register.slice(0, -1);
+      const lines = content.split('\n');
       const newBuffer = [...currentBuffer];
       const insertLine = before ? currentCursor.line : currentCursor.line + 1;
-      newBuffer.splice(insertLine, 0, content);
-      const newCursorLine = Math.min(before ? currentCursor.line : currentCursor.line + 1, newBuffer.length - 1);
+      newBuffer.splice(insertLine, 0, ...lines);
+      const newCursorLine = Math.min(insertLine, newBuffer.length - 1);
       return { buffer: newBuffer, cursor: { line: newCursorLine, col: 0 } };
     }
 
@@ -248,7 +258,7 @@ const handleInsertKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
       recordingInsertCursor: cursor
     };
     const stateAfterRecording = hasBufferChanged
-      ? finishRecording(stateWithCursors)
+      ? finishRecording({ ...stateWithCursors, mode: 'normal', cursor: exitCursor })
       : { ...state, changeRecording: null, recordingCount: null, recordingExitCursor: null, recordingInsertCursor: null };
     return {
       ...stateAfterRecording,
@@ -383,14 +393,23 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
     }
 
     if (firstKey === 'c' && secondKey === 'w') {
-      if (replayCursor.col > 0 && isWhitespace(lineText[replayCursor.col - 1])) {
-        replayCursor = { ...replayCursor, col: replayCursor.col - 1 };
+      const currentChar = lineText[replayCursor.col];
+      if (isWhitespace(currentChar)) {
+        let nextNonWhitespace = replayCursor.col;
+        while (nextNonWhitespace < lineText.length && isWhitespace(lineText[nextNonWhitespace])) {
+          nextNonWhitespace++;
+        }
+        if (nextNonWhitespace < lineText.length) {
+          replayCursor = { ...replayCursor, col: nextNonWhitespace };
+        }
       }
     }
 
     const insertCommands = new Set(['i', 'I', 'a', 'A', 'o', 'O', 's']);
-    if (insertCommands.has(firstKey) && replayCursor.col < lineText.length - 1 && isWhitespace(lineText[replayCursor.col])) {
-      replayCursor = { ...replayCursor, col: replayCursor.col + 1 };
+    if (insertCommands.has(firstKey)) {
+      if (replayCursor.col < lineText.length - 1 && isWhitespace(lineText[replayCursor.col])) {
+        replayCursor = { ...replayCursor, col: replayCursor.col + 1 };
+      }
     }
 
     let resultState = { ...state, cursor: replayCursor };
@@ -476,7 +495,11 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
 
   if (key === 'u' && !ctrlKey) {
     if (state.historyIndex > 0) {
-      const targetIndex = state.historyIndex - 1;
+      let targetIndex = state.historyIndex - 1;
+      while (targetIndex > 0 && isSameContent(state.history[targetIndex], state.history[targetIndex - 1])) {
+        targetIndex--;
+      }
+      if (targetIndex < 0) return state;
       const targetState = state.history[targetIndex];
       return {
         ...targetState,
@@ -530,13 +553,15 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
       if (cursor.col < lineText.length) {
         const stateWithHistory = pushHistory(state);
         const stateWithKey = recordKey(stateWithHistory, key, ctrlKey || false);
-        const stateFinished = finishRecording(stateWithKey);
         const newLine = lineText.slice(0, cursor.col) + key + lineText.slice(cursor.col + 1);
         const newBuffer = [...buffer];
         newBuffer[cursor.line] = newLine;
+        const stateFinished = finishRecording({
+          ...stateWithKey,
+          buffer: newBuffer
+        });
         return {
           ...stateFinished,
-          buffer: newBuffer,
           pendingReplace: false,
           lastCommand: { type: 'delete-char' }
         };
@@ -571,7 +596,6 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
       } else {
         const stateWithHistory = pushHistory(state);
         const stateWithKey = recordKey(stateWithHistory, key, ctrlKey || false);
-        const stateFinished = finishRecording(stateWithKey);
         const newBuffer = [...buffer];
         newBuffer.splice(startLine, endLine - startLine + 1);
         if (newBuffer.length === 0) newBuffer.push('');
@@ -580,13 +604,17 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
         const targetLineLen = newBuffer[newLineIdx]?.length ?? 0;
         const preservedCol = Math.min(cursor.col, Math.max(0, targetLineLen - 1));
 
-        return {
-          ...stateFinished,
+        const stateFinished = finishRecording({
+          ...stateWithKey,
           buffer: newBuffer,
           cursor: { line: newLineIdx, col: preservedCol },
+          register: yankedText
+        });
+
+        return {
+          ...stateFinished,
           pendingOperator: null,
           pendingTextObject: null,
-          register: yankedText,
           count: '',
           lastCommand: { type: 'delete-line' }
         };
@@ -691,19 +719,22 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
       const count = getCount(state);
       const deleteCount = Math.min(count, lineText.length - cursor.col);
       const stateWithHistory = pushHistory(state);
+      const stateWithRecording = startRecording(stateWithHistory, key, ctrlKey || false);
+
       const newLine = lineText.slice(0, cursor.col) + lineText.slice(cursor.col + deleteCount);
       const newBuffer = [...buffer];
       newBuffer[cursor.line] = newLine;
       let newCol = cursor.col;
       if (newCol >= newLine.length) newCol = Math.max(0, newLine.length - 1);
 
-      const stateWithRecording = startRecording(stateWithHistory, key, ctrlKey || false);
-      const stateFinished = finishRecording(stateWithRecording);
+      const finished = finishRecording({
+        ...stateWithRecording,
+        buffer: newBuffer,
+        cursor: { ...cursor, col: newCol }
+      });
 
       return {
-        ...stateFinished,
-        buffer: newBuffer,
-        cursor: { ...cursor, col: newCol },
+        ...finished,
         count: '',
         lastCommand: { type: 'delete-char' }
       };

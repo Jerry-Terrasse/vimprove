@@ -8,6 +8,15 @@ export const getCount = (state: VimState): number => {
   return Math.max(1, Math.min(count, 999));
 };
 
+const isSameSnapshot = (a: VimState, b: VimState): boolean => {
+  if (a.mode !== b.mode) return false;
+  if (a.buffer.length !== b.buffer.length) return false;
+  for (let i = 0; i < a.buffer.length; i++) {
+    if (a.buffer[i] !== b.buffer[i]) return false;
+  }
+  return true;
+};
+
 export const createSnapshot = (state: VimState): VimState => ({
   buffer: [...state.buffer],
   cursor: { ...state.cursor },
@@ -36,6 +45,10 @@ export const createSnapshot = (state: VimState): VimState => ({
 
 const appendSnapshot = (state: VimState, snapshot: VimState): { history: VimState[]; historyIndex: number } => {
   const newHistory = state.history.slice(0, state.historyIndex + 1);
+  const last = newHistory[newHistory.length - 1];
+  if (last && isSameSnapshot(last, snapshot)) {
+    return { history: newHistory, historyIndex: newHistory.length - 1 };
+  }
   newHistory.push(snapshot);
 
   if (newHistory.length > MAX_HISTORY) {
@@ -47,6 +60,10 @@ const appendSnapshot = (state: VimState, snapshot: VimState): { history: VimStat
 
 export const pushHistory = (state: VimState): VimState => {
   const snapshot = createSnapshot(state);
+  const latest = state.history[state.historyIndex];
+  if (latest && isSameSnapshot(latest, snapshot)) {
+    return state;
+  }
   const { history, historyIndex } = appendSnapshot(state, snapshot);
   return { ...state, history, historyIndex };
 };
