@@ -74,6 +74,7 @@ const COMMAND_MATRIX: CommandCategory[] = [
 ];
 
 const TEST_STATS = {
+  overall: { passed: 690, total: 690, name: 'vitest (all suites)' },
   basic: { passed: 73, total: 73, name: 'vimParity' },
   exhaustive: { passed: 404, total: 404, name: 'vimParityExhaustive' },
 };
