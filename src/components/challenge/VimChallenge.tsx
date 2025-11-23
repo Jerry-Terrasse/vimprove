@@ -3,6 +3,7 @@ import { CheckCircle2, RotateCcw, Clock, Keyboard, Trophy } from 'lucide-react';
 import type { ChallengeConfig } from '@/core/types';
 import { useVimEngine } from '@/hooks/useVimEngine';
 import { useChallenge } from '@/hooks/useChallenge';
+import { vimReducer } from '@/core/vimReducer';
 import { tokenizeLine, getTokenClassName } from '@/core/syntaxHighlight';
 import { useTranslationSafe } from '@/hooks/useI18n';
 import { useKeyHistory } from '@/hooks/useKeyHistory';
@@ -38,8 +39,6 @@ export const VimChallenge = ({
 
   const [isFocused, setIsFocused] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
-  const prevStateRef = useRef(state);
-  const lastKeyRef = useRef<{ key: string; ctrlKey: boolean } | null>(null);
 
   useEffect(() => {
     // Reset vim state when config changes (e.g., switching lessons)
@@ -73,7 +72,13 @@ export const VimChallenge = ({
     if (isComplete) return;
     startTimer();
 
-    lastKeyRef.current = { key: e.key, ctrlKey: e.ctrlKey };
+    // Calculate nextState and record immediately (no delay)
+    const nextState = vimReducer(state, {
+      type: 'KEYDOWN',
+      payload: { key: e.key, ctrlKey: e.ctrlKey }
+    });
+
+    recordKey(e.key, e.ctrlKey, state, nextState);
 
     dispatch({
       type: 'KEYDOWN',
@@ -81,25 +86,13 @@ export const VimChallenge = ({
     });
   };
 
-  // Record key history when state changes
-  useEffect(() => {
-    if (state !== prevStateRef.current && lastKeyRef.current) {
-      const prevState = prevStateRef.current;
-      const { key, ctrlKey } = lastKeyRef.current;
-
-      recordKey(key, ctrlKey, prevState, state);
-
-      prevStateRef.current = state;
-      lastKeyRef.current = null;
-    }
-  }, [state, recordKey]);
-
   const handleRestart = () => {
     dispatch({
       type: 'RESET',
       payload: { buffer: config.initialBuffer, cursor: config.initialCursor }
     });
     restart();
+    clearHistory();
     setTimeout(() => inputRef.current?.focus(), 10);
   };
 
@@ -180,7 +173,7 @@ export const VimChallenge = ({
           >
             {t(`mode.${state.mode}`, state.mode.toUpperCase(), { ns: 'challenge' })}
           </div>
-          <div className="text-stone-500 flex items-center gap-2">
+          <div className="text-stone-300 flex items-center gap-2">
             <Clock size={14} />
             <span>
               {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, '0')}
@@ -189,7 +182,7 @@ export const VimChallenge = ({
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-stone-500">
+            <span className="text-stone-300">
               {t('goals.label', 'Goals:', { ns: 'challenge' })}
             </span>
             <span className="text-white font-bold">
@@ -198,7 +191,7 @@ export const VimChallenge = ({
           </div>
           <button
             onClick={handleRestart}
-            className="hover:text-white text-stone-500 transition-colors"
+            className="hover:text-white text-stone-300 transition-colors"
           >
             <RotateCcw size={14} />
           </button>

@@ -17,6 +17,7 @@
     "findOperator": "find operator",
     "searchOperator": "search operator",
     "searchControl": "search control",
+    "insertTrigger": "insert mode",
     "cancel": "cancel",
     "confirm": "confirm",
     "other": "other"
@@ -44,6 +45,7 @@
     "findChar": "find character",
     "search": "search",
     "countPrefix": "count prefix",
+    "insertText": "insert text",
     "standalone": "command"
   },
 

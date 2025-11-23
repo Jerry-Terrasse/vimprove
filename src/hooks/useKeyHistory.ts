@@ -33,7 +33,14 @@ const getKeyKind = (
   if (key === 'Escape') return 'escape';
   if (key === 'Enter') return 'enter';
 
-  // Count prefix
+  // In Insert mode, most keys are just text input
+  if (prevState.mode === 'insert') {
+    if (key === 'Backspace') return 'other';
+    if (key.length === 1) return 'other'; // Regular character input
+    return 'other';
+  }
+
+  // Count prefix (only in Normal mode)
   if (/^[1-9]$/.test(key) && !prevState.pendingOperator && !prevState.pendingReplace) {
     return 'count';
   }
@@ -78,7 +85,7 @@ const getKeyKind = (
     return 'searchChar';
   }
 
-  // Motion commands
+  // Motion commands (only in Normal mode)
   if (['h', 'j', 'k', 'l', 'w', 'b', 'e', 'W', 'B', 'E', '0', '$', '^', '_', ';', ','].includes(key)) {
     return 'motion';
   }
@@ -92,6 +99,11 @@ const detectGroupType = (
   nextState: VimState,
   kind: KeyKind
 ): KeyGroupType => {
+  // Insert text (only when already in insert mode, not when entering)
+  if (prevState.mode === 'insert') {
+    return 'insertText';
+  }
+
   // Operator motion
   if (kind === 'operator' || prevState.pendingOperator) {
     return 'operatorMotion';
@@ -129,6 +141,16 @@ const shouldStartNewGroup = (
 ): boolean => {
   // No current group -> always start new
   if (!currentGroup) return true;
+
+  // Insert mode: continue adding to insertText group (even if not pending)
+  if (currentGroup.type === 'insertText') {
+    // Keep adding keys to the group while in insert mode
+    if (prevState.mode === 'insert') return false;
+    // Escape exits insert mode, add it to the group
+    if (key === 'Escape') return false;
+    // Otherwise (mode switched without Escape), start new group
+    return true;
+  }
 
   // Current group is completed/cancelled/ignored -> start new
   if (currentGroup.status !== 'pending') return true;
@@ -173,8 +195,20 @@ const determineGroupStatus = (
   key: string,
   groupType: KeyGroupType
 ): KeyGroupStatus => {
-  // Escape pressed -> cancelled
+  // insertText: stay pending until Escape is pressed
+  if (groupType === 'insertText') {
+    if (key === 'Escape') {
+      return 'applied';
+    }
+    // Still in insert mode -> pending
+    return 'pending';
+  }
+
+  // Escape pressed -> cancelled (except for search, which is normal exit)
   if (key === 'Escape') {
+    if (groupType === 'search') {
+      return 'applied';
+    }
     return 'cancelled';
   }
 
@@ -328,6 +362,28 @@ export const useKeyHistory = () => {
         ...historyRef.current.slice(0, -1),
         updatedGroup
       ];
+    }
+
+    // If just entered Insert mode, create virtual "Ins" group
+    if (prevState.mode === 'normal' && nextState.mode === 'insert') {
+      const insAtom: KeyAtom = {
+        id: globalKeyId++,
+        rawKey: 'Ins',
+        display: 'Ins',
+        kind: 'insert',
+        status: 'pending',
+        roleInGroup: 'insertTrigger',
+      };
+
+      const insGroup: KeyGroup = {
+        id: globalGroupId++,
+        keys: [insAtom],
+        type: 'insertText',
+        status: 'pending',
+        pendingKind: undefined,
+      };
+
+      historyRef.current = [...historyRef.current, insGroup];
     }
   }, []);
 

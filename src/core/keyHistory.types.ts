@@ -40,7 +40,8 @@ export type KeyGroupType =
   | 'replaceChar'     // r{char}
   | 'findChar'        // f{char}
   | 'search'          // /word<CR>
-  | 'countPrefix';    // 3w, 10j
+  | 'countPrefix'     // 3w, 10j
+  | 'insertText';     // i + text input + Esc
 
 export type KeyGroup = {
   id: number;

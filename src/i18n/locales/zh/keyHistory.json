@@ -17,6 +17,7 @@
     "findOperator": "查找操作符",
     "searchOperator": "搜索操作符",
     "searchControl": "搜索控制",
+    "insertTrigger": "插入模式",
     "cancel": "取消",
     "confirm": "确认",
     "other": "其他"
@@ -44,6 +45,7 @@
     "findChar": "查找字符",
     "search": "搜索",
     "countPrefix": "计数前缀",
+    "insertText": "插入文本",
     "standalone": "命令"
   },
 

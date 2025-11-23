@@ -52,8 +52,8 @@ export const KeyChip: React.FC<KeyChipProps> = ({ keyAtom, groupStatus }) => {
     <span
       className={`
         inline-flex items-center justify-center
-        px-2 py-0.5 rounded
-        text-xs font-mono
+        px-1.5 py-0.5 rounded
+        text-[11px] font-mono
         border
         ${kindColor}
         ${statusStyle}
