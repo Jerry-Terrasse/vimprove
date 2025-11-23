@@ -10,40 +10,9 @@
 - **可播放示例** - Run Example 功能展示命令执行过程
 - **进度追踪** - 本地存储学习进度，记录完成时间和尝试次数
 
-## 🎯 已支持的 Vim 命令
+## 🎯 Vim编辑器功能实现
 
-### 移动
-- `h`, `j`, `k`, `l` - 基础移动
-- `w`, `b`, `e` - 单词移动
-- `W`, `B`, `E` - WORD 移动（空白分隔）
-- `0`, `^`, `_`, `$` - 行内移动
-- `f{char}`, `F{char}`, `t{char}`, `T{char}` - 字符查找
-- `;`, `,` - 重复/反向查找
-
-### 搜索
-- `/pattern`, `?pattern` - 正向/反向搜索
-- `n`, `N` - 在匹配间前进/后退
-- `*`, `#` - 以当前单词为模式搜索正向/反向
-
-### 编辑
-- `x` - 删除字符
-- `s` - 替换字符并进入 Insert
-- `r{char}` - 替换字符
-- `dd` - 删除行
-- `d{motion}` - 删除到 motion 位置
-- `c{motion}` - 修改到 motion 位置
-- `i`, `a`, `I`, `A`, `o`, `O` - 进入 Insert 模式
-- 文本对象：`iw/aw/ip/ap`、`i(`/`i{`/`i[`、`i"` 等，可与 `d/c/y` 组合进行整词/段落/括号/字符串编辑
-
-### 复制粘贴
-- `y{motion}`, `yy` - 复制文本
-- `p`, `P` - 粘贴
-
-### 其他
-- `u` - 撤销
-- `Ctrl-r` - 重做
-- `.` - 重复上次修改
-- 数字前缀 - `3w`, `5dd`, `2.` 等
+<img src="./assets/functions.png" width="50%">
 
 ## 🚀 快速开始
 
@@ -71,6 +40,12 @@ npm run test:ui
 
 # 生成测试覆盖率
 npm run test:coverage
+
+# 运行对拍测试 - 基本功能
+npm run test -- src/core/vimParity.test.ts
+
+# 运行对拍测试 - 详尽测试
+npm run test -- src/core/vimParityExhaustive.test.ts
 ```
 
 访问 `http://localhost:3000` 开始学习。
@@ -122,33 +97,63 @@ src/
 
 ## 🧪 测试
 
-项目使用 Vitest 进行单元测试，已覆盖 Vim 引擎的所有核心功能。
-
-### 测试覆盖
-
-- ✅ **motions.ts** - 所有移动命令（h/j/k/l/w/b/e/0/$/f/t等）
-- ✅ **operators.ts** - 操作符与 motion 组合（d/c/y + motion）
-- ✅ **vimReducer.ts** - 核心状态管理（模式切换、编辑、undo/redo）
-- ✅ **dot-command** - `.` 命令（重复上次修改）
-
-### 测试统计
-
-- **总测试数**: 176
-- **测试文件**: 4
-- **通过率**: 86%+（核心功能 100% 通过）
-
-详细信息见 `tmp/test-summary.md`
+- 测试框架：Vitest（`npm run test -- <file>` 可按文件执行）
+- 覆盖范围：
+  - `src/core/motions.test.ts` - 基础/单词/行内/查找移动
+  - `src/core/operators.test.ts` - d/c/y + motion、文本对象
+  - `src/core/vimReducer.test.ts` - 模式切换、编辑、undo/redo
+  - `src/core/dot-command.test.ts` - `.` 重放
+  - `src/core/vimParity.test.ts` - 与 Neovim 对拍测试
+  - `vimParityExhaustive.test.ts` - 与 Neovim 对拍测试（详尽）
 
 ## 📝 CHANGELOG
 
-<details>
-<summary><b>点击展开完整版本历史</b></summary>
+### Release v1.5.0
+- 🧪 Vim 引擎对拍：`.` 重播（cw/paste/末行 jw）、多行寄存器行粘贴、撤销快照去重与 cw 边界全面对齐 Neovim
+- ⌨️ 可视化提升：按键历史面板 + Vim Status 面板，组合键聚合、实时记录与 dot 重播提示一致
+- 🌏 输入与体验：Insert 模式中文输入可用，Tooltip 抖动修复，课程切换重新挂载消除键位提示重复
+- 🎯 学习流优化：挑战目标与示例文案更清晰（助记/拼写练习），Run Example/课程示例节奏更平滑
 
-### v1.0.0
+### Release v1.0.0
 - 🎉 首个正式版本，实现主要功能
 - ✨ 新增设置面板「Vim 状态」和「练习场」标签页（支持 C++/JS/Python 语法高亮，展示 Neovim 对拍测试结果）
 - 🐛 修复 Insert 模式光标位置和挑战切换状态重置等核心 bug
 - 💾 改进学习体验：记住上次学习位置，支持 Enter 快速进入下一课
+
+<details>
+<summary><b>点击展开完整版本历史</b></summary>
+
+### v1.4.3
+- 🐛 `.` 重播对齐 Vim：cw 光标、末行 jw 落点、paste 重播行为与对拍一致
+- 📋 粘贴寄存器修正：多行寄存器按行插入，`P` 粘贴前光标与 Neovim 一致
+- 🧭 课程切换重新挂载 lesson 视图，消除键位提示重复字符
+- ♻️ 撤销快照去重、插入退出立即落盘，undo/redo 与 Neovim 行为保持一致
+
+### v1.4.2
+- 🌏 支持中文输入：Insert 模式正常输入中文，Normal 模式不响应但在按键历史中显示
+- 🐛 修复 undo/redo 命令按键历史闪烁问题（清除所有 pending 状态）
+- 🎨 修复 Tooltip 位置闪烁：固定向上显示，避免自动方向切换
+
+### v1.4.1
+- 🎨 自定义Tooltip组件：按键历史使用本站风格UI，组合键聚合显示所有子成员信息
+- 🔁 `.`命令增强：tooltip中显示被重放的具体动作序列（如 `→ cw`）
+- 🐛 修复count+motion组合键记录：`3w`等命令正确归为一组而非分开显示
+
+### v1.4.0
+- ⌨️ 新增按键历史面板：动画示例和挑战编辑器右侧实时显示所有按键记录
+- 🎯 智能组合键分组：operator+motion、Insert+text、find+char 等自动归组，显示等待状态
+- ⚡ 按键记录零延迟：同步计算状态并记录，消除 React 渲染周期延迟
+- 🔄 改进播放控制：上一步功能正确重建按键历史，重置按钮移至右上角
+
+### v1.2.0
+- 📝 课程体验优化：明确挑战目标描述（1.2 课 TARGET 首字母）、添加命令英文助记（w/b/e/s/r）、改进拼写练习示例（更明显的 cXrrent/vXlue）
+- 🎬 动画示例改进：2.3 课 w vs W 对比从双光标赛跑改为单光标渐进演示，学习曲线更平缓
+
+### v1.1.0
+- ✅ Undo/Redo 与快照对齐 Neovim：插入录制结束即刻落盘快照，`u`/`<C-r>` 基于索引切换并保留 lastChange，恢复光标行为贴合 Vim
+- 🧮 可重复操作修复：`iZ`/`aY`、`x` 等组合在 `.` 重放和 redo 后保持光标与寄存器一致，`dd` 删除后保留列位置
+- ✂️ 标点 `cw` 范围与移动边界修正：仅修改当前标点段，`w` 在文件末尾落在最后字符
+- 🧪 Neovim 对拍：`vimParityExhaustive.test.ts` 全量通过
 
 ### v0.15.0
 - 🔧 修复 Insert 模式核心问题：引入 `insertCol` 分离光标显示与插入位置，修复 c$/cw/Escape 等命令行为
@@ -256,4 +261,4 @@ src/
 
 ---
 
-**当前版本**: v1.0.0
+**当前版本**: v1.4.1

@@ -1,9 +1,20 @@
 import type { KeyPress, VimState } from './types';
 
 // Count helper used by motions and recordings
+const MAX_HISTORY = 100;
+
 export const getCount = (state: VimState): number => {
   const count = parseInt(state.count) || 1;
   return Math.max(1, Math.min(count, 999));
+};
+
+const isSameSnapshot = (a: VimState, b: VimState): boolean => {
+  if (a.mode !== b.mode) return false;
+  if (a.buffer.length !== b.buffer.length) return false;
+  for (let i = 0; i < a.buffer.length; i++) {
+    if (a.buffer[i] !== b.buffer[i]) return false;
+  }
+  return true;
 };
 
 export const createSnapshot = (state: VimState): VimState => ({
@@ -32,21 +43,29 @@ export const createSnapshot = (state: VimState): VimState => ({
   recordingInsertCursor: state.recordingInsertCursor ? { ...state.recordingInsertCursor } : null,
 });
 
-export const pushHistory = (state: VimState): VimState => {
-  const snapshot = createSnapshot(state);
+const appendSnapshot = (state: VimState, snapshot: VimState): { history: VimState[]; historyIndex: number } => {
   const newHistory = state.history.slice(0, state.historyIndex + 1);
+  const last = newHistory[newHistory.length - 1];
+  if (last && isSameSnapshot(last, snapshot)) {
+    return { history: newHistory, historyIndex: newHistory.length - 1 };
+  }
   newHistory.push(snapshot);
 
-  const maxHistory = 100;
-  if (newHistory.length > maxHistory) {
+  if (newHistory.length > MAX_HISTORY) {
     newHistory.shift();
   }
 
-  return {
-    ...state,
-    history: newHistory,
-    historyIndex: newHistory.length - 1,
-  };
+  return { history: newHistory, historyIndex: newHistory.length - 1 };
+};
+
+export const pushHistory = (state: VimState): VimState => {
+  const snapshot = createSnapshot(state);
+  const latest = state.history[state.historyIndex];
+  if (latest && isSameSnapshot(latest, snapshot)) {
+    return state;
+  }
+  const { history, historyIndex } = appendSnapshot(state, snapshot);
+  return { ...state, history, historyIndex };
 };
 
 export const clearPendingStates = (state: VimState): VimState => ({
@@ -86,7 +105,7 @@ export const finishRecording = (state: VimState): VimState => {
   if (!state.changeRecording) return state;
   const exitCursor = state.recordingExitCursor ?? state.cursor;
   const insertCursor = state.recordingInsertCursor ?? state.cursor;
-  return {
+  const finalizedState = {
     ...state,
     lastChange: state.changeRecording,
     lastChangeCount: state.recordingCount ?? 1,
@@ -97,4 +116,9 @@ export const finishRecording = (state: VimState): VimState => {
     recordingExitCursor: null,
     recordingInsertCursor: null,
   };
+
+  const snapshot = createSnapshot(finalizedState);
+  const { history, historyIndex } = appendSnapshot(finalizedState, snapshot);
+
+  return { ...finalizedState, history, historyIndex };
 };

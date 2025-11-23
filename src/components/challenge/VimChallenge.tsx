@@ -3,8 +3,11 @@ import { CheckCircle2, RotateCcw, Clock, Keyboard, Trophy } from 'lucide-react';
 import type { ChallengeConfig } from '@/core/types';
 import { useVimEngine } from '@/hooks/useVimEngine';
 import { useChallenge } from '@/hooks/useChallenge';
+import { vimReducer } from '@/core/vimReducer';
 import { tokenizeLine, getTokenClassName } from '@/core/syntaxHighlight';
 import { useTranslationSafe } from '@/hooks/useI18n';
+import { useKeyHistory } from '@/hooks/useKeyHistory';
+import { KeyHistoryPanel } from '@/components/common/KeyHistoryPanel';
 
 type VimChallengeProps = {
   config: ChallengeConfig;
@@ -32,9 +35,12 @@ export const VimChallenge = ({
     onComplete
   );
   const { t } = useTranslationSafe(['challenge', 'lessons']);
+  const { recordKey, getHistory, clearHistory } = useKeyHistory();
 
   const [isFocused, setIsFocused] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
+  const isComposingRef = useRef(false);
+  const compositionDataRef = useRef('');
 
   useEffect(() => {
     // Reset vim state when config changes (e.g., switching lessons)
@@ -42,8 +48,9 @@ export const VimChallenge = ({
       type: 'RESET',
       payload: { buffer: config.initialBuffer, cursor: config.initialCursor }
     });
+    clearHistory();
     inputRef.current?.focus();
-  }, [config, dispatch]);
+  }, [config, dispatch, clearHistory]);
 
   // Handle Enter key to proceed to next lesson when challenge is complete
   useEffect(() => {
@@ -60,12 +67,79 @@ export const VimChallenge = ({
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [isComplete, elapsed, onComplete]);
 
+  const handleCompositionStart = () => {
+    isComposingRef.current = true;
+    compositionDataRef.current = '';
+  };
+
+  const handleCompositionUpdate = (e: React.CompositionEvent) => {
+    compositionDataRef.current = e.data;
+  };
+
+  const handleCompositionEnd = (e: React.CompositionEvent) => {
+    isComposingRef.current = false;
+    const text = e.data;
+
+    if (isComplete) return;
+    if (!text) return;
+
+    startTimer();
+
+    // In Insert mode: insert Chinese characters normally
+    if (state.mode === 'insert') {
+      // Process all characters and update state once to avoid async issues
+      const chars = Array.from(text);
+
+      // Compute final state by chaining reducers
+      let currentState = state;
+      for (const char of chars) {
+        const nextState = vimReducer(currentState, {
+          type: 'KEYDOWN',
+          payload: { key: char, ctrlKey: false }
+        });
+        recordKey(char, false, currentState, nextState);
+        currentState = nextState;
+      }
+
+      // Dispatch all characters at once
+      for (const char of chars) {
+        dispatch({
+          type: 'KEYDOWN',
+          payload: { key: char, ctrlKey: false }
+        });
+      }
+    } else {
+      // In Normal mode: record Chinese input but don't execute
+      // Show Chinese characters in key history as ignored
+      for (const char of text) {
+        recordKey(char, false, state, state);
+      }
+    }
+
+    compositionDataRef.current = '';
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock'].includes(e.key)) return;
+
+    // Ignore keydown during composition (IME input)
+    if (isComposingRef.current || e.key === 'Process') {
+      e.preventDefault();
+      return;
+    }
+
     e.preventDefault();
 
     if (isComplete) return;
     startTimer();
+
+    // Calculate nextState and record immediately (no delay)
+    const nextState = vimReducer(state, {
+      type: 'KEYDOWN',
+      payload: { key: e.key, ctrlKey: e.ctrlKey }
+    });
+
+    recordKey(e.key, e.ctrlKey, state, nextState);
 
     dispatch({
       type: 'KEYDOWN',
@@ -79,6 +153,7 @@ export const VimChallenge = ({
       payload: { buffer: config.initialBuffer, cursor: config.initialCursor }
     });
     restart();
+    clearHistory();
     setTimeout(() => inputRef.current?.focus(), 10);
   };
 
@@ -144,7 +219,9 @@ export const VimChallenge = ({
   };
 
   return (
-    <div className="bg-stone-900 rounded-xl overflow-hidden border border-stone-800 shadow-2xl flex flex-col h-[500px] md:h-[600px]">
+    <div className="bg-stone-900 rounded-xl overflow-hidden border border-stone-800 shadow-2xl flex flex-row gap-0 h-[500px] md:h-[600px]">
+      {/* Left: Editor */}
+      <div className="flex-1 flex flex-col min-w-0">
       {/* Header / Status Bar */}
       <div className="bg-stone-950 border-b border-stone-800 p-3 flex items-center justify-between text-sm font-mono">
         <div className="flex items-center gap-4">
@@ -157,7 +234,7 @@ export const VimChallenge = ({
           >
             {t(`mode.${state.mode}`, state.mode.toUpperCase(), { ns: 'challenge' })}
           </div>
-          <div className="text-stone-500 flex items-center gap-2">
+          <div className="text-stone-300 flex items-center gap-2">
             <Clock size={14} />
             <span>
               {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, '0')}
@@ -166,7 +243,7 @@ export const VimChallenge = ({
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-stone-500">
+            <span className="text-stone-300">
               {t('goals.label', 'Goals:', { ns: 'challenge' })}
             </span>
             <span className="text-white font-bold">
@@ -175,7 +252,7 @@ export const VimChallenge = ({
           </div>
           <button
             onClick={handleRestart}
-            className="hover:text-white text-stone-500 transition-colors"
+            className="hover:text-white text-stone-300 transition-colors"
           >
             <RotateCcw size={14} />
           </button>
@@ -195,6 +272,9 @@ export const VimChallenge = ({
           onBlur={() => setIsFocused(false)}
           onFocus={() => setIsFocused(true)}
           onKeyDown={handleKeyDown}
+          onCompositionStart={handleCompositionStart}
+          onCompositionUpdate={handleCompositionUpdate}
+          onCompositionEnd={handleCompositionEnd}
           autoComplete="off"
         />
 
@@ -265,6 +345,12 @@ export const VimChallenge = ({
             </div>
           ))}
         </div>
+      </div>
+      </div>
+
+      {/* Right: Key History Panel */}
+      <div className="w-64 border-l border-stone-800 bg-stone-950/50 flex-shrink-0">
+        <KeyHistoryPanel history={getHistory()} />
       </div>
     </div>
   );

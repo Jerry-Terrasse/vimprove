@@ -4,6 +4,8 @@ import type { RunExampleConfig, VimState } from '@/core/types';
 import { vimReducer, INITIAL_VIM_STATE } from '@/core/vimReducer';
 import { tokenizeLine, getTokenClassName } from '@/core/syntaxHighlight';
 import { useTranslationSafe } from '@/hooks/useI18n';
+import { useKeyHistory } from '@/hooks/useKeyHistory';
+import { KeyHistoryPanel } from '@/components/common/KeyHistoryPanel';
 
 type RunExamplePlayerProps = {
   config: RunExampleConfig;
@@ -23,6 +25,7 @@ export const RunExamplePlayer = ({
   const [states, setStates] = useState<VimState[]>([]);
   const autoPlayInterval = useRef<NodeJS.Timeout | null>(null);
   const { t } = useTranslationSafe(['example', 'lessons']);
+  const { recordKey, getHistory, clearHistory } = useKeyHistory();
 
   useEffect(() => {
     const initialStates = config.tracks.map(() => ({
@@ -32,7 +35,8 @@ export const RunExamplePlayer = ({
     }));
     setStates(initialStates);
     setCurrentStep(-1);
-  }, [config]);
+    clearHistory();
+  }, [config, clearHistory]);
 
   const executeStep = useCallback(
     (stepIndex: number) => {
@@ -41,38 +45,56 @@ export const RunExamplePlayer = ({
       const step = config.steps[stepIndex];
       const cursorIdx = step.cursorIndex ?? 0;
 
+      // Calculate nextState and record before updating React state
+      const prevState = states[cursorIdx];
+      const nextState = vimReducer(prevState, {
+        type: 'KEYDOWN',
+        payload: { key: step.key, ctrlKey: false }
+      });
+
+      // Record key immediately
+      recordKey(step.key, false, prevState, nextState);
+
+      // Update React state
       setStates(prevStates => {
         const newStates = [...prevStates];
-        newStates[cursorIdx] = vimReducer(newStates[cursorIdx], {
-          type: 'KEYDOWN',
-          payload: { key: step.key, ctrlKey: false }
-        });
+        newStates[cursorIdx] = nextState;
         return newStates;
       });
 
       setCurrentStep(stepIndex);
     },
-    [config.steps]
+    [config.steps, states, recordKey]
   );
 
   const executeStepImmediately = useCallback(
-    (stepIndex: number) => {
+    (stepIndex: number, shouldRecord = false) => {
       if (stepIndex < 0 || stepIndex >= config.steps.length) return;
 
       const step = config.steps[stepIndex];
       const cursorIdx = step.cursorIndex ?? 0;
 
+      // Calculate nextState and optionally record
+      const prevState = states[cursorIdx];
+      const nextState = vimReducer(prevState, {
+        type: 'KEYDOWN',
+        payload: { key: step.key, ctrlKey: false }
+      });
+
+      if (shouldRecord) {
+        recordKey(step.key, false, prevState, nextState);
+      }
+
+      // Update React state
       setStates(prev => {
         const newStates = [...prev];
-        newStates[cursorIdx] = vimReducer(newStates[cursorIdx], {
-          type: 'KEYDOWN',
-          payload: { key: step.key, ctrlKey: false }
-        });
+        newStates[cursorIdx] = nextState;
         return newStates;
       });
+
       setCurrentStep(stepIndex);
     },
-    [config.steps]
+    [config.steps, states, recordKey]
   );
 
   const handleNext = useCallback(() => {
@@ -106,7 +128,8 @@ export const RunExamplePlayer = ({
     }));
     setStates(initialStates);
     setCurrentStep(-1);
-  }, [config]);
+    clearHistory();
+  }, [config, clearHistory]);
 
   const handlePlay = useCallback(() => {
     if (currentStep >= config.steps.length - 1) {
@@ -122,15 +145,46 @@ export const RunExamplePlayer = ({
   }, []);
 
   const handlePrev = useCallback(() => {
-    if (currentStep > 0) {
+    if (currentStep <= 0) {
       handleReset();
-      for (let i = 0; i < currentStep; i++) {
-        executeStepImmediately(i);
-      }
-    } else if (currentStep === 0) {
-      handleReset();
+      return;
     }
-  }, [currentStep, executeStepImmediately, handleReset]);
+
+    setIsPlaying(false);
+    clearHistory();
+
+    const targetStep = currentStep - 1;
+
+    // Reset to initial state
+    let trackStates = config.tracks.map(() => ({
+      ...INITIAL_VIM_STATE,
+      buffer: config.initialBuffer,
+      cursor: config.initialCursor
+    }));
+
+    // Replay to targetStep and record key history
+    for (let i = 0; i <= targetStep; i++) {
+      const step = config.steps[i];
+      const cursorIdx = step.cursorIndex ?? 0;
+
+      const prevState = trackStates[cursorIdx];
+      const nextState = vimReducer(prevState, {
+        type: 'KEYDOWN',
+        payload: { key: step.key, ctrlKey: false }
+      });
+
+      // Record key history
+      recordKey(step.key, false, prevState, nextState);
+
+      // Update track state
+      trackStates = [...trackStates];
+      trackStates[cursorIdx] = nextState;
+    }
+
+    // Update React state
+    setStates(trackStates);
+    setCurrentStep(targetStep);
+  }, [currentStep, config, clearHistory, recordKey, handleReset]);
 
   const renderBuffer = () => {
     const displayState = states[0];
@@ -231,35 +285,46 @@ export const RunExamplePlayer = ({
   const keyedLabel = (key: string, fallback: string) => t(key, fallback, { ns: 'example' });
 
   return (
-    <div className="bg-stone-900 rounded-xl overflow-hidden border border-stone-800 shadow-2xl">
+    <div className="bg-stone-900 rounded-xl overflow-hidden border border-stone-800 shadow-2xl flex flex-row gap-0 h-[500px]">
+      {/* Left: Player */}
+      <div className="flex-1 flex flex-col min-w-0">
       {/* Header */}
       <div className="bg-stone-950 border-b border-stone-800 p-3 flex items-center justify-between text-sm font-mono">
-        <div className="text-stone-400">{keyedLabel('title', 'Run Example')}</div>
-        <div className="flex items-center gap-2">
-          {config.tracks.map((track, idx) => {
-            const bgColor = track.color || (idx === 0 ? 'bg-blue-500' : 'bg-green-500');
-            return (
-              <div key={idx} className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${bgColor}`} />
-                <span className="text-xs text-stone-400">
-                  {disableI18n || !lessonSlug
-                    ? track.label
-                    : t(
-                        i18nBaseKey
-                          ? `${i18nBaseKey}.tracks.${idx}`
-                          : `lessons.${lessonSlug}.runExample.tracks.${idx}`,
-                        track.label,
-                        { ns: 'lessons' }
-                      )}
-                </span>
-              </div>
-            );
-          })}
+        <div className="text-stone-300">{keyedLabel('title', 'Run Example')}</div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            {config.tracks.map((track, idx) => {
+              const bgColor = track.color || (idx === 0 ? 'bg-blue-500' : 'bg-green-500');
+              return (
+                <div key={idx} className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${bgColor}`} />
+                  <span className="text-xs text-stone-300">
+                    {disableI18n || !lessonSlug
+                      ? track.label
+                      : t(
+                          i18nBaseKey
+                            ? `${i18nBaseKey}.tracks.${idx}`
+                            : `lessons.${lessonSlug}.runExample.tracks.${idx}`,
+                          track.label,
+                          { ns: 'lessons' }
+                        )}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <button
+            onClick={handleReset}
+            className="hover:text-white text-stone-300 transition-colors"
+            title={keyedLabel('reset', 'Reset')}
+          >
+            <RotateCcw size={14} />
+          </button>
         </div>
       </div>
 
-      {/* Editor Area */}
-      <div className="bg-stone-900 min-h-[300px]">
+      {/* Editor Area - flex-1 to push controls to bottom */}
+      <div className="bg-stone-900 flex-1 overflow-auto">
         <div className="vim-editor-root">{renderBuffer()}</div>
       </div>
 
@@ -282,15 +347,8 @@ export const RunExamplePlayer = ({
         </div>
       )}
 
-      {/* Controls */}
+      {/* Controls - at bottom */}
       <div className="bg-stone-950 border-t border-stone-800 p-4 flex items-center justify-center gap-3">
-        <button
-          onClick={handleReset}
-          className="p-2 hover:bg-stone-800 rounded transition-colors text-stone-400 hover:text-white"
-          title={keyedLabel('reset', 'Reset')}
-        >
-          <RotateCcw size={18} />
-        </button>
         <button
           onClick={handlePrev}
           disabled={currentStep <= 0}
@@ -324,6 +382,12 @@ export const RunExamplePlayer = ({
         >
           <SkipForward size={18} />
         </button>
+      </div>
+      </div>
+
+      {/* Right: Key History Panel */}
+      <div className="w-64 border-l border-stone-800 bg-stone-950/50 flex-shrink-0">
+        <KeyHistoryPanel history={getHistory()} />
       </div>
     </div>
   );

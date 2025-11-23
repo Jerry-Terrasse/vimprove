@@ -105,10 +105,10 @@ describe('operators', () => {
         const state = createState(['hello world'], { line: 0, col: 0 }, { pendingOperator: 'c' });
         const result = applyOperatorWithMotion(state, 'c', 'w');
 
-        expect(result.buffer).toEqual(['world']);
+        expect(result.buffer).toEqual([' world']);
         expect(result.mode).toBe('insert');
         expect(result.cursor).toEqual({ line: 0, col: 0 });
-        expect(result.register).toBe('hello ');
+        expect(result.register).toBe('hello');
         expect(result.pendingOperator).toBeNull();
       });
 

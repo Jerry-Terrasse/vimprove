@@ -417,6 +417,33 @@ export const applyOperatorWithMotion = (
     actualMotion = 'E';
   }
 
+  // When cw starts on punctuation, Vim only changes that punctuation run instead of jumping into the next word.
+  if (operator === 'c' && motion === 'w' && !isWhitespace(startChar) && !isWordChar(startChar)) {
+    const lineText = buffer[cursor.line] ?? '';
+    const span = findWordSpan(lineText, cursor.col);
+    const endCol = span ? span.end : cursor.col + 1;
+    const registerText = lineText.slice(cursor.col, endCol);
+
+    const stateWithHistory = pushHistory(state);
+    const newLine = lineText.slice(0, cursor.col) + lineText.slice(endCol);
+    const newBuffer = [...buffer];
+    newBuffer[cursor.line] = newLine;
+    const maxCursor = Math.max(0, newLine.length - 1);
+    const newCursorCol = Math.min(cursor.col, maxCursor);
+
+    return {
+      ...stateWithHistory,
+      buffer: newBuffer,
+      cursor: { line: cursor.line, col: newCursorCol },
+      pendingOperator: null,
+      pendingTextObject: null,
+      mode: 'insert',
+      register: registerText,
+      insertCol: Math.min(cursor.col, newLine.length),
+      lastCommand: { type: 'delete-range', operator, motion }
+    };
+  }
+
   const target = getMotionTarget(state, actualMotion, true);
 
   let start = cursor;

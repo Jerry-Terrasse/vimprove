@@ -79,8 +79,8 @@ Watch how word and WORD motions reach targets in far fewer keystrokes than singl
       config: {
         initialBuffer: [
           'let totalCount = 0;',
-          'let curentCount = 1;  // typo',
-          'if (curentCount == totalCount) {',
+          'let cuXrentCount = 1;  // typo',
+          'if (cuXrentCount == totalCount) {',
           '  console.log("Match!");',
           '}'
         ],
@@ -96,15 +96,15 @@ Watch how word and WORD motions reach targets in far fewer keystrokes than singl
         ],
         goals: [
           {
-            id: 'fix-curentCount',
+            id: 'fix-cuXrentCount',
             type: 'change',
-            description: 'Rename all occurrences of "curentCount" to "currentCount".',
+            description: 'Fix all occurrences of "cuXrentCount" to "currentCount".',
             validator: (_prev, next) => {
               const text = next.buffer.join('\n');
-              // Must have exactly 2 occurrences of 'currentCount' and 0 of 'curentCount'
+              // Must have exactly 2 occurrences of 'currentCount' and 0 of 'cuXrentCount'
               const currentCountOccurrences = (text.match(/currentCount/g) || []).length;
-              const curentCountOccurrences = (text.match(/curentCount/g) || []).length;
-              return currentCountOccurrences === 2 && curentCountOccurrences === 0;
+              const cuXrentCountOccurrences = (text.match(/cuXrentCount/g) || []).length;
+              return currentCountOccurrences === 2 && cuXrentCountOccurrences === 0;
             }
           },
           {

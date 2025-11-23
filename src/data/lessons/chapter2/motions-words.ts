@@ -16,7 +16,7 @@ Vim gives you **word motions** to skip bigger chunks:
 
 - **w** – jump to the **start of the next word**
 - **b** – jump **back** to the start of the previous word
-- **e** – jump to the **end of the current/next word**
+- **e** – jump to the **end** of the current word; if already at word end, jump to the end of the next word
 
 A "word" here is a run of letters, digits, or underscores separated by spaces or punctuation.`
     },
@@ -56,7 +56,7 @@ This shows how word motions cover more ground than single-character moves.`
       keys: [
         { chars: ['w'], desc: 'Jump to the start of the next word' },
         { chars: ['b'], desc: 'Jump back to the start of the previous word' },
-        { chars: ['e'], desc: 'Jump to the end of the current/next word' }
+        { chars: ['e'], desc: 'Jump to word end (current word, or next if already at end)' }
       ]
     },
     {
