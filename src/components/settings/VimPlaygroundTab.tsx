@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useVimEngine } from '@/hooks/useVimEngine';
+import { vimReducer } from '@/core/vimReducer';
 import { tokenizeLine, getTokenClassName } from '@/core/syntaxHighlight';
 import { useTranslationSafe } from '@/hooks/useI18n';
 import { useSettingsContext } from '@/contexts/SettingsContext';
@@ -78,6 +79,7 @@ export const VimPlaygroundTab = () => {
   const { t } = useTranslationSafe('settings');
   const { settings } = useSettingsContext();
   const [language, setLanguage] = useState<Language>('cpp');
+  const isComposingRef = useRef(false);
 
   const { state, dispatch } = useVimEngine({
     buffer: DEFAULT_CODE[language],
@@ -92,8 +94,38 @@ export const VimPlaygroundTab = () => {
     });
   };
 
+  const handleCompositionStart = () => {
+    isComposingRef.current = true;
+  };
+
+  const handleCompositionEnd = (e: React.CompositionEvent) => {
+    isComposingRef.current = false;
+    const text = e.data;
+
+    if (!text) return;
+
+    // In Insert mode: insert Chinese characters normally
+    if (state.mode === 'insert') {
+      const chars = Array.from(text);
+      for (const char of chars) {
+        dispatch({
+          type: 'KEYDOWN',
+          payload: { key: char, ctrlKey: false }
+        });
+      }
+    }
+    // In Normal mode: ignore Chinese input
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock'].includes(e.key)) return;
+
+    // Ignore keydown during composition (IME input)
+    if (isComposingRef.current || e.key === 'Process') {
+      e.preventDefault();
+      return;
+    }
+
     e.preventDefault();
 
     dispatch({
@@ -214,6 +246,8 @@ export const VimPlaygroundTab = () => {
           className="opacity-0 absolute top-0 left-0 h-0 w-0"
           autoFocus
           onKeyDown={handleKeyDown}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
           autoComplete="off"
         />
         <div

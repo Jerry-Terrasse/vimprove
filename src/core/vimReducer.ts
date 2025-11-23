@@ -489,6 +489,9 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
         pendingOperator: null,
         pendingReplace: false,
         pendingFind: null,
+        pendingTextObject: null,
+        pendingSearch: null,
+        count: '',
       };
     }
     return state;
@@ -513,6 +516,9 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
         pendingOperator: null,
         pendingReplace: false,
         pendingFind: null,
+        pendingTextObject: null,
+        pendingSearch: null,
+        count: '',
       };
     }
     return state;

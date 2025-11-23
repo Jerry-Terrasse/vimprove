@@ -39,6 +39,8 @@ export const VimChallenge = ({
 
   const [isFocused, setIsFocused] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
+  const isComposingRef = useRef(false);
+  const compositionDataRef = useRef('');
 
   useEffect(() => {
     // Reset vim state when config changes (e.g., switching lessons)
@@ -65,8 +67,67 @@ export const VimChallenge = ({
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [isComplete, elapsed, onComplete]);
 
+  const handleCompositionStart = () => {
+    isComposingRef.current = true;
+    compositionDataRef.current = '';
+  };
+
+  const handleCompositionUpdate = (e: React.CompositionEvent) => {
+    compositionDataRef.current = e.data;
+  };
+
+  const handleCompositionEnd = (e: React.CompositionEvent) => {
+    isComposingRef.current = false;
+    const text = e.data;
+
+    if (isComplete) return;
+    if (!text) return;
+
+    startTimer();
+
+    // In Insert mode: insert Chinese characters normally
+    if (state.mode === 'insert') {
+      // Process all characters and update state once to avoid async issues
+      const chars = Array.from(text);
+
+      // Compute final state by chaining reducers
+      let currentState = state;
+      for (const char of chars) {
+        const nextState = vimReducer(currentState, {
+          type: 'KEYDOWN',
+          payload: { key: char, ctrlKey: false }
+        });
+        recordKey(char, false, currentState, nextState);
+        currentState = nextState;
+      }
+
+      // Dispatch all characters at once
+      for (const char of chars) {
+        dispatch({
+          type: 'KEYDOWN',
+          payload: { key: char, ctrlKey: false }
+        });
+      }
+    } else {
+      // In Normal mode: record Chinese input but don't execute
+      // Show Chinese characters in key history as ignored
+      for (const char of text) {
+        recordKey(char, false, state, state);
+      }
+    }
+
+    compositionDataRef.current = '';
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock'].includes(e.key)) return;
+
+    // Ignore keydown during composition (IME input)
+    if (isComposingRef.current || e.key === 'Process') {
+      e.preventDefault();
+      return;
+    }
+
     e.preventDefault();
 
     if (isComplete) return;
@@ -211,6 +272,9 @@ export const VimChallenge = ({
           onBlur={() => setIsFocused(false)}
           onFocus={() => setIsFocused(true)}
           onKeyDown={handleKeyDown}
+          onCompositionStart={handleCompositionStart}
+          onCompositionUpdate={handleCompositionUpdate}
+          onCompositionEnd={handleCompositionEnd}
           autoComplete="off"
         />
 

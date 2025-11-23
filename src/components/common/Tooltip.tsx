@@ -21,12 +21,10 @@ export const Tooltip: React.FC<TooltipProps> = ({
     timeoutRef.current = setTimeout(() => {
       if (triggerRef.current) {
         const rect = triggerRef.current.getBoundingClientRect();
-        const tooltipHeight = 80; // estimate
-        const spaceAbove = rect.top;
-        const showAbove = spaceAbove > tooltipHeight + 10;
 
+        // Initial position (CSS transform will handle centering and offset)
         setPosition({
-          top: showAbove ? rect.top - 8 : rect.bottom + 8,
+          top: rect.top,
           left: rect.left + rect.width / 2
         });
         setIsVisible(true);
@@ -50,20 +48,22 @@ export const Tooltip: React.FC<TooltipProps> = ({
     };
   }, []);
 
-  // Adjust position after tooltip renders
+  // Adjust horizontal position to keep tooltip in viewport (vertical handled by CSS)
   useEffect(() => {
     if (isVisible && tooltipRef.current && triggerRef.current) {
       const tooltipRect = tooltipRef.current.getBoundingClientRect();
       const triggerRect = triggerRef.current.getBoundingClientRect();
-      const spaceAbove = triggerRect.top;
-      const showAbove = spaceAbove > tooltipRect.height + 10;
+
+      // Keep horizontal position in viewport
+      const idealLeft = triggerRect.left + triggerRect.width / 2;
+      const clampedLeft = Math.max(
+        tooltipRect.width / 2 + 10,
+        Math.min(idealLeft, window.innerWidth - tooltipRect.width / 2 - 10)
+      );
 
       setPosition({
-        top: showAbove ? triggerRect.top - tooltipRect.height - 8 : triggerRect.bottom + 8,
-        left: Math.max(10, Math.min(
-          triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2,
-          window.innerWidth - tooltipRect.width - 10
-        ))
+        top: triggerRect.top,
+        left: clampedLeft
       });
     }
   }, [isVisible]);
@@ -85,6 +85,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
           style={{
             top: position.top,
             left: position.left,
+            transform: 'translate(-50%, calc(-100% - 8px))'
           }}
         >
           {content}
