@@ -75,7 +75,7 @@ const COMMAND_MATRIX: CommandCategory[] = [
 
 const TEST_STATS = {
   basic: { passed: 73, total: 73, name: 'vimParity' },
-  exhaustive: { passed: 382, total: 477, name: 'vimParityExhaustive' },
+  exhaustive: { passed: 404, total: 404, name: 'vimParityExhaustive' },
 };
 
 const StatusIcon = ({ status }: { status: SupportStatus }) => {

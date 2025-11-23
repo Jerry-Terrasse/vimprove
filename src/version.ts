@@ -1,4 +1,4 @@
-export const VERSION = '1.0.0';
+export const VERSION = '1.2.0';
 
 const branch =
   import.meta.env.VITE_BRANCH ||

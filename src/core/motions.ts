@@ -118,9 +118,10 @@ export const getMotionTarget = (state: VimState, motion: Motion, forOperator = f
       }
 
       if (r >= buffer.length) {
-        if (!forOperator) return cursor;
         const lastLine = Math.max(0, buffer.length - 1);
-        const fallbackCol = buffer[lastLine].length;
+        const fallbackCol = forOperator
+          ? buffer[lastLine].length
+          : Math.max(0, buffer[lastLine].length - 1);
         return { line: lastLine, col: fallbackCol };
       }
       const maxCol = forOperator ? buffer[r].length : Math.max(0, buffer[r].length - 1);

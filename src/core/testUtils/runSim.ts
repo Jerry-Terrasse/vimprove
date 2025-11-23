@@ -1,4 +1,5 @@
 import { INITIAL_VIM_STATE, vimReducer } from '@/core/vimReducer';
+import { createSnapshot } from '@/core/stateUtils';
 import type { VimState } from '@/core/types';
 
 type ParsedKey = { key: string; ctrlKey?: boolean };
@@ -35,11 +36,24 @@ const parseKeySequence = (keySeq: string): ParsedKey[] => {
 export const runSimKeys = (initialState: Partial<VimState>, keySeq: string): VimState => {
   let state: VimState = { ...INITIAL_VIM_STATE, ...initialState };
 
+  // Seed undo history: Neovim has an empty baseline, then the initial content as first change
+  const baseline = createSnapshot(INITIAL_VIM_STATE);
+  const starting = createSnapshot(state);
+  state.history = [baseline, starting];
+  state.historyIndex = state.history.length - 1;
+
   const parsedKeys = parseKeySequence(keySeq);
   for (const parsed of parsedKeys) {
     state = vimReducer(state, {
       type: 'KEYDOWN',
       payload: { key: parsed.key, ctrlKey: parsed.ctrlKey ?? false }
+    });
+  }
+
+  if (state.mode === 'insert') {
+    state = vimReducer(state, {
+      type: 'KEYDOWN',
+      payload: { key: 'Escape', ctrlKey: false }
     });
   }
 
