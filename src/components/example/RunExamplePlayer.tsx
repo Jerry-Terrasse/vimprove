@@ -4,6 +4,8 @@ import type { RunExampleConfig, VimState } from '@/core/types';
 import { vimReducer, INITIAL_VIM_STATE } from '@/core/vimReducer';
 import { tokenizeLine, getTokenClassName } from '@/core/syntaxHighlight';
 import { useTranslationSafe } from '@/hooks/useI18n';
+import { useKeyHistory } from '@/hooks/useKeyHistory';
+import { KeyHistoryPanel } from '@/components/common/KeyHistoryPanel';
 
 type RunExamplePlayerProps = {
   config: RunExampleConfig;
@@ -23,6 +25,7 @@ export const RunExamplePlayer = ({
   const [states, setStates] = useState<VimState[]>([]);
   const autoPlayInterval = useRef<NodeJS.Timeout | null>(null);
   const { t } = useTranslationSafe(['example', 'lessons']);
+  const { recordKey, getHistory, clearHistory } = useKeyHistory();
 
   useEffect(() => {
     const initialStates = config.tracks.map(() => ({
@@ -32,7 +35,8 @@ export const RunExamplePlayer = ({
     }));
     setStates(initialStates);
     setCurrentStep(-1);
-  }, [config]);
+    clearHistory();
+  }, [config, clearHistory]);
 
   const executeStep = useCallback(
     (stepIndex: number) => {
@@ -43,16 +47,21 @@ export const RunExamplePlayer = ({
 
       setStates(prevStates => {
         const newStates = [...prevStates];
-        newStates[cursorIdx] = vimReducer(newStates[cursorIdx], {
+        const prevState = newStates[cursorIdx];
+        const nextState = vimReducer(prevState, {
           type: 'KEYDOWN',
           payload: { key: step.key, ctrlKey: false }
         });
+        newStates[cursorIdx] = nextState;
+
+        recordKey(step.key, false, prevState, nextState);
+
         return newStates;
       });
 
       setCurrentStep(stepIndex);
     },
-    [config.steps]
+    [config.steps, recordKey]
   );
 
   const executeStepImmediately = useCallback(
@@ -64,15 +73,20 @@ export const RunExamplePlayer = ({
 
       setStates(prev => {
         const newStates = [...prev];
-        newStates[cursorIdx] = vimReducer(newStates[cursorIdx], {
+        const prevState = newStates[cursorIdx];
+        const nextState = vimReducer(prevState, {
           type: 'KEYDOWN',
           payload: { key: step.key, ctrlKey: false }
         });
+        newStates[cursorIdx] = nextState;
+
+        recordKey(step.key, false, prevState, nextState);
+
         return newStates;
       });
       setCurrentStep(stepIndex);
     },
-    [config.steps]
+    [config.steps, recordKey]
   );
 
   const handleNext = useCallback(() => {
@@ -106,7 +120,8 @@ export const RunExamplePlayer = ({
     }));
     setStates(initialStates);
     setCurrentStep(-1);
-  }, [config]);
+    clearHistory();
+  }, [config, clearHistory]);
 
   const handlePlay = useCallback(() => {
     if (currentStep >= config.steps.length - 1) {
@@ -231,7 +246,9 @@ export const RunExamplePlayer = ({
   const keyedLabel = (key: string, fallback: string) => t(key, fallback, { ns: 'example' });
 
   return (
-    <div className="bg-stone-900 rounded-xl overflow-hidden border border-stone-800 shadow-2xl">
+    <div className="bg-stone-900 rounded-xl overflow-hidden border border-stone-800 shadow-2xl flex flex-row gap-0 h-[500px]">
+      {/* Left: Player */}
+      <div className="flex-1 flex flex-col min-w-0">
       {/* Header */}
       <div className="bg-stone-950 border-b border-stone-800 p-3 flex items-center justify-between text-sm font-mono">
         <div className="text-stone-400">{keyedLabel('title', 'Run Example')}</div>
@@ -324,6 +341,12 @@ export const RunExamplePlayer = ({
         >
           <SkipForward size={18} />
         </button>
+      </div>
+      </div>
+
+      {/* Right: Key History Panel */}
+      <div className="w-64 border-l border-stone-800 bg-stone-950/50 flex-shrink-0">
+        <KeyHistoryPanel history={getHistory()} />
       </div>
     </div>
   );

@@ -1,0 +1,58 @@
+{
+  "title": "按键历史",
+  "subtitle": "记录所有按键操作",
+  "empty": "尚无按键记录",
+  "truncated": "显示最近 {{count}} 条，共 {{total}} 条命令",
+  "cancelled": "已取消",
+  "ignored": "无效果",
+
+  "role": {
+    "operator": "操作符",
+    "motion": "移动",
+    "count": "计数",
+    "textObjectPrefix": "文本对象前缀",
+    "replaceOperator": "替换操作符",
+    "targetChar": "目标字符",
+    "searchChar": "搜索字符",
+    "findOperator": "查找操作符",
+    "searchOperator": "搜索操作符",
+    "searchControl": "搜索控制",
+    "cancel": "取消",
+    "confirm": "确认",
+    "other": "其他"
+  },
+
+  "kind": {
+    "motion": "移动",
+    "operator": "操作符",
+    "textObjectPrefix": "文本对象前缀",
+    "count": "计数",
+    "insert": "插入模式",
+    "replace": "替换",
+    "findChar": "查找字符",
+    "searchControl": "搜索",
+    "searchChar": "搜索输入",
+    "enter": "回车",
+    "escape": "退出",
+    "control": "控制键",
+    "other": "其他"
+  },
+
+  "groupType": {
+    "operatorMotion": "操作符 + 移动",
+    "replaceChar": "替换字符",
+    "findChar": "查找字符",
+    "search": "搜索",
+    "countPrefix": "计数前缀",
+    "standalone": "命令"
+  },
+
+  "pending": {
+    "operatorMotion": "等待移动或文本对象",
+    "replaceChar": "等待替换字符",
+    "findChar": "等待目标字符",
+    "searchInput": "输入搜索模式",
+    "countPrefix": "等待命令",
+    "unknown": "等待输入"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "title": "Key History",
+  "subtitle": "All keystrokes recorded",
+  "empty": "No keystrokes yet",
+  "truncated": "Showing last {{count}} of {{total}} commands",
+  "cancelled": "Cancelled",
+  "ignored": "No effect",
+
+  "role": {
+    "operator": "operator",
+    "motion": "motion",
+    "count": "count",
+    "textObjectPrefix": "text object prefix",
+    "replaceOperator": "replace operator",
+    "targetChar": "target character",
+    "searchChar": "search character",
+    "findOperator": "find operator",
+    "searchOperator": "search operator",
+    "searchControl": "search control",
+    "cancel": "cancel",
+    "confirm": "confirm",
+    "other": "other"
+  },
+
+  "kind": {
+    "motion": "motion",
+    "operator": "operator",
+    "textObjectPrefix": "text object prefix",
+    "count": "count",
+    "insert": "insert mode",
+    "replace": "replace",
+    "findChar": "find character",
+    "searchControl": "search",
+    "searchChar": "search input",
+    "enter": "enter",
+    "escape": "escape",
+    "control": "control key",
+    "other": "other"
+  },
+
+  "groupType": {
+    "operatorMotion": "operator + motion",
+    "replaceChar": "replace character",
+    "findChar": "find character",
+    "search": "search",
+    "countPrefix": "count prefix",
+    "standalone": "command"
+  },
+
+  "pending": {
+    "operatorMotion": "Waiting for motion or text object",
+    "replaceChar": "Waiting for replacement character",
+    "findChar": "Waiting for target character",
+    "searchInput": "Entering search pattern",
+    "countPrefix": "Waiting for command",
+    "unknown": "Waiting for input"
+  }
+}

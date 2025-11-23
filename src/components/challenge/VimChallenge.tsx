@@ -5,6 +5,8 @@ import { useVimEngine } from '@/hooks/useVimEngine';
 import { useChallenge } from '@/hooks/useChallenge';
 import { tokenizeLine, getTokenClassName } from '@/core/syntaxHighlight';
 import { useTranslationSafe } from '@/hooks/useI18n';
+import { useKeyHistory } from '@/hooks/useKeyHistory';
+import { KeyHistoryPanel } from '@/components/common/KeyHistoryPanel';
 
 type VimChallengeProps = {
   config: ChallengeConfig;
@@ -32,9 +34,12 @@ export const VimChallenge = ({
     onComplete
   );
   const { t } = useTranslationSafe(['challenge', 'lessons']);
+  const { recordKey, getHistory, clearHistory } = useKeyHistory();
 
   const [isFocused, setIsFocused] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
+  const prevStateRef = useRef(state);
+  const lastKeyRef = useRef<{ key: string; ctrlKey: boolean } | null>(null);
 
   useEffect(() => {
     // Reset vim state when config changes (e.g., switching lessons)
@@ -42,8 +47,9 @@ export const VimChallenge = ({
       type: 'RESET',
       payload: { buffer: config.initialBuffer, cursor: config.initialCursor }
     });
+    clearHistory();
     inputRef.current?.focus();
-  }, [config, dispatch]);
+  }, [config, dispatch, clearHistory]);
 
   // Handle Enter key to proceed to next lesson when challenge is complete
   useEffect(() => {
@@ -67,11 +73,26 @@ export const VimChallenge = ({
     if (isComplete) return;
     startTimer();
 
+    lastKeyRef.current = { key: e.key, ctrlKey: e.ctrlKey };
+
     dispatch({
       type: 'KEYDOWN',
       payload: { key: e.key, ctrlKey: e.ctrlKey }
     });
   };
+
+  // Record key history when state changes
+  useEffect(() => {
+    if (state !== prevStateRef.current && lastKeyRef.current) {
+      const prevState = prevStateRef.current;
+      const { key, ctrlKey } = lastKeyRef.current;
+
+      recordKey(key, ctrlKey, prevState, state);
+
+      prevStateRef.current = state;
+      lastKeyRef.current = null;
+    }
+  }, [state, recordKey]);
 
   const handleRestart = () => {
     dispatch({
@@ -144,7 +165,9 @@ export const VimChallenge = ({
   };
 
   return (
-    <div className="bg-stone-900 rounded-xl overflow-hidden border border-stone-800 shadow-2xl flex flex-col h-[500px] md:h-[600px]">
+    <div className="bg-stone-900 rounded-xl overflow-hidden border border-stone-800 shadow-2xl flex flex-row gap-0 h-[500px] md:h-[600px]">
+      {/* Left: Editor */}
+      <div className="flex-1 flex flex-col min-w-0">
       {/* Header / Status Bar */}
       <div className="bg-stone-950 border-b border-stone-800 p-3 flex items-center justify-between text-sm font-mono">
         <div className="flex items-center gap-4">
@@ -265,6 +288,12 @@ export const VimChallenge = ({
             </div>
           ))}
         </div>
+      </div>
+      </div>
+
+      {/* Right: Key History Panel */}
+      <div className="w-64 border-l border-stone-800 bg-stone-950/50 flex-shrink-0">
+        <KeyHistoryPanel history={getHistory()} />
       </div>
     </div>
   );
