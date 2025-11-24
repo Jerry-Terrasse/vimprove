@@ -89,8 +89,31 @@ const getWordUnderCursor = (buffer: string[], cursor: { line: number; col: numbe
 
   if (isWhitespace(lineText[idx])) return null;
 
-  const targetIsWord = isWordChar(lineText[idx]);
-  let start = idx;
+  let targetIdx = idx;
+  if (!isWordChar(lineText[idx])) {
+    let right = idx + 1;
+    while (right < lineText.length && !isWhitespace(lineText[right])) {
+      if (isWordChar(lineText[right])) {
+        targetIdx = right;
+        break;
+      }
+      right++;
+    }
+    if (targetIdx === idx) {
+      let left = idx - 1;
+      while (left >= 0 && !isWhitespace(lineText[left])) {
+        if (isWordChar(lineText[left])) {
+          targetIdx = left;
+          break;
+        }
+        left--;
+      }
+    }
+    if (targetIdx === idx && !isWordChar(lineText[targetIdx])) return null;
+  }
+
+  const targetIsWord = isWordChar(lineText[targetIdx]);
+  let start = targetIdx;
   while (start > 0) {
     const char = lineText[start - 1];
     if (isWhitespace(char)) break;
@@ -99,7 +122,7 @@ const getWordUnderCursor = (buffer: string[], cursor: { line: number; col: numbe
     start--;
   }
 
-  let end = idx;
+  let end = targetIdx;
   while (end < lineText.length) {
     const char = lineText[end];
     if (isWhitespace(char)) break;

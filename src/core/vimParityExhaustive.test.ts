@@ -64,10 +64,10 @@ const ENABLED_FEATURES: FeatureConfig = {
     'edit_xsr',
     'edit_dd',
     'insert_ia',
-    // 'insert_IA',
-    // 'insert_oO',
+    'insert_IA',
+    'insert_oO',
     'paste',
-    // 'search',
+    'search',
     // 'count_prefix',
     'undo_redo',
     'dot'
