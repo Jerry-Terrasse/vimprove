@@ -1,6 +1,8 @@
-import { Terminal, Play, Keyboard, Trophy, Code2 } from 'lucide-react';
+import { useState } from 'react';
+import { Terminal, Play, Keyboard, Trophy, Code2, Languages, ChevronDown } from 'lucide-react';
 import { VERSION, VERSION_LABEL } from '@/version';
-import { useTranslationSafe } from '@/hooks/useI18n';
+import { useTranslationSafe, useLocale } from '@/hooks/useI18n';
+import { supportedLocales } from '@/i18n';
 
 type HomePageProps = {
   onStart: () => void;
@@ -8,6 +10,8 @@ type HomePageProps = {
 
 export const HomePage = ({ onStart }: HomePageProps) => {
   const { t } = useTranslationSafe('home');
+  const { locale, setLocale } = useLocale();
+  const [isLangOpen, setIsLangOpen] = useState(false);
 
   const features = [
     {
@@ -34,7 +38,47 @@ export const HomePage = ({ onStart }: HomePageProps) => {
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] text-center max-w-2xl mx-auto px-6 animate-in fade-in duration-500">
+    <div className="flex flex-col items-center justify-center min-h-[80vh] text-center max-w-2xl mx-auto px-6 animate-in fade-in duration-500 relative">
+      <div className="w-full flex justify-end mb-6">
+        <div className="relative">
+          <button
+            onClick={() => setIsLangOpen(open => !open)}
+            className="flex items-center gap-2 bg-stone-900/80 border border-stone-800 text-stone-200 rounded-full px-3 py-1.5 text-sm hover:border-green-600 transition-colors"
+          >
+            <Languages size={16} />
+            <span className="font-medium">
+              {supportedLocales.find(l => l.code === locale)?.shortLabel || locale}
+            </span>
+            <ChevronDown size={14} className={isLangOpen ? 'transform rotate-180' : ''} />
+          </button>
+          {isLangOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-stone-900 border border-stone-800 rounded-xl shadow-2xl overflow-hidden z-10">
+              <div className="px-3 py-2 text-xs text-stone-500 border-b border-stone-800 text-left">
+                {t('language.menuTitle', 'Choose language')}
+              </div>
+              {supportedLocales.map(lng => (
+                <button
+                  key={lng.code}
+                  onClick={() => {
+                    setLocale(lng.code);
+                    setIsLangOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                    locale === lng.code
+                      ? 'bg-green-700/30 text-white'
+                      : 'text-stone-200 hover:bg-stone-800'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>{lng.nativeLabel}</span>
+                    <span className="text-xs text-stone-500">{lng.shortLabel}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
       <div className="bg-stone-800 p-4 rounded-2xl mb-8 shadow-2xl rotate-3 transform hover:rotate-0 transition-transform duration-500">
         <Terminal size={64} className="text-green-400" />
       </div>

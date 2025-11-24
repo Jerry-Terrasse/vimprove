@@ -34,9 +34,9 @@ export const KeyHistoryPanel: React.FC<KeyHistoryPanelProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full w-full">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-stone-700/50 bg-stone-900/50">
+      <div className="px-4 py-3 border-b border-stone-700/50 bg-stone-900/50 w-full">
         <h3 className="text-sm font-medium text-stone-300">
           {t('title', 'Key History', { ns: 'keyHistory' })}
         </h3>

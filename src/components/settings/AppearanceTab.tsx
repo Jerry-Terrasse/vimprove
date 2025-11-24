@@ -1,6 +1,7 @@
 import { tokenizeLine, getTokenClassName } from '@/core/syntaxHighlight';
 import type { EditorSettings } from '@/hooks/useSettings';
-import { useTranslationSafe } from '@/hooks/useI18n';
+import { useTranslationSafe, useLocale } from '@/hooks/useI18n';
+import { supportedLocales } from '@/i18n';
 import { useFontLoader, FONT_CONFIGS, getFontFamily } from '@/hooks/useFontLoader';
 
 type AppearanceTabProps = {
@@ -10,6 +11,7 @@ type AppearanceTabProps = {
 
 export const AppearanceTab = ({ settings, onUpdate }: AppearanceTabProps) => {
   const { t } = useTranslationSafe('settings');
+  const { locale, setLocale } = useLocale();
   useFontLoader(settings.fontFamily);
 
   const isMobile = window.innerWidth < 768;
@@ -61,6 +63,28 @@ export const AppearanceTab = ({ settings, onUpdate }: AppearanceTabProps) => {
 
   return (
     <div className="space-y-4 md:space-y-6">
+      {/* Language */}
+      <div>
+        <label className="block text-sm font-semibold text-stone-200 mb-2 md:mb-3">
+          {t('appearance.language', 'Language')}
+        </label>
+        <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+          {supportedLocales.map(lng => (
+            <button
+              key={lng.code}
+              onClick={() => setLocale(lng.code)}
+              className={`h-10 px-2 md:px-3 py-2 rounded-lg text-xs md:text-sm transition-all ${
+                locale === lng.code
+                  ? 'bg-green-600 text-white'
+                  : 'bg-stone-800 text-stone-300 hover:bg-stone-700'
+              }`}
+            >
+              <span className="truncate">{lng.nativeLabel}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Font Family */}
       <div>
         <label className="block text-sm font-semibold text-stone-200 mb-2 md:mb-3">
@@ -71,7 +95,7 @@ export const AppearanceTab = ({ settings, onUpdate }: AppearanceTabProps) => {
             <button
               key={config.name}
               onClick={() => onUpdate({ fontFamily: config.name })}
-              className={`px-2 md:px-4 py-2 rounded-lg text-xs md:text-sm transition-all ${
+              className={`h-10 px-2 md:px-4 py-2 rounded-lg text-xs md:text-sm transition-all ${
                 settings.fontFamily === config.name
                   ? 'bg-green-600 text-white'
                   : 'bg-stone-800 text-stone-300 hover:bg-stone-700'
@@ -124,6 +148,7 @@ export const AppearanceTab = ({ settings, onUpdate }: AppearanceTabProps) => {
           </div>
         </div>
       </div>
+
     </div>
   );
 };

@@ -104,7 +104,7 @@ export const Sidebar = ({
             </button>
             {isLangOpen && (
               <div
-                className="absolute left-full ml-2 bottom-0 w-44 bg-stone-900 border border-stone-800 rounded-lg shadow-xl overflow-hidden"
+                className="absolute right-0 bottom-full mb-2 w-44 bg-stone-900 border border-stone-800 rounded-lg shadow-xl overflow-hidden"
                 onMouseLeave={() => setIsLangOpen(false)}
               >
                 {supportedLocales.map(lng => (

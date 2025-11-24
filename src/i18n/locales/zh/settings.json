@@ -4,7 +4,8 @@
     "tab": "外观",
     "fontFamily": "字体",
     "fontSize": "字号",
-    "preview": "预览"
+    "preview": "预览",
+    "language": "界面语言"
   },
   "vimStatus": {
     "tab": "Vim 状态",

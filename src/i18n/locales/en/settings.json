@@ -4,7 +4,8 @@
     "tab": "Appearance",
     "fontFamily": "Font Family",
     "fontSize": "Font Size",
-    "preview": "Preview"
+    "preview": "Preview",
+    "language": "Language"
   },
   "vimStatus": {
     "tab": "Vim Status",

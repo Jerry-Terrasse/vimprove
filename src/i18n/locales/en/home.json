@@ -18,5 +18,8 @@
       "title": "Interactive",
       "desc": "Don't just read. Type. Edit. Delete. Practice makes perfect."
     }
+  },
+  "language": {
+    "menuTitle": "Choose language"
   }
 }
