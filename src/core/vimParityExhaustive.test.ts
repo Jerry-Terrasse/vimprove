@@ -8,31 +8,38 @@ type FeatureId =
   | 'motion_word'        // w/b/e
   | 'motion_WORD'        // W/B/E
   | 'motion_line'        // 0/^/$
+  | 'motion_find'        // f/F/t/T ; ,
   | 'operator_d'
   | 'operator_c'
   | 'operator_y'
+  | 'operator_y_line'    // yy
+  | 'text_objects'
   | 'edit_xsr'           // x/s/r
   | 'edit_dd'
   | 'insert_ia'          // i/a
   | 'insert_IA'          // I/A
   | 'insert_oO'          // o/O
   | 'paste'              // p/P
+  | 'search'             // / ? n N * #
+  | 'count_prefix'
   | 'undo_redo'          // u/Ctrl-r
   | 'dot';               // .
 
 type FeatureConfig = { enabled: Set<FeatureId> };
 
 type CommandKind =
-  | { kind: 'motion'; key: string }
-  | { kind: 'delete'; key: string }
-  | { kind: 'change'; motion: string; text: string }
-  | { kind: 'yank'; motion: string }
-  | { kind: 'edit'; key: string }       // x/s/r{char}/dd
-  | { kind: 'insert'; key: string; text: string }
-  | { kind: 'paste'; key: 'p' | 'P' }
+  | { kind: 'motion'; key: string; count?: number }
+  | { kind: 'delete'; key: string; count?: number }
+  | { kind: 'change'; motion: string; text: string; count?: number }
+  | { kind: 'yank'; motion: string; count?: number }
+  | { kind: 'edit'; key: string; count?: number }       // x/s/r{char}/dd
+  | { kind: 'insert'; key: string; text: string; count?: number }
+  | { kind: 'paste'; key: 'p' | 'P'; count?: number }
+  | { kind: 'search'; pattern: string; direction: '/' | '?'; count?: number }
+  | { kind: 'searchNext'; key: 'n' | 'N' | '*' | '#'; count?: number }
   | { kind: 'undo' }
   | { kind: 'redo' }
-  | { kind: 'dot' };
+  | { kind: 'dot'; count?: number };
 
 type Scenario = {
   name: string;
@@ -46,17 +53,22 @@ const ENABLED_FEATURES: FeatureConfig = {
   enabled: new Set<FeatureId>([
     'motion_hjkl',
     'motion_word',
-    // 'motion_WORD',     // Disable WORD motions - may have bugs
+    'motion_WORD',
     'motion_line',
+    'motion_find',
     'operator_d',
     'operator_c',
     'operator_y',
+    'operator_y_line',
+    // 'text_objects',
     'edit_xsr',
     'edit_dd',
     'insert_ia',
-    // 'insert_IA',       // Disable I/A - not yet implemented
-    // 'insert_oO',       // Disable o/O - not yet implemented
+    // 'insert_IA',
+    // 'insert_oO',
     'paste',
+    // 'search',
+    // 'count_prefix',
     'undo_redo',
     'dot'
   ])
@@ -66,31 +78,61 @@ const SCENARIOS: Scenario[] = [
   { name: 'simple', lines: ['foo bar baz'], cursor: { line: 1, col: 5 } },
   { name: 'multiline', lines: ['foo bar', 'baz qux'], cursor: { line: 1, col: 5 } },
   { name: 'empty', lines: [''], cursor: { line: 1, col: 1 } },
-  { name: 'punct', lines: ['a,b.c'], cursor: { line: 1, col: 2 } }
+  { name: 'punct', lines: ['a,b.c'], cursor: { line: 1, col: 2 } },
+  {
+    name: 'cpp-fast-inv-sqrt',
+    lines: [
+      '[[nodiscard]] constexpr auto fast_inv_sqrt(float x) noexcept -> float {',
+      '    using std::uint32_t;',
+      '',
+      '    constexpr auto magic        = 0x5f3759dfu;',
+      '    constexpr auto half         = 0.5f;',
+      '    constexpr auto three_halfs  = 1.5f;',
+      '',
+      '    if (x <= 0.0f || !std::isfinite(x)) {',
+      '        return std::numeric_limits<float>::quiet_NaN();',
+      '    }',
+      '',
+      '    auto i = std::bit_cast<uint32_t>(x);        // float -> bits',
+      '    i = magic - (i >> 1);                       // magic initial guess',
+      '    auto y = std::bit_cast<float>(i);           // bits -> float',
+      '',
+      '    y = y * (three_halfs - half * x * y * y);   // Newton-Raphson step',
+      '',
+      '    return y;',
+      '}'
+    ],
+    cursor: { line: 1, col: 20 }
+  }
 ];
 
 const toKeySeq = (cmd: CommandKind): string => {
+  const prefix = cmd.count ? `${cmd.count}` : '';
   switch (cmd.kind) {
     case 'motion':
-      return cmd.key;
+      return `${prefix}${cmd.key}`;
     case 'delete':
-      return cmd.key;
+      return `${prefix}${cmd.key}`;
     case 'change':
-      return `c${cmd.motion}${cmd.text}<Esc>`;
+      return `${prefix}c${cmd.motion}${cmd.text}<Esc>`;
     case 'yank':
-      return `y${cmd.motion}`;
+      return `${prefix}y${cmd.motion}`;
     case 'edit':
-      return cmd.key;
+      return `${prefix}${cmd.key}`;
     case 'insert':
-      return `${cmd.key}${cmd.text}<Esc>`;
+      return `${prefix}${cmd.key}${cmd.text}<Esc>`;
     case 'paste':
-      return cmd.key;
+      return `${prefix}${cmd.key}`;
+    case 'search':
+      return `${prefix}${cmd.direction}${cmd.pattern}<Enter>`;
+    case 'searchNext':
+      return `${prefix}${cmd.key}`;
     case 'undo':
       return 'u';
     case 'redo':
       return '<C-r>';
     case 'dot':
-      return '.';
+      return `${prefix}.`;
     default:
       return '';
   }
@@ -124,8 +166,18 @@ const buildCommands = (cfg: FeatureConfig): CommandKind[] => {
     motions.push('0', '^', '$');
   }
 
+  // Find/till motions
+  if (cfg.enabled.has('motion_find')) {
+    ['fa', 'ta', 'Fa', 'Ta', ';', ','].forEach(k => cmds.push({ kind: 'motion', key: k }));
+    motions.push('fa', 'ta', 'Fa', 'Ta', ';', ',');
+  }
+
   // Operator + motion (select subset to avoid explosion)
   const operatorMotions = ['w', '$', 'e'];
+
+  if (cfg.enabled.has('text_objects')) {
+    operatorMotions.push('iw', 'aw', 'i(', 'a(', 'i{', 'a{', 'i[', 'a[', 'i"', 'a"', "i'", "a'", 'i`', 'a`', 'ip', 'ap');
+  }
 
   if (cfg.enabled.has('operator_d')) {
     operatorMotions.forEach(m => cmds.push({ kind: 'delete', key: `d${m}` }));
@@ -137,6 +189,10 @@ const buildCommands = (cfg: FeatureConfig): CommandKind[] => {
 
   if (cfg.enabled.has('operator_y')) {
     operatorMotions.forEach(m => cmds.push({ kind: 'yank', motion: m }));
+  }
+
+  if (cfg.enabled.has('operator_y_line')) {
+    cmds.push({ kind: 'yank', motion: 'y' }); // yy
   }
 
   // Single edit commands
@@ -170,6 +226,36 @@ const buildCommands = (cfg: FeatureConfig): CommandKind[] => {
   if (cfg.enabled.has('paste')) {
     cmds.push({ kind: 'paste', key: 'p' });
     cmds.push({ kind: 'paste', key: 'P' });
+  }
+
+  // Search
+  if (cfg.enabled.has('search')) {
+    cmds.push({ kind: 'search', direction: '/', pattern: 'foo' });
+    cmds.push({ kind: 'search', direction: '?', pattern: 'foo' });
+    cmds.push({ kind: 'searchNext', key: 'n' });
+    cmds.push({ kind: 'searchNext', key: 'N' });
+    cmds.push({ kind: 'searchNext', key: '*' });
+    cmds.push({ kind: 'searchNext', key: '#' });
+  }
+
+  // Count prefixes
+  if (cfg.enabled.has('count_prefix')) {
+    const countedMotions = [
+      { kind: 'motion', key: 'w', count: 3 },
+      { kind: 'motion', key: 'b', count: 2 },
+      { kind: 'motion', key: 'e', count: 2 },
+      { kind: 'motion', key: 'l', count: 4 },
+      { kind: 'motion', key: '$', count: 2 }
+    ] as CommandKind[];
+    countedMotions.forEach(cmd => cmds.push(cmd));
+
+    const countedDeletes = [
+      { kind: 'delete', key: 'dw', count: 2 },
+      { kind: 'delete', key: 'd$', count: 2 }
+    ] as CommandKind[];
+    countedDeletes.forEach(cmd => cmds.push(cmd));
+
+    cmds.push({ kind: 'dot', count: 2 });
   }
 
   // Undo/Redo

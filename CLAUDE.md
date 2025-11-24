@@ -19,9 +19,8 @@ npm run dev      # Start dev server at http://localhost:3000
 npm run build    # Build for production
 npm run preview  # Preview production build
 npm run lint     # Run ESLint
-npm run test     # Run tests
-# For Codex, you are in a sandbox thus you should use:
-npx vitest run --pool=threads
+npx vitest run --pool=threads # deprecated
+# Note: please refer to section "Test Workflow" and use ./utils/vitest-quickcheck.sh to improve efficiency.
 ```
 
 ## Architecture
@@ -480,8 +479,10 @@ ls src/data/lessons/chapter3/
 
 **重要**: CLAUDE.md 不记录具体版本号，只记录重要的结构性变化和功能说明
 
-## 测试工作流建议
-- 默认并行：`npx vitest run --pool=threads`
+## Test Workflow
+
+- 默认并行：`npx vitest run --pool=threads`（避免直接跑无过滤的 `npx vitest run`，输出过长会淹没上下文）
+- 调试单用例：结合 `grep -v "✓"` 过滤已通过用例，如 `npx vitest run --pool=threads -t "<pattern>" | grep -v "✓"`
 - 快速检查脚本：`bash utils/vitest-quickcheck.sh [<test_glob>]`（tap-flat + bail，默认跑全部，可传入路径/模式，成功输出 ok ✅，失败时列出前 5 条 not ok）
 - 深入排查（vimParityExhaustive）：
   - 生成 JSON 报告：`npx vitest run --pool=threads --reporter=json --outputFile tmp/vimParity-report.json src/core/vimParityExhaustive.test.ts`
