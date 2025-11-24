@@ -108,6 +108,10 @@ src/
 
 ## 📝 CHANGELOG
 
+### Release v1.6.0
+- 🧪 对拍工具链：`vimParity` 报告查看器支持聚合/过滤/排序，新增 quickcheck 脚本快速验证
+- 🔧 测试工作流优化：可选模块 quickcheck、JSON 报告 + viewer 调试流程，优化上下文占用
+
 ### Release v1.5.0
 - 🧪 Vim 引擎对拍：`.` 重播（cw/paste/末行 jw）、多行寄存器行粘贴、撤销快照去重与 cw 边界全面对齐 Neovim
 - ⌨️ 可视化提升：按键历史面板 + Vim Status 面板，组合键聚合、实时记录与 dot 重播提示一致

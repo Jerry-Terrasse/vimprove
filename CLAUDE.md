@@ -477,9 +477,15 @@ ls src/data/lessons/chapter3/
 - 按重要性排序：新功能 > Bug 修复 > 优化改进
 - 相关条目合并（如多个相关 bug 修复合并为一条）
 - 使用简洁描述，必要时用括号补充关键细节
-- 发布标记与展示：
-  - 未特别强调为正式/重要更新的版本，均按 Alpha 归类；dev 分支显示 Alpha 标签
-  - Alpha 版本的 CHANGELOG 条目放在 README 折叠区内，正式发布（Release）才放在折叠区外
-  - 仅在需要的文件同步版本号：`src/version.ts`、`package.json`、`README.md`（CHANGELOG）
 
 **重要**: CLAUDE.md 不记录具体版本号，只记录重要的结构性变化和功能说明
+
+## 测试工作流建议
+- 默认并行：`npx vitest run --pool=threads`
+- 快速检查脚本：`bash utils/vitest-quickcheck.sh [<test_glob>]`（tap-flat + bail，默认跑全部，可传入路径/模式，成功输出 ok ✅，失败时列出前 5 条 not ok）
+- 深入排查（vimParityExhaustive）：
+  - 生成 JSON 报告：`npx vitest run --pool=threads --reporter=json --outputFile tmp/vimParity-report.json src/core/vimParityExhaustive.test.ts`
+  - 查看摘要/聚合或按子串过滤：`python utils/vimParity-report-viewer.py tmp/vimParity-report.json ["keyword"...]`（keyword 为测试名片段，支持多个并且大小写不敏感；工具仅用于 ParityExhaustive）
+    - 支持附加参数：`--feature paste-after-op`、`--limit 5`、`--sort name|feature|line`、`--details`（输出完整断言）
+  - 反复调试单用例：`npx vitest run --pool=threads -t "<pattern>" src/core/vimParityExhaustive.test.ts`
+    - 正则含特殊符号时建议单引号包裹并在内部转义，如 `-t 'd\$P\.'`

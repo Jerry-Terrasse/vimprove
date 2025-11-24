@@ -175,6 +175,17 @@ describe('Dot command (.) - repeat last change', () => {
       state = typeKeys(state, '.'); // repeat
       expect(state.buffer[0]).toBe('help help test');
     });
+
+    it('should repeat single-char insert with i', () => {
+      let state = { ...INITIAL_VIM_STATE, buffer: ['foo bar baz'], cursor: { line: 0, col: 4 } };
+      state = typeKeys(state, 'iZ<Esc>');
+      expect(state.buffer[0]).toBe('foo Zbar baz');
+      expect(state.lastChange?.map(k => k.key)).toEqual(['i', 'Z', 'Escape']);
+      expect(state.lastChangeCount).toBe(1);
+
+      state = pressKey(state, '.');
+      expect(state.buffer[0]).toBe('foo ZZbar baz');
+    });
   });
 
   describe('change operations', () => {
