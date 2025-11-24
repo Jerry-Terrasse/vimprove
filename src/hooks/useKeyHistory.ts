@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef } from 'react';
 import type { VimState, KeyPress } from '@/core/types';
 import type {
   KeyHistory,
@@ -139,6 +139,22 @@ const detectGroupType = (
   return 'standalone';
 };
 
+const searchStateChanged = (prevState: VimState, nextState: VimState): boolean => {
+  const prev = prevState.lastSearch;
+  const next = nextState.lastSearch;
+  if (!prev && !next) return false;
+  if (!prev || !next) return true;
+  return prev.pattern !== next.pattern || prev.direction !== next.direction;
+};
+
+const findStateChanged = (prevState: VimState, nextState: VimState): boolean => {
+  const prev = prevState.lastFind;
+  const next = nextState.lastFind;
+  if (!prev && !next) return false;
+  if (!prev || !next) return true;
+  return prev.type !== next.type || prev.char !== next.char;
+};
+
 const shouldStartNewGroup = (
   key: string,
   ctrlKey: boolean,
@@ -248,13 +264,28 @@ const determineGroupStatus = (
                        nextState.pendingSearch;
 
   if (wasPending && !stillPending) {
-    // Check if state actually changed (applied) or was ignored
     const bufferChanged = prevState.buffer.length !== nextState.buffer.length ||
                          prevState.buffer.some((line, i) => line !== nextState.buffer[i]);
     const cursorMoved = prevState.cursor.line !== nextState.cursor.line ||
                        prevState.cursor.col !== nextState.cursor.col;
     const modeChanged = prevState.mode !== nextState.mode;
 
+    // Find char: pendingFind 被清空且 lastFind 未更新 -> 视为取消
+    if (prevState.pendingFind && !findStateChanged(prevState, nextState) && !bufferChanged && !cursorMoved && !modeChanged) {
+      return 'cancelled';
+    }
+
+    // Yank updates寄存器但不改 buffer/cursor，仍视为有效
+    if (nextState.lastCommand?.type === 'yank') {
+      return 'applied';
+    }
+
+    // 搜索/查找状态更新也视为有效（即便未移动光标）
+    if (searchStateChanged(prevState, nextState) || findStateChanged(prevState, nextState)) {
+      return 'applied';
+    }
+
+    // Check if state actually changed (applied) or was ignored
     if (bufferChanged || cursorMoved || modeChanged) {
       return 'applied';
     } else {
@@ -268,6 +299,10 @@ const determineGroupStatus = (
   }
 
   // No pending state and not escape -> check if standalone command worked
+  if (searchStateChanged(prevState, nextState) || findStateChanged(prevState, nextState)) {
+    return 'applied';
+  }
+
   const bufferChanged = prevState.buffer.length !== nextState.buffer.length ||
                        prevState.buffer.some((line, i) => line !== nextState.buffer[i]);
   const cursorMoved = prevState.cursor.line !== nextState.cursor.line ||
@@ -314,10 +349,21 @@ const getRoleInGroup = (
   return 'other';
 };
 
-export const useKeyHistory = () => {
-  const historyRef = useRef<KeyHistory>([]);
+type KeyHistoryStore = {
+  recordKey: (
+    key: string,
+    ctrlKey: boolean,
+    prevState: VimState,
+    nextState: VimState
+  ) => void;
+  getHistory: () => KeyHistory;
+  clearHistory: () => void;
+};
 
-  const recordKey = useCallback((
+const createKeyHistoryStore = (): KeyHistoryStore => {
+  let history: KeyHistory = [];
+
+  const recordKey = (
     key: string,
     ctrlKey: boolean,
     prevState: VimState,
@@ -326,17 +372,14 @@ export const useKeyHistory = () => {
     const kind = getKeyKind(key, ctrlKey, prevState, nextState);
     const display = formatKeyDisplay(key, ctrlKey);
 
-    const currentGroup = historyRef.current[historyRef.current.length - 1] || null;
+    const currentGroup = history[history.length - 1] || null;
     const startNew = shouldStartNewGroup(key, ctrlKey, prevState, nextState, currentGroup);
 
     if (startNew) {
-      // Create new group
       const groupType = detectGroupType(key, prevState, nextState, kind);
       const groupStatus = determineGroupStatus(prevState, nextState, key, groupType);
       const pendingKind = getPendingKind(nextState);
       const role = getRoleInGroup(key, kind, groupType, prevState);
-
-      // For dot command, add description of replayed action
       const description = key === '.' ? formatLastChange(prevState.lastChange) : undefined;
 
       const newAtom: KeyAtom = {
@@ -349,7 +392,6 @@ export const useKeyHistory = () => {
         description,
       };
 
-      // For dot command, add summary to group
       const summary = key === '.' && prevState.lastChange
         ? formatLastChange(prevState.lastChange)
         : undefined;
@@ -363,9 +405,8 @@ export const useKeyHistory = () => {
         summary,
       };
 
-      historyRef.current = [...historyRef.current, newGroup];
+      history = [...history, newGroup];
     } else {
-      // Add to existing group
       if (!currentGroup) return;
 
       const groupType = currentGroup.type;
@@ -383,7 +424,6 @@ export const useKeyHistory = () => {
       const groupStatus = determineGroupStatus(prevState, nextState, key, groupType);
       const pendingKind = getPendingKind(nextState);
 
-      // Update all keys in group to match group status
       const updatedKeys = [...currentGroup.keys, newAtom].map(k => ({
         ...k,
         status: groupStatus
@@ -396,13 +436,9 @@ export const useKeyHistory = () => {
         pendingKind,
       };
 
-      historyRef.current = [
-        ...historyRef.current.slice(0, -1),
-        updatedGroup
-      ];
+      history = [...history.slice(0, -1), updatedGroup];
     }
 
-    // If just entered Insert mode, create virtual "Ins" group
     if (prevState.mode === 'normal' && nextState.mode === 'insert') {
       const insAtom: KeyAtom = {
         id: globalKeyId++,
@@ -421,23 +457,26 @@ export const useKeyHistory = () => {
         pendingKind: undefined,
       };
 
-      historyRef.current = [...historyRef.current, insGroup];
+      history = [...history, insGroup];
     }
-  }, []);
+  };
 
-  const getHistory = useCallback((): KeyHistory => {
-    return historyRef.current;
-  }, []);
+  const getHistory = (): KeyHistory => history;
 
-  const clearHistory = useCallback(() => {
-    historyRef.current = [];
+  const clearHistory = () => {
+    history = [];
     globalKeyId = 0;
     globalGroupId = 0;
-  }, []);
-
-  return {
-    recordKey,
-    getHistory,
-    clearHistory
   };
+
+  return { recordKey, getHistory, clearHistory };
 };
+
+export const useKeyHistory = (): KeyHistoryStore => {
+  const storeRef = useRef<KeyHistoryStore | null>(null);
+  if (!storeRef.current) {
+    storeRef.current = createKeyHistoryStore();
+  }
+  return storeRef.current;
+};
+export const createKeyHistoryManager = () => createKeyHistoryStore();
