@@ -483,6 +483,7 @@ ls src/data/lessons/chapter3/
 
 - 默认并行：`npx vitest run --pool=threads`（避免直接跑无过滤的 `npx vitest run`，输出过长会淹没上下文）
 - 调试单用例：结合 `grep -v "✓"` 过滤已通过用例，如 `npx vitest run --pool=threads -t "<pattern>" | grep -v "✓"`
+- Parity 单测输出节流：`npx vitest run --pool=threads -t "<pattern>" src/core/vimParityExhaustive.test.ts | grep -A20 "Failed Tests"`，避免海量 skip 日志淹没上下文
 - 快速检查脚本：`bash utils/vitest-quickcheck.sh [<test_glob>]`（tap-flat + bail，默认跑全部，可传入路径/模式，成功输出 ok ✅，失败时列出前 5 条 not ok）
 - 深入排查（vimParityExhaustive）：
   - 生成 JSON 报告：`npx vitest run --pool=threads --reporter=json --outputFile tmp/vimParity-report.json src/core/vimParityExhaustive.test.ts`

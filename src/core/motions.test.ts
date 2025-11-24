@@ -303,6 +303,11 @@ describe('motions', () => {
         const state = createState(['test@#$ more'], { line: 0, col: 0 });
         expect(getMotionTarget(state, 'W')).toEqual({ line: 0, col: 8 });
       });
+
+      it('should stop on last non-whitespace when no next WORD exists', () => {
+        const state = createState(['a,b.c'], { line: 0, col: 1 });
+        expect(getMotionTarget(state, 'W')).toEqual({ line: 0, col: 4 });
+      });
     });
 
     describe('B - move backward WORD', () => {

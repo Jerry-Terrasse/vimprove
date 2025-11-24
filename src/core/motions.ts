@@ -298,7 +298,14 @@ export const getMotionTarget = (state: VimState, motion: Motion, forOperator = f
     case 'W': {
       let r = line, c = col;
 
-      if (r >= buffer.length || c >= buffer[r].length) return cursor;
+      const lastLineIdx = Math.max(0, buffer.length - 1);
+      const lastLine = buffer[lastLineIdx] ?? '';
+      const fallback: Cursor = {
+        line: lastLineIdx,
+        col: forOperator ? lastLine.length : Math.max(0, lastLine.length - 1)
+      };
+
+      if (r >= buffer.length || c >= buffer[r].length) return fallback;
 
       const startChar = buffer[r][c];
       const startIsWhite = isWhitespace(startChar);
@@ -333,8 +340,11 @@ export const getMotionTarget = (state: VimState, motion: Motion, forOperator = f
         c++;
       }
 
-      if (r >= buffer.length) return cursor;
-      return { line: r, col: Math.min(c, Math.max(0, buffer[r].length - 1)) };
+      if (r >= buffer.length) {
+        return startIsWhite ? cursor : fallback;
+      }
+      const maxCol = forOperator ? buffer[r].length : Math.max(0, buffer[r].length - 1);
+      return { line: r, col: Math.min(c, maxCol) };
     }
 
     case 'B': {

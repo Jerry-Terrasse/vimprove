@@ -66,11 +66,11 @@ const buildLuaCommand = (lines: string[], cursor: { line: number; col: number },
   'end)',
   'if not ok then',
   '  vim.api.nvim_err_writeln(err)',
-  'end',
+    'end',
     'local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)',
     'local pos = vim.api.nvim_win_get_cursor(0)',
     'local mode = vim.api.nvim_get_mode().mode',
-    'print(vim.fn.json_encode({ lines = lines, cursor = pos, mode = mode }))',
+    'print("STATE_JSON:" .. vim.fn.json_encode({ lines = lines, cursor = pos, mode = mode }))',
   ].join('\n');
 };
 
@@ -114,17 +114,16 @@ export const runInNeovim = (
     throw new Error(proc.stderr || 'No output from Neovim');
   }
 
+  const marker = 'STATE_JSON:';
   let parsed: { lines: string[]; cursor: [number, number]; mode: string };
-  try {
-    parsed = JSON.parse(rawOutput);
-  } catch (parseErr) {
-    const braceIndex = rawOutput.lastIndexOf('{');
-    if (braceIndex === -1) {
-      throw new Error(proc.stderr || 'Failed to parse Neovim output');
-    }
-    const sliced = rawOutput.slice(braceIndex);
-    parsed = JSON.parse(sliced);
+  // Extract the JSON payload by marker to ignore stderr noise (e.g., register errors).
+  const markerIndex = rawOutput.lastIndexOf(marker);
+  if (markerIndex === -1) {
+    throw new Error(proc.stderr || 'Failed to parse Neovim output');
   }
+  const jsonPayload = rawOutput.slice(markerIndex + marker.length).trim();
+  parsed = JSON.parse(jsonPayload);
+
   return {
     lines: parsed.lines,
     cursor: { line: parsed.cursor[0], col: parsed.cursor[1] + 1 },
