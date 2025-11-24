@@ -108,10 +108,6 @@ src/
 
 ## 📝 CHANGELOG
 
-### Release v1.6.0
-- 🧪 对拍工具链：`vimParity` 报告查看器支持聚合/过滤/排序，新增 quickcheck 脚本快速验证
-- 🔧 测试工作流优化：可选模块 quickcheck、JSON 报告 + viewer 调试流程，优化上下文占用
-
 ### Release v1.5.0
 - 🧪 Vim 引擎对拍：`.` 重播（cw/paste/末行 jw）、多行寄存器行粘贴、撤销快照去重与 cw 边界全面对齐 Neovim
 - ⌨️ 可视化提升：按键历史面板 + Vim Status 面板，组合键聚合、实时记录与 dot 重播提示一致
@@ -126,6 +122,16 @@ src/
 
 <details>
 <summary><b>点击展开Alpha版本历史</b></summary>
+
+### Release v1.7.0
+- ⚙️ Vim 引擎：dot 重放 count 覆盖、o/O 多行插入锚点、replace count 连续替换，dd/yy 越界 no-op
+- 📌 粘贴修复：多行寄存器行内粘贴拆分插入，光标与 Neovim 对齐
+- 🧪 Parity 回归：`oM<Esc>2.`, `2dw[p/P]`, `rau2.`, `ddu2.` 等对拍修复
+- 🛠 调试文档：CLAUDE.md 精炼调试流程与引擎行为提示
+
+### Release v1.6.0
+- 🧪 对拍工具链：`vimParity` 报告查看器支持聚合/过滤/排序，新增 quickcheck 脚本快速验证
+- 🔧 测试工作流优化：可选模块 quickcheck、JSON 报告 + viewer 调试流程，优化上下文占用
 
 ### v1.5.1
 - 🐛 Fix replace-wait state: `ru` writes literal `u` instead of triggering undo, matching Vim behavior
@@ -267,7 +273,3 @@ src/
 - 📦 课程系统框架
 
 </details>
-
----
-
-**当前版本**: v1.4.1

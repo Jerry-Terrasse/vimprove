@@ -56,6 +56,7 @@ export type VimState = {
   // Insert position (for Insert mode only, 0..len)
   // This is the actual insertion point, while cursor.col is the display position
   insertCol?: number;
+  insertStart: Cursor | null;
 
   // Count prefix (e.g., "3" in "3dw")
   count: string;
@@ -70,6 +71,7 @@ export type VimState = {
   lastChangeCount: number | null;
   lastChangeCursor: Cursor | null;
   lastChangeInsertCursor: Cursor | null;
+  lastChangeInsertStart: Cursor | null;
 
   // Currently recording change for . command
   changeRecording: KeyPress[] | null;

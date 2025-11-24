@@ -274,7 +274,8 @@ export const deleteRange = (buffer: string[], range: Range): { buffer: string[];
     const newLine = lineText.slice(0, range.start.col) + lineText.slice(range.end.col);
     const newBuffer = [...buffer];
     newBuffer[range.start.line] = newLine;
-    const cursor = clampCursor({ line: range.start.line, col: range.start.col }, newBuffer);
+    const maxCol = Math.max(0, newLine.length - 1);
+    const cursor = { line: range.start.line, col: Math.min(range.start.col, maxCol) };
     return { buffer: newBuffer, cursor };
   }
 
@@ -283,7 +284,8 @@ export const deleteRange = (buffer: string[], range: Range): { buffer: string[];
   const after = (buffer[range.end.line] ?? '').slice(range.end.col);
   const merged = before + after;
   newBuffer.splice(range.start.line, range.end.line - range.start.line + 1, merged);
-  const cursor = clampCursor({ line: range.start.line, col: range.start.col }, newBuffer);
+  const maxCol = Math.max(0, merged.length - 1);
+  const cursor = { line: range.start.line, col: Math.min(range.start.col, maxCol) };
   return { buffer: newBuffer, cursor };
 };
 
@@ -358,6 +360,7 @@ export const applyOperatorWithFindMotion = (
     mode: operator === 'c' ? 'insert' : 'normal',
     register: registerText,
     insertCol,
+    insertStart: operator === 'c' ? { line: cursor.line, col: insertCol ?? newCursorCol } : state.insertStart,
     lastCommand: { type: 'delete-range', operator }
   };
 };
@@ -400,6 +403,7 @@ export const applyOperatorWithMotion = (
       mode: operator === 'c' ? 'insert' : 'normal',
       register: registerText,
       insertCol,
+      insertStart: operator === 'c' ? { ...cursor } : state.insertStart,
       lastCommand: { type: 'delete-range', operator, motion }
     };
   }
@@ -440,6 +444,7 @@ export const applyOperatorWithMotion = (
       mode: 'insert',
       register: registerText,
       insertCol: Math.min(cursor.col, newLine.length),
+      insertStart: { line: cursor.line, col: Math.min(cursor.col, newLine.length) },
       lastCommand: { type: 'delete-range', operator, motion }
     };
   }
@@ -527,6 +532,7 @@ export const applyOperatorWithMotion = (
       mode: operator === 'c' ? 'insert' : 'normal',
       register: registerText,
       insertCol,
+      insertStart: operator === 'c' ? { line: start.line, col: insertCol ?? newCursorCol } : state.insertStart,
       lastCommand: { type: 'delete-range', operator, motion }
     };
   }

@@ -37,8 +37,10 @@ export const createSnapshot = (state: VimState): VimState => ({
   changeRecording: state.changeRecording ? [...state.changeRecording] : null,
   lastChangeCount: state.lastChangeCount,
   recordingCount: state.recordingCount,
+  insertStart: state.insertStart ? { ...state.insertStart } : null,
   lastChangeCursor: state.lastChangeCursor ? { ...state.lastChangeCursor } : null,
   lastChangeInsertCursor: state.lastChangeInsertCursor ? { ...state.lastChangeInsertCursor } : null,
+  lastChangeInsertStart: state.lastChangeInsertStart ? { ...state.lastChangeInsertStart } : null,
   recordingExitCursor: state.recordingExitCursor ? { ...state.recordingExitCursor } : null,
   recordingInsertCursor: state.recordingInsertCursor ? { ...state.recordingInsertCursor } : null,
 });
@@ -113,6 +115,7 @@ export const finishRecording = (state: VimState): VimState => {
     recordingCount: null,
     lastChangeCursor: exitCursor,
     lastChangeInsertCursor: insertCursor,
+    lastChangeInsertStart: state.insertStart ? { ...state.insertStart } : null,
     recordingExitCursor: null,
     recordingInsertCursor: null,
   };

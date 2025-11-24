@@ -246,7 +246,7 @@ describe('Dot command (.) - repeat last change', () => {
       expect(state.buffer[0]).toBe('defgh');
 
       state = typeKeys(state, '2.'); // repeat with count 2
-      expect(state.buffer[0]).toBe('h');
+      expect(state.buffer[0]).toBe('fgh');
     });
 
     it('should repeat insert operation with count', () => {

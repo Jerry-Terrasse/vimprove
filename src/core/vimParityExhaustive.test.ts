@@ -68,7 +68,7 @@ const ENABLED_FEATURES: FeatureConfig = {
     'insert_oO',
     'paste',
     'search',
-    // 'count_prefix',
+    'count_prefix',
     'undo_redo',
     'dot'
   ])

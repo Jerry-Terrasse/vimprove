@@ -26,21 +26,23 @@ npx vitest run --pool=threads # deprecated
 ## Test Workflow
 
 - 默认并行：`npx vitest run --pool=threads`（避免直接跑无过滤的 `npx vitest run`，输出过长会淹没上下文）
-- 调试单用例：结合 `grep -v "✓"` 过滤已通过用例，如 `npx vitest run --pool=threads -t "<pattern>" | grep -v "✓"`
-- Parity 单测输出节流：`npx vitest run --pool=threads -t "<pattern>" src/core/vimParityExhaustive.test.ts | grep -A20 "Failed Tests"`，避免海量 skip 日志淹没上下文
+- 测试输出简化： **重要** 使用`grep`过滤最终结论，避免无用信息淹没上下文。如 `npx vitest run --pool=threads [-t <pattern>] 2>&1 | grep -EA20 "Failed Tests|Test Files"`
+- 测试输出长度：`grep -EA20`是使用的20行，所获信息不足时，可以根据实际情况适当增加，建议不超过50行
+- Parity 单测输出节流：`npx vitest run --pool=threads -t "<pattern>" src/core/vimParityExhaustive.test.ts 2>&1 | grep -EA20 "Failed Tests|Test Files"`，避免海量 skip 日志淹没上下文
 - 快速检查脚本：`bash utils/vitest-quickcheck.sh [<test_glob>]`（tap-flat + bail，默认跑全部，可传入路径/模式，成功输出 ok ✅，失败时列出前 5 条 not ok）
 - 深入排查（vimParityExhaustive）：
   - 生成 JSON 报告：`npx vitest run --pool=threads --reporter=json --outputFile tmp/vimParity-report.json src/core/vimParityExhaustive.test.ts`
   - 查看摘要/聚合或按子串过滤：`python utils/vimParity-report-viewer.py tmp/vimParity-report.json ["keyword"...]`（keyword 为测试名片段，支持多个并且大小写不敏感；工具仅用于 ParityExhaustive）
     - 支持附加参数：`--feature paste-after-op`、`--limit 5`、`--sort name|feature|line`、`--details`（输出完整断言）
-  - 反复调试单用例：`npx vitest run --pool=threads -t "<pattern>" src/core/vimParityExhaustive.test.ts`
+  - 反复调试单用例：`npx vitest run --pool=threads -t "<pattern>" src/core/vimParityExhaustive.test.ts 2>&1 | grep -EA20 "Failed Tests|Test Files"`
     - 正则含特殊符号时建议单引号包裹并在内部转义，如 `-t 'd\$P\.'`
 
-### Debug Tips & Tools
+- ### Debug Tips & Tools
 
-- 生成组合差异时优先跑 `bash utils/vitest-quickcheck.sh` 或 `npx vitest run --pool=threads -t "<case>"`，避免全量输出淹没上下文。
+- 生成组合差异时优先跑 `bash utils/vitest-quickcheck.sh`（Tap + bail）或 `npx vitest run --pool=threads -t "<case>" 2>&1 | grep -EA20 "Failed Tests|Test Files"`，务必加上过滤，避免全量输出淹没上下文。
 - 若 Neovim 输出夹杂错误日志，可用 `utils/nvim-state-probe.cjs` 直接打印 stdout/stderr 以及解析后的 state：`node utils/nvim-state-probe.cjs --lines '["foo bar"]' --cursor 1,5 --keys 'p' --debug`；支持 `--file` 读取文本文件，`--cursor` 为 1-based。
 - Parity 排查时，先用 probe 得到 Neovim 游标/模式，再用 `runSimKeys` 对比，减少反复跑大测试集。
+- 定位顺序：1) quickcheck 抽样锁定 case；2) probe 取 Neovim 真实游标/模式；3) `runSimKeys` 对比；避免直接跑全量。
 
 ## Architecture
 
@@ -261,6 +263,12 @@ import { useVimEngine } from '@/hooks/useVimEngine';
 - `Ctrl-r` - 重做（redo）
 - `.` - 重复上次修改操作
 - 数字前缀（`3w`, `5dd`, `2.`）- 重复命令 n 次
+
+**行为细节**:
+- 行级 count 越界：`dd`/`yy` 当 count 超出剩余行数时直接 no-op，不写入历史。
+- `.` 重放：count 覆盖命令的 count（执行一次带 count 的命令），插入/替换按记录的插入锚点与片段回放；undo 后仍以 lastChange 重放。
+- 多行寄存器粘贴（非行 wise）：内容拆成多行插入，首行插入列与 before/after 一致，光标落在首行插入处。
+- `o/O` 带 count：一次性创建多行再进入首行插入，退出时按记录的行数补齐。
 
 ### ❌ 尚未支持
 
