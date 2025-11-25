@@ -50,8 +50,8 @@ const COMMAND_MATRIX: CommandCategory[] = [
     commands: [
       { cmd: 'iw aw', status: 'full' },
       { cmd: 'ip ap', status: 'full' },
-      { cmd: 'i( a( i{ a{', status: 'full' },
-      { cmd: 'i" a" i\' a\'', status: 'full' },
+      { cmd: 'i( a( i{ a{ i[ a[', status: 'full' },
+      { cmd: 'i" a" i\' a\' i` a`', status: 'full' },
     ],
   },
   {
@@ -74,9 +74,9 @@ const COMMAND_MATRIX: CommandCategory[] = [
 ];
 
 const TEST_STATS = {
-  overall: { passed: 690, total: 690, name: 'vitest (all suites)' },
-  basic: { passed: 73, total: 73, name: 'vimParity' },
-  exhaustive: { passed: 404, total: 404, name: 'vimParityExhaustive' },
+  overall: { passed: 1215, total: 1215, name: 'Parity suites (vimParity + exhaustive)' },
+  basic: { passed: 75, total: 75, name: 'vimParity' },
+  exhaustive: { passed: 1140, total: 1140, name: 'vimParityExhaustive' },
 };
 
 const StatusIcon = ({ status }: { status: SupportStatus }) => {

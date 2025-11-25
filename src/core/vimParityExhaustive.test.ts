@@ -162,8 +162,8 @@ const buildCommands = (cfg: FeatureConfig): CommandKind[] => {
 
   // Line motions
   if (cfg.enabled.has('motion_line')) {
-    ['0', '^', '$'].forEach(k => cmds.push({ kind: 'motion', key: k }));
-    motions.push('0', '^', '$');
+    ['0', '^', '$', '_'].forEach(k => cmds.push({ kind: 'motion', key: k }));
+    motions.push('0', '^', '$', '_');
   }
 
   // Find/till motions
