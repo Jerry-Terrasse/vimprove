@@ -45,10 +45,14 @@ export const createSnapshot = (state: VimState): VimState => ({
   recordingInsertCursor: state.recordingInsertCursor ? { ...state.recordingInsertCursor } : null,
 });
 
-const appendSnapshot = (state: VimState, snapshot: VimState): { history: VimState[]; historyIndex: number } => {
+const appendSnapshot = (
+  state: VimState,
+  snapshot: VimState,
+  force = false
+): { history: VimState[]; historyIndex: number } => {
   const newHistory = state.history.slice(0, state.historyIndex + 1);
   const last = newHistory[newHistory.length - 1];
-  if (last && isSameSnapshot(last, snapshot)) {
+  if (!force && last && isSameSnapshot(last, snapshot)) {
     return { history: newHistory, historyIndex: newHistory.length - 1 };
   }
   newHistory.push(snapshot);
@@ -60,13 +64,13 @@ const appendSnapshot = (state: VimState, snapshot: VimState): { history: VimStat
   return { history: newHistory, historyIndex: newHistory.length - 1 };
 };
 
-export const pushHistory = (state: VimState): VimState => {
+export const pushHistory = (state: VimState, force = false): VimState => {
   const snapshot = createSnapshot(state);
   const latest = state.history[state.historyIndex];
-  if (latest && isSameSnapshot(latest, snapshot)) {
+  if (!force && latest && isSameSnapshot(latest, snapshot)) {
     return state;
   }
-  const { history, historyIndex } = appendSnapshot(state, snapshot);
+  const { history, historyIndex } = appendSnapshot(state, snapshot, force);
   return { ...state, history, historyIndex };
 };
 

@@ -245,6 +245,7 @@ const applyOperatorMotion = (state: VimState, operator: Operator, motion: Operat
       insertCol: operator === 'c' ? cursor.col : undefined,
       insertStart: operator === 'c' ? { ...cursor } : state.insertStart,
       count: '',
+      recordingExitCursor: operator === 'd' ? cursor : stateWithHistory.recordingExitCursor,
       lastCommand: { type: 'delete-range', operator, motion: '$' }
     };
 
@@ -291,6 +292,7 @@ const applyOperatorMotion = (state: VimState, operator: Operator, motion: Operat
       mode: operator === 'c' ? 'insert' : 'normal',
       insertCol: operator === 'c' ? cursor.col : undefined,
       count: '',
+      recordingExitCursor: operator === 'd' ? cursor : stateWithHistory.recordingExitCursor,
       lastCommand: { type: 'delete-range', operator, motion }
     };
 
@@ -305,6 +307,10 @@ const applyOperatorMotion = (state: VimState, operator: Operator, motion: Operat
   for (let i = 0; i < count; i++) {
     resultState = applyOperatorWithMotion(resultState, operator, motion);
     if (operator === 'y') break;
+  }
+
+  if (resultState.recordingExitCursor == null) {
+    resultState = { ...resultState, recordingExitCursor: { ...resultState.cursor } };
   }
 
   if (operator === 'd') {
@@ -375,11 +381,28 @@ const applyPaste = (state: VimState, before: boolean): VimState => {
       newBuffer[currentCursor.line] = head;
       newBuffer.splice(currentCursor.line + 1, 0, ...mid, last + tail);
 
-      const cursorLine = currentCursor.line;
-      const cursorCol = Math.max(
-        0,
-        Math.min(newBuffer[cursorLine].length - 1, before ? currentCursor.col : currentCursor.col + 1)
-      );
+      let cursorLine = currentCursor.line;
+      let cursorText: string | undefined;
+      if (parts[0] !== '') {
+        cursorLine = currentCursor.line;
+        cursorText = head;
+      } else if (mid.length > 0) {
+        cursorLine = currentCursor.line + 1;
+        cursorText = mid[0];
+      } else {
+        cursorLine = currentCursor.line + 1;
+        cursorText = last + tail;
+      }
+      let cursorCol;
+      if (parts[0] !== '') {
+        cursorCol = Math.max(0, insertCol + (parts[0]?.length ?? 0) - 1);
+        if (before) {
+          cursorCol = insertCol;
+        }
+      } else {
+        const firstNonBlank = cursorText?.search(/\S/) ?? -1;
+        cursorCol = firstNonBlank >= 0 ? firstNonBlank : Math.max(0, (cursorText?.length ?? 1) - 1);
+      }
       return { buffer: newBuffer, cursor: { line: cursorLine, col: cursorCol } };
     }
 
@@ -716,14 +739,16 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
 
   if (key === 'u' && !ctrlKey && !pendingReplace) {
     if (state.historyIndex > 0) {
+      const currentSnapshot = state.history[state.historyIndex];
       let targetIndex = state.historyIndex - 1;
-      while (targetIndex > 0 && isSameContent(state.history[targetIndex], state.history[targetIndex - 1])) {
+      while (targetIndex > 0 && isSameContent(state.history[targetIndex], currentSnapshot)) {
         targetIndex--;
       }
       if (targetIndex < 0) return state;
       const targetState = state.history[targetIndex];
       return {
         ...targetState,
+        cursor: targetState.cursor,
         history: state.history,
         historyIndex: targetIndex,
         lastChange: state.lastChange,
@@ -738,16 +763,36 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
         count: '',
       };
     }
-    return state;
+    const resetCursor = { line: state.cursor.line, col: 0 };
+    return {
+      ...state,
+      cursor: resetCursor,
+      pendingOperator: null,
+      pendingReplace: false,
+      pendingFind: null,
+      pendingTextObject: null,
+      pendingSearch: null,
+      count: '',
+      changeRecording: null,
+      recordingCount: null,
+      recordingExitCursor: null,
+      recordingInsertCursor: null,
+    };
   }
 
   if (key === 'r' && ctrlKey) {
     if (state.historyIndex < state.history.length - 1) {
-      const targetIndex = state.historyIndex + 1;
+      const currentSnapshot = state.history[state.historyIndex];
+      let targetIndex = state.historyIndex + 1;
+      while (targetIndex < state.history.length - 1 && isSameContent(state.history[targetIndex], currentSnapshot)) {
+        targetIndex++;
+      }
       const nextState = state.history[targetIndex];
-      const cursorForRedo = state.lastChange
-        ? nextState.cursor
-        : { line: nextState.cursor.line, col: 0 };
+      const cursorForRedo = state.lastChangeCursor
+        ? { ...state.lastChangeCursor }
+        : state.lastChange
+          ? nextState.cursor
+          : { line: nextState.cursor.line, col: 0 };
       return {
         ...nextState,
         cursor: cursorForRedo,
@@ -847,7 +892,8 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
           ...stateWithKey,
           buffer: newBuffer,
           cursor: { line: newLineIdx, col: preservedCol },
-          register: yankedText
+          register: yankedText,
+          recordingExitCursor: { ...cursor }
         });
 
         return {
@@ -998,6 +1044,35 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
       };
     }
     return state;
+  }
+
+  if (key === 'X') {
+    const lineText = buffer[cursor.line];
+    if (lineText.length > 0 && cursor.col > 0) {
+      const count = getCount(state);
+      const deleteCount = Math.min(count, cursor.col);
+      const startCol = cursor.col - deleteCount;
+      const stateWithHistory = pushHistory(state);
+      const stateWithRecording = startRecording(stateWithHistory, key, ctrlKey || false);
+
+      const newLine = lineText.slice(0, startCol) + lineText.slice(cursor.col);
+      const newBuffer = [...buffer];
+      newBuffer[cursor.line] = newLine;
+      const newCol = Math.max(0, Math.min(startCol, Math.max(0, newLine.length - 1)));
+
+      const finished = finishRecording({
+        ...stateWithRecording,
+        buffer: newBuffer,
+        cursor: { ...cursor, col: newCol }
+      });
+
+      return {
+        ...finished,
+        count: '',
+        lastCommand: { type: 'delete-char' }
+      };
+    }
+    return { ...state, count: '' };
   }
 
   if (key === 's') {

@@ -60,7 +60,7 @@ const ENABLED_FEATURES: FeatureConfig = {
     'operator_c',
     'operator_y',
     'operator_y_line',
-    // 'text_objects',
+    'text_objects',
     'edit_xsr',
     'edit_dd',
     'insert_ia',

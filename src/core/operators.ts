@@ -1,12 +1,17 @@
 import type { VimState, Operator, Motion, OperatorMotion, TextObject, Cursor } from './types';
 import { getMotionTarget } from './motions';
 import { clampCursor, isWhitespace, isWordChar } from './utils';
-import { pushHistory } from './stateUtils';
+import { finishRecording, pushHistory } from './stateUtils';
 
 type Range = {
   start: Cursor;
   end: Cursor;
   isLinewise?: boolean;
+};
+
+type DelimitedPair = {
+  open: Cursor;
+  close: Cursor;
 };
 
 const isTextObjectMotion = (motion: OperatorMotion): motion is TextObject => {
@@ -68,6 +73,7 @@ const getAroundWordRange = (state: VimState): Range | null => {
   const range = getInnerWordRange(state);
   if (!range) return null;
   const lineText = state.buffer[range.start.line] ?? '';
+  if (range.start.col === range.end.col && lineText.trim().length === 0) return null;
   let start = range.start.col;
   let end = range.end.col;
 
@@ -91,6 +97,7 @@ const getParagraphRange = (state: VimState, includeBlank: boolean): Range | null
   let endLine = cursor.line;
 
   if (isBlank(buffer[cursor.line])) {
+    if (includeBlank && buffer.length === 1) return null;
     // Blank line counts as its own paragraph
     return {
       start: { line: cursor.line, col: 0 },
@@ -112,51 +119,64 @@ const getParagraphRange = (state: VimState, includeBlank: boolean): Range | null
   };
 };
 
-const findEnclosingPair = (state: VimState, opening: string, closing: string): { open: Cursor; close: Cursor } | null => {
+const comparePos = (a: Cursor, b: Cursor) => {
+  if (a.line !== b.line) return a.line - b.line;
+  return a.col - b.col;
+};
+
+const cursorInPair = (cursor: Cursor, pair: DelimitedPair) =>
+  comparePos(cursor, pair.open) >= 0 && comparePos(cursor, pair.close) <= 0;
+
+const isMoreInnerPair = (candidate: DelimitedPair, current: DelimitedPair) => {
+  const candidateLineSpan = candidate.close.line - candidate.open.line;
+  const currentLineSpan = current.close.line - current.open.line;
+  if (candidateLineSpan !== currentLineSpan) {
+    return candidateLineSpan < currentLineSpan;
+  }
+  const candidateColSpan = candidate.close.col - candidate.open.col;
+  const currentColSpan = current.close.col - current.open.col;
+  return candidateColSpan < currentColSpan;
+};
+
+const forwardDistance = (cursor: Cursor, target: Cursor) => {
+  const lineDiff = target.line - cursor.line;
+  const colDiff = target.col - cursor.col;
+  const lineWeight = 10000;
+  return lineDiff * lineWeight + colDiff;
+};
+
+const findDelimitedPair = (state: VimState, opening: string, closing: string): DelimitedPair | null => {
   const { buffer, cursor } = state;
-  let depth = 0;
-  let openPos: Cursor | null = null;
-  let closePos: Cursor | null = null;
+  const stack: Cursor[] = [];
+  let containing: DelimitedPair | null = null;
+  let forward: { pair: DelimitedPair; distance: number } | null = null;
 
-  for (let line = cursor.line; line >= 0; line--) {
-    const text = buffer[line];
-    const startCol = line === cursor.line ? cursor.col : text.length - 1;
-    for (let col = startCol; col >= 0; col--) {
+  for (let line = 0; line < buffer.length; line++) {
+    const text = buffer[line] ?? '';
+    for (let col = 0; col < text.length; col++) {
       const char = text[col];
-      if (char === closing) depth++;
       if (char === opening) {
-        if (depth === 0) {
-          openPos = { line, col };
-          line = -1;
-          break;
+        stack.push({ line, col });
+      } else if (char === closing && stack.length > 0) {
+        const openPos = stack.pop()!;
+        const pair: DelimitedPair = { open: openPos, close: { line, col } };
+
+        if (cursorInPair(cursor, pair)) {
+          if (!containing || isMoreInnerPair(pair, containing)) {
+            containing = pair;
+          }
+        } else if (comparePos(cursor, pair.open) < 0) {
+          const distance = forwardDistance(cursor, pair.open);
+          if (!forward || distance < forward.distance || (distance === forward.distance && isMoreInnerPair(pair, forward.pair))) {
+            forward = { pair, distance };
+          }
         }
-        depth--;
       }
     }
   }
 
-  depth = 0;
-  for (let line = cursor.line; line < buffer.length; line++) {
-    const text = buffer[line];
-    const startCol = line === cursor.line ? cursor.col : 0;
-    for (let col = startCol; col < text.length; col++) {
-      const char = text[col];
-      if (char === opening) depth++;
-      if (char === closing) {
-        if (depth === 0) {
-          closePos = { line, col };
-          line = buffer.length;
-          break;
-        }
-        depth--;
-      }
-    }
-  }
-
-  if (openPos && closePos) {
-    return { open: openPos, close: closePos };
-  }
-  return null;
+  if (containing) return containing;
+  return forward ? forward.pair : null;
 };
 
 const getQuoteRange = (state: VimState, quote: string, includeDelimiters: boolean): Range | null => {
@@ -178,6 +198,20 @@ const getQuoteRange = (state: VimState, quote: string, includeDelimiters: boolea
   };
 };
 
+const buildDelimitedRange = (
+  state: VimState,
+  opening: string,
+  closing: string,
+  includeDelimiters: boolean
+): Range | null => {
+  const pair = findDelimitedPair(state, opening, closing);
+  if (!pair) return null;
+  return {
+    start: { line: pair.open.line, col: includeDelimiters ? pair.open.col : pair.open.col + 1 },
+    end: { line: pair.close.line, col: includeDelimiters ? pair.close.col + 1 : pair.close.col }
+  };
+};
+
 const getTextObjectRange = (state: VimState, motion: TextObject): Range | null => {
   switch (motion) {
     case 'iw':
@@ -192,41 +226,17 @@ const getTextObjectRange = (state: VimState, motion: TextObject): Range | null =
     case 'i)':
     case 'a(':
     case 'a)':
-      return (() => {
-        const pair = findEnclosingPair(state, '(', ')');
-        if (!pair) return null;
-        const include = motion.startsWith('a');
-        return {
-          start: { line: pair.open.line, col: include ? pair.open.col : pair.open.col + 1 },
-          end: { line: pair.close.line, col: include ? pair.close.col + 1 : pair.close.col }
-        };
-      })();
+      return buildDelimitedRange(state, '(', ')', motion.startsWith('a'));
     case 'i{':
     case 'i}':
     case 'a{':
     case 'a}':
-      return (() => {
-        const pair = findEnclosingPair(state, '{', '}');
-        if (!pair) return null;
-        const include = motion.startsWith('a');
-        return {
-          start: { line: pair.open.line, col: include ? pair.open.col : pair.open.col + 1 },
-          end: { line: pair.close.line, col: include ? pair.close.col + 1 : pair.close.col }
-        };
-      })();
+      return buildDelimitedRange(state, '{', '}', motion.startsWith('a'));
     case 'i[':
     case 'i]':
     case 'a[':
     case 'a]':
-      return (() => {
-        const pair = findEnclosingPair(state, '[', ']');
-        if (!pair) return null;
-        const include = motion.startsWith('a');
-        return {
-          start: { line: pair.open.line, col: include ? pair.open.col : pair.open.col + 1 },
-          end: { line: pair.close.line, col: include ? pair.close.col + 1 : pair.close.col }
-        };
-      })();
+      return buildDelimitedRange(state, '[', ']', motion.startsWith('a'));
     case 'i"':
     case 'a"':
       return getQuoteRange(state, '"', motion.startsWith('a'));
@@ -257,10 +267,20 @@ export const buildRegisterText = (buffer: string[], range: Range): string => {
     parts.push(buffer[line] ?? '');
   }
   parts.push((buffer[range.end.line] ?? '').slice(0, range.end.col));
+
+  if (range.start.line !== range.end.line) {
+    if (parts[parts.length - 1] === '' && range.end.col === 0) {
+      parts.pop();
+    }
+  }
   return parts.join('\n');
 };
 
-export const deleteRange = (buffer: string[], range: Range): { buffer: string[]; cursor: Cursor } => {
+export const deleteRange = (
+  buffer: string[],
+  range: Range,
+  preserveMultiline = false
+): { buffer: string[]; cursor: Cursor } => {
   if (range.isLinewise) {
     const newBuffer = [...buffer];
     newBuffer.splice(range.start.line, range.end.line - range.start.line + 1);
@@ -282,10 +302,25 @@ export const deleteRange = (buffer: string[], range: Range): { buffer: string[];
   const newBuffer = [...buffer];
   const before = (buffer[range.start.line] ?? '').slice(0, range.start.col);
   const after = (buffer[range.end.line] ?? '').slice(range.end.col);
-  const merged = before + after;
-  newBuffer.splice(range.start.line, range.end.line - range.start.line + 1, merged);
-  const maxCol = Math.max(0, merged.length - 1);
-  const cursor = { line: range.start.line, col: Math.min(range.start.col, maxCol) };
+
+  if (!preserveMultiline) {
+    const merged = before + after;
+    newBuffer.splice(range.start.line, range.end.line - range.start.line + 1, merged);
+    const maxCol = Math.max(0, merged.length - 1);
+    const cursor = { line: range.start.line, col: Math.min(range.start.col, maxCol) };
+    return { buffer: newBuffer, cursor };
+  }
+
+  const includeAfterLine = after.length > 0;
+  const replacement = includeAfterLine ? [before, after] : [before];
+
+  newBuffer.splice(range.start.line, range.end.line - range.start.line + 1, ...replacement);
+  if (newBuffer.length === 0) newBuffer.push('');
+
+  const cursorLine = includeAfterLine ? range.start.line + 1 : range.start.line;
+  const cursorLineText = replacement[includeAfterLine ? 1 : 0];
+  const maxCol = Math.max(0, cursorLineText.length - 1);
+  const cursor = { line: cursorLine, col: Math.min(range.start.col, maxCol) };
   return { buffer: newBuffer, cursor };
 };
 
@@ -373,42 +408,126 @@ export const applyOperatorWithMotion = (
   if (isTextObjectMotion(motion)) {
     const range = getTextObjectRange(state, motion);
     if (!range) {
-      return { ...state, pendingOperator: null, pendingTextObject: null };
+      return {
+        ...state,
+        pendingOperator: null,
+        pendingTextObject: null,
+        count: '',
+        changeRecording: null,
+        recordingCount: null,
+        recordingExitCursor: null,
+        recordingInsertCursor: null
+      };
     }
 
     const registerText = buildRegisterText(state.buffer, range);
 
     if (operator === 'y') {
+      let cursor = state.cursor;
+      if (range.isLinewise) {
+        cursor = { line: range.start.line, col: 0 };
+      } else if (
+        range.start.line !== range.end.line &&
+        range.start.col >= (state.buffer[range.start.line]?.length ?? 0)
+      ) {
+        cursor = { line: Math.min(range.start.line + 1, state.buffer.length - 1), col: 0 };
+      } else {
+        cursor = { ...range.start };
+      }
       return {
         ...state,
         register: registerText,
         pendingOperator: null,
         pendingTextObject: null,
-        lastCommand: { type: 'yank' }
+        lastCommand: { type: 'yank' },
+        cursor
       };
     }
 
-    const stateWithHistory = pushHistory(state);
-    const { buffer, cursor } = deleteRange(stateWithHistory.buffer, range);
+    const historyState = {
+      ...state,
+      cursor: range.isLinewise ? { line: range.start.line, col: 0 } : { ...range.start }
+    };
+    const stateWithHistory = pushHistory(historyState, true);
+    const { buffer: deletedBuffer, cursor } = deleteRange(stateWithHistory.buffer, range, true);
+    let buffer = deletedBuffer;
+    let nextCursor = cursor;
+    let recordingExitCursor: Cursor | null = null;
 
-    // For 'c' operator with text objects, insertCol equals cursor.col
-    const insertCol = operator === 'c' ? cursor.col : undefined;
+    if (range.isLinewise) {
+      const lineText = buffer[nextCursor.line] ?? '';
+      const maxCol = Math.max(0, lineText.length - 1);
+      nextCursor = { line: nextCursor.line, col: Math.min(state.cursor.col, maxCol) };
+    }
 
-    return {
+    const isMultiline = range.start.line !== range.end.line;
+    let insertCol: number | undefined;
+
+    if (operator === 'c' && range.isLinewise) {
+      const hasFollowingLine = buffer.length > range.start.line + 1;
+      const mutable = [...buffer];
+      if (hasFollowingLine || mutable.length === 0) {
+        mutable.splice(range.start.line, 0, '');
+      }
+      buffer = mutable;
+      nextCursor = { line: range.start.line, col: 0 };
+      insertCol = 0;
+    }
+
+    const isInnerDelimited = operator === 'c'
+      && isMultiline
+      && !range.isLinewise
+      && motion.startsWith('i')
+      && ['(', '{', '['].includes(motion.charAt(1));
+
+    if (isInnerDelimited && buffer.length > range.start.line + 1) {
+      const indentSource = stateWithHistory.buffer[Math.min(range.start.line + 1, stateWithHistory.buffer.length - 1)] ?? '';
+      const indentMatch = indentSource.match(/^\s*/);
+      const indent = indentMatch ? indentMatch[0] : '';
+      buffer = [...buffer];
+      buffer.splice(range.start.line + 1, 0, indent);
+      nextCursor = { line: range.start.line + 1, col: Math.max(0, indent.length - 1) };
+      insertCol = indent.length;
+    }
+
+    if (operator === 'c' && insertCol === undefined) {
+      const targetCol = range.isLinewise ? state.cursor.col : range.start.col;
+      const lineText = buffer[nextCursor.line] ?? '';
+      const maxCursor = Math.max(0, lineText.length - 1);
+      nextCursor = { line: nextCursor.line, col: Math.min(targetCol, maxCursor) };
+      insertCol = Math.min(targetCol, lineText.length);
+    }
+
+    if (operator === 'd' && recordingExitCursor === null) {
+      recordingExitCursor = range.isLinewise
+        ? { line: range.start.line, col: 0 }
+        : { ...nextCursor };
+    }
+
+    const nextState: VimState = {
       ...stateWithHistory,
       buffer,
-      cursor,
+      cursor: nextCursor,
       pendingOperator: null,
       pendingTextObject: null,
       mode: operator === 'c' ? 'insert' : 'normal',
       register: registerText,
       insertCol,
-      insertStart: operator === 'c' ? { ...cursor } : state.insertStart,
-      lastCommand: { type: 'delete-range', operator, motion }
+      insertStart: operator === 'c' ? { ...nextCursor } : state.insertStart,
+      recordingExitCursor: recordingExitCursor ?? stateWithHistory.recordingExitCursor,
+      lastCommand: { type: 'delete-range', operator, motion },
+      count: ''
     };
+
+    if (operator === 'd') {
+      return finishRecording(nextState);
+    }
+
+    return nextState;
   }
 
   const { buffer, cursor } = state;
+  const originalCursor = cursor;
 
   // Special case: cw and cW behave like ce/cE when cursor is on a word character
   // This matches Vim's behavior where cw doesn't include trailing whitespace
@@ -533,6 +652,9 @@ export const applyOperatorWithMotion = (
       register: registerText,
       insertCol,
       insertStart: operator === 'c' ? { line: start.line, col: insertCol ?? newCursorCol } : state.insertStart,
+      recordingExitCursor: operator === 'd'
+        ? { line: start.line, col: newCursorCol }
+        : stateWithHistory.recordingExitCursor,
       lastCommand: { type: 'delete-range', operator, motion }
     };
   }

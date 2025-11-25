@@ -372,11 +372,7 @@ describe('vimReducer', () => {
       };
 
       const state = typeKeys(initial, 'ci{return 42;<Esc>');
-      const joined = state.buffer.join('\\n');
-
-      expect(joined).toContain('{return 42;}');
-      expect(joined).not.toContain('int x = 1;');
-      expect(joined).not.toContain('int y = 2;');
+      expect(state.buffer).toEqual(['int main() {', '    return 42;', '}']);
     });
 
     it('should change inside quotes with ci"', () => {
