@@ -124,7 +124,7 @@ src/
 <summary><b>点击展开Alpha版本历史</b></summary>
 
 ### Release v1.7.0
-- ⚙️ Vim 引擎：dot 重放 count 覆盖、o/O 多行插入锚点、replace count 连续替换，dd/yy 越界 no-op
+- ⚙️ Vim 引擎：dot 重放 count 覆盖、o/O 多行插入锚点、replace count 连续替换，dd/yy 越界 no-op, text-object 边界修正
 - 📌 粘贴修复：多行寄存器行内粘贴拆分插入，光标与 Neovim 对齐
 - 🧪 Parity 回归：`oM<Esc>2.`, `2dw[p/P]`, `rau2.`, `ddu2.` 等对拍修复
 - 🛠 调试文档：CLAUDE.md 精炼调试流程与引擎行为提示
