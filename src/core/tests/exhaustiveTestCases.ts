@@ -357,6 +357,46 @@ export const DEFAULT_INIT: Pick<VimState, 'buffer' | 'cursor' | 'mode'> = {
 
 export const GENERATED_CASES = buildCases(ENABLED_FEATURES);
 
+const LONG_SEQUENCE_LENGTHS = [5, 10, 15, 20, 25, 30, 35, 40];
+const LONG_SEQUENCE_MAX_LENGTH = 5;
+const LONG_SEQUENCE_PER_LENGTH = 128;
+const LONG_SEQUENCE_SCENARIO: Scenario = SCENARIOS.find(s => s.name === 'cpp-fast-inv-sqrt')!;
+
+const makePrng = (seed: number) => {
+  let state = seed >>> 0;
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state;
+  };
+};
+
+const buildLongSequences = (commands: CommandKind[]) => {
+  const tokens = Array.from(new Set(commands.map(toKeySeq))).filter(Boolean);
+  const sequences: { keySeq: string; label: string }[] = [];
+
+  LONG_SEQUENCE_LENGTHS.filter(length => length <= LONG_SEQUENCE_MAX_LENGTH).forEach(length => {
+    for (let sample = 0; sample < LONG_SEQUENCE_PER_LENGTH; sample++) {
+      const prng = makePrng(length * 2048 + sample + tokens.length);
+      const parts: string[] = [];
+      for (let i = 0; i < length; i++) {
+        const idx = prng() % tokens.length;
+        parts.push(tokens[idx]);
+      }
+      sequences.push({ keySeq: parts.join(''), label: `long-l${length}-s${sample}` });
+    }
+  });
+
+  return sequences;
+};
+
+const LONG_SEQUENCE_CASES: GeneratedCase[] = buildLongSequences(buildCommands(ENABLED_FEATURES)).map(item => ({
+  ...LONG_SEQUENCE_SCENARIO,
+  keySeq: item.keySeq,
+  label: `${LONG_SEQUENCE_SCENARIO.name}-${item.label}`
+}));
+
+const ALL_CASES: GeneratedCase[] = [...GENERATED_CASES, ...LONG_SEQUENCE_CASES];
+
 export const getShardCases = (shardIndex: number, shardCount: number) => {
-  return GENERATED_CASES.filter((_, i) => i % shardCount === shardIndex);
+  return ALL_CASES.filter((_, i) => i % shardCount === shardIndex);
 };
