@@ -1,29 +1,26 @@
-import { describe, it, expect } from 'vitest';
 import type { VimState } from '@/core/types';
-import { runSimKeys } from '@/core/testUtils/runSim';
-import { runInNeovim, NeovimNotAvailableError } from '@/core/testUtils/runInNeovim';
 
 type FeatureId =
   | 'motion_hjkl'
-  | 'motion_word'        // w/b/e
-  | 'motion_WORD'        // W/B/E
-  | 'motion_line'        // 0/^/$
-  | 'motion_find'        // f/F/t/T ; ,
+  | 'motion_word'
+  | 'motion_WORD'
+  | 'motion_line'
+  | 'motion_find'
   | 'operator_d'
   | 'operator_c'
   | 'operator_y'
-  | 'operator_y_line'    // yy
+  | 'operator_y_line'
   | 'text_objects'
-  | 'edit_xsr'           // x/s/r
+  | 'edit_xsr'
   | 'edit_dd'
-  | 'insert_ia'          // i/a
-  | 'insert_IA'          // I/A
-  | 'insert_oO'          // o/O
-  | 'paste'              // p/P
-  | 'search'             // / ? n N * #
+  | 'insert_ia'
+  | 'insert_IA'
+  | 'insert_oO'
+  | 'paste'
+  | 'search'
   | 'count_prefix'
-  | 'undo_redo'          // u/Ctrl-r
-  | 'dot';               // .
+  | 'undo_redo'
+  | 'dot';
 
 type FeatureConfig = { enabled: Set<FeatureId> };
 
@@ -32,7 +29,7 @@ type CommandKind =
   | { kind: 'delete'; key: string; count?: number }
   | { kind: 'change'; motion: string; text: string; count?: number }
   | { kind: 'yank'; motion: string; count?: number }
-  | { kind: 'edit'; key: string; count?: number }       // x/s/r{char}/dd
+  | { kind: 'edit'; key: string; count?: number }
   | { kind: 'insert'; key: string; text: string; count?: number }
   | { kind: 'paste'; key: 'p' | 'P'; count?: number }
   | { kind: 'search'; pattern: string; direction: '/' | '?'; count?: number }
@@ -142,37 +139,31 @@ const buildCommands = (cfg: FeatureConfig): CommandKind[] => {
   const cmds: CommandKind[] = [];
   const motions: string[] = [];
 
-  // Basic motions
   if (cfg.enabled.has('motion_hjkl')) {
     ['h', 'j', 'k', 'l'].forEach(k => cmds.push({ kind: 'motion', key: k }));
     motions.push('h', 'j', 'k', 'l');
   }
 
-  // Word motions
   if (cfg.enabled.has('motion_word')) {
     ['w', 'b', 'e'].forEach(k => cmds.push({ kind: 'motion', key: k }));
     motions.push('w', 'b', 'e');
   }
 
-  // WORD motions
   if (cfg.enabled.has('motion_WORD')) {
     ['W', 'B', 'E'].forEach(k => cmds.push({ kind: 'motion', key: k }));
     motions.push('W', 'B', 'E');
   }
 
-  // Line motions
   if (cfg.enabled.has('motion_line')) {
     ['0', '^', '$', '_'].forEach(k => cmds.push({ kind: 'motion', key: k }));
     motions.push('0', '^', '$', '_');
   }
 
-  // Find/till motions
   if (cfg.enabled.has('motion_find')) {
     ['fa', 'ta', 'Fa', 'Ta', ';', ','].forEach(k => cmds.push({ kind: 'motion', key: k }));
     motions.push('fa', 'ta', 'Fa', 'Ta', ';', ',');
   }
 
-  // Operator + motion (select subset to avoid explosion)
   const operatorMotions = ['w', '$', 'e'];
 
   if (cfg.enabled.has('text_objects')) {
@@ -192,10 +183,9 @@ const buildCommands = (cfg: FeatureConfig): CommandKind[] => {
   }
 
   if (cfg.enabled.has('operator_y_line')) {
-    cmds.push({ kind: 'yank', motion: 'y' }); // yy
+    cmds.push({ kind: 'yank', motion: 'y' });
   }
 
-  // Single edit commands
   if (cfg.enabled.has('edit_xsr')) {
     cmds.push({ kind: 'edit', key: 'x' });
     cmds.push({ kind: 'edit', key: 's' });
@@ -206,7 +196,6 @@ const buildCommands = (cfg: FeatureConfig): CommandKind[] => {
     cmds.push({ kind: 'edit', key: 'dd' });
   }
 
-  // Insert commands
   if (cfg.enabled.has('insert_ia')) {
     cmds.push({ kind: 'insert', key: 'i', text: 'Z' });
     cmds.push({ kind: 'insert', key: 'a', text: 'Y' });
@@ -222,13 +211,11 @@ const buildCommands = (cfg: FeatureConfig): CommandKind[] => {
     cmds.push({ kind: 'insert', key: 'O', text: 'N' });
   }
 
-  // Paste
   if (cfg.enabled.has('paste')) {
     cmds.push({ kind: 'paste', key: 'p' });
     cmds.push({ kind: 'paste', key: 'P' });
   }
 
-  // Search
   if (cfg.enabled.has('search')) {
     cmds.push({ kind: 'search', direction: '/', pattern: 'foo' });
     cmds.push({ kind: 'search', direction: '?', pattern: 'foo' });
@@ -238,7 +225,6 @@ const buildCommands = (cfg: FeatureConfig): CommandKind[] => {
     cmds.push({ kind: 'searchNext', key: '#' });
   }
 
-  // Count prefixes
   if (cfg.enabled.has('count_prefix')) {
     const countedMotions = [
       { kind: 'motion', key: 'w', count: 3 },
@@ -258,13 +244,11 @@ const buildCommands = (cfg: FeatureConfig): CommandKind[] => {
     cmds.push({ kind: 'dot', count: 2 });
   }
 
-  // Undo/Redo
   if (cfg.enabled.has('undo_redo')) {
     cmds.push({ kind: 'undo' });
     cmds.push({ kind: 'redo' });
   }
 
-  // Dot command
   if (cfg.enabled.has('dot')) {
     cmds.push({ kind: 'dot' });
   }
@@ -272,7 +256,6 @@ const buildCommands = (cfg: FeatureConfig): CommandKind[] => {
   return cmds;
 };
 
-// Deterministic sampling with seed
 const sampleWithSeed = <T>(arr: T[], count: number, seed: number): T[] => {
   if (arr.length <= count) return arr;
   const result: T[] = [];
@@ -283,9 +266,7 @@ const sampleWithSeed = <T>(arr: T[], count: number, seed: number): T[] => {
   return result;
 };
 
-const generateSequences = (
-  commands: CommandKind[]
-): { seq: CommandKind[]; label: string }[] => {
+const generateSequences = (commands: CommandKind[]): { seq: CommandKind[]; label: string }[] => {
   const result: { seq: CommandKind[]; label: string }[] = [];
   const unique = new Set<string>();
 
@@ -297,22 +278,14 @@ const generateSequences = (
     }
   };
 
-  // Length 1: All commands
   commands.forEach(cmd => addSeq([cmd], 'len1'));
 
-  // Length 2: Strategically selected pairs
   const len2Pairs: [string[], string[]][] = [
-    // Motion chains
     [['motion'], ['motion']],
-    // Operator + motion
     [['delete', 'change', 'yank'], ['motion']],
-    // Edit + undo
     [['edit', 'delete'], ['undo']],
-    // Insert + dot
     [['insert'], ['dot']],
-    // Delete + paste
     [['delete'], ['paste']],
-    // Undo + redo
     [['undo'], ['redo']],
   ];
 
@@ -329,13 +302,12 @@ const generateSequences = (
     sampled.forEach(([a, b]) => addSeq([a, b], 'len2'));
   });
 
-  // Length 3: Curated scenarios
   const len3Patterns: [string[], string[], string[]][] = [
-    [['delete'], ['undo'], ['redo']],       // dw u Ctrl-r
-    [['insert'], ['dot'], ['dot']],         // iZ<Esc> . .
-    [['delete'], ['paste'], ['dot']],       // dw p .
-    [['yank'], ['motion'], ['paste']],      // yw $ p
-    [['edit'], ['undo'], ['dot']],          // x u .
+    [['delete'], ['undo'], ['redo']],
+    [['insert'], ['dot'], ['dot']],
+    [['delete'], ['paste'], ['dot']],
+    [['yank'], ['motion'], ['paste']],
+    [['edit'], ['undo'], ['dot']],
   ];
 
   len3Patterns.forEach(([kinds1, kinds2, kinds3]) => {
@@ -377,38 +349,14 @@ const buildCases = (cfg: FeatureConfig): GeneratedCase[] => {
   return cases;
 };
 
-const DEFAULT_INIT: Pick<VimState, 'buffer' | 'cursor' | 'mode'> = {
+export const DEFAULT_INIT: Pick<VimState, 'buffer' | 'cursor' | 'mode'> = {
   buffer: ['foo bar baz', 'hello world'],
   cursor: { line: 0, col: 0 },
   mode: 'normal'
 };
 
-const GENERATED_CASES = buildCases(ENABLED_FEATURES);
+export const GENERATED_CASES = buildCases(ENABLED_FEATURES);
 
-describe('Vim emulator matches Neovim (generated combos)', () => {
-  it.each(GENERATED_CASES)('$label', async testCase => {
-    let realState;
-    try {
-      realState = runInNeovim(testCase.lines, testCase.cursor, testCase.keySeq);
-    } catch (err) {
-      if (err instanceof NeovimNotAvailableError) {
-        console.warn('Neovim not available, skipping generated parity tests.');
-        return;
-      }
-      throw err;
-    }
-
-    const simState = runSimKeys(
-      {
-        ...DEFAULT_INIT,
-        buffer: testCase.lines,
-        cursor: { line: testCase.cursor.line - 1, col: testCase.cursor.col - 1 }
-      },
-      testCase.keySeq
-    );
-
-    expect(simState.buffer).toEqual(realState.lines);
-    expect({ line: simState.cursor.line + 1, col: simState.cursor.col + 1 }).toEqual(realState.cursor);
-    expect(simState.mode.charAt(0)).toBe(realState.mode.charAt(0));
-  });
-});
+export const getShardCases = (shardIndex: number, shardCount: number) => {
+  return GENERATED_CASES.filter((_, i) => i % shardCount === shardIndex);
+};

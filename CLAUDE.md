@@ -28,13 +28,14 @@ npx vitest run --pool=threads # deprecated
 - 默认并行：`npx vitest run --pool=threads`（避免直接跑无过滤的 `npx vitest run`，输出过长会淹没上下文）
 - 测试输出简化： **重要** 使用`grep`过滤最终结论，避免无用信息淹没上下文。如 `npx vitest run --pool=threads [-t <pattern>] 2>&1 | grep -EA20 "Failed Tests|Test Files"`
 - 测试输出长度：`grep -EA20`是使用的20行，所获信息不足时，可以根据实际情况适当增加，建议不超过50行
-- Parity 单测输出节流：`npx vitest run --pool=threads -t "<pattern>" src/core/vimParityExhaustive.test.ts 2>&1 | grep -EA20 "Failed Tests|Test Files"`，避免海量 skip 日志淹没上下文
+- Parity 单测输出节流：`npx vitest run --pool=threads -t "<pattern>" src/core/tests/exhaustiveTest.*.test.ts 2>&1 | grep -EA20 "Failed Tests|Test Files"`，避免海量 skip 日志淹没上下文
+- exhaustive parity 分片：`src/core/tests/exhaustiveTest.{0..7}.test.ts` 使用 `getShardCases` 按索引取模分片（总 shard=8），并行示例：`npx vitest run --pool=threads src/core/tests/exhaustiveTest.*.test.ts --maxWorkers=8`
 - 快速检查脚本：`bash utils/vitest-quickcheck.sh [<test_glob>]`（tap-flat + bail，默认跑全部，可传入路径/模式，成功输出 ok ✅，失败时列出前 5 条 not ok）
-- 深入排查（vimParityExhaustive）：
-  - 生成 JSON 报告：`npx vitest run --pool=threads --reporter=json --outputFile tmp/vimParity-report.json src/core/vimParityExhaustive.test.ts`
+- 深入排查（exhaustive parity）：
+  - 生成 JSON 报告：`npx vitest run --pool=threads --reporter=json --outputFile tmp/vimParity-report.json src/core/tests/exhaustiveTest.*.test.ts`
   - 查看摘要/聚合或按子串过滤：`python utils/vimParity-report-viewer.py tmp/vimParity-report.json ["keyword"...]`（keyword 为测试名片段，支持多个并且大小写不敏感；工具仅用于 ParityExhaustive）
     - 支持附加参数：`--feature paste-after-op`、`--limit 5`、`--sort name|feature|line`、`--details`（输出完整断言）
-  - 反复调试单用例：`npx vitest run --pool=threads -t "<pattern>" src/core/vimParityExhaustive.test.ts 2>&1 | grep -EA20 "Failed Tests|Test Files"`
+  - 反复调试单用例：`npx vitest run --pool=threads -t "<pattern>" src/core/tests/exhaustiveTest.*.test.ts 2>&1 | grep -EA20 "Failed Tests|Test Files"`
     - 正则含特殊符号时建议单引号包裹并在内部转义，如 `-t 'd\$P\.'`
 
 - ### Debug Tips & Tools
