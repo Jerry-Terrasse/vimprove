@@ -37,6 +37,17 @@ Think of them as precision tools:
 - \`fo\` → place cursor on \`o\` and press **s** then type \`alse\` → \`false\``
     },
     {
+      type: 'markdown',
+      content: `## Example: fixing typos without full insert
+
+We'll stay in Normal mode to clean up a couple of small mistakes:
+
+- Use **r** to swap the wrong letter inside a string.
+- Move to the next line and use **x** twice to delete extra digits.
+
+This shows how x/r/s keep you in flow without a long insert session.`
+    },
+    {
       type: 'run-example',
       config: {
         initialBuffer: [

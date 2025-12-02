@@ -125,7 +125,8 @@ src/
 
 ### Release v1.9.0
 - 🧪 增加长序列对拍测试
-- 
+- 🧩 修复课程文件大小写冲突（motions-WORDs 更名为 motions-words-big），避免大小写不敏感平台编译报错
+- 📝 补齐 small-edits-chars 示例及 zh/zh-lively 翻译，并补上行边界课程的中文示例，确保三语言示例一致
 
 ### Release v1.8.0
 - 🐛 继续增强对拍测试覆盖率&修复bug
