@@ -6,5 +6,7 @@
   "starOnGithub": "Please give me a Star!",
   "menu": "Menu",
   "prevLesson": "Previous Lesson",
-  "nextLesson": "Next Lesson"
+  "nextLesson": "Next Lesson",
+  "branchRelease": "Release",
+  "branchAlpha": "Alpha"
 }

@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { ChevronRight, Home as HomeIcon, Code2, ChevronDown, Languages } from 'lucide-react';
+import { ChevronRight, Code2, ChevronDown, Languages, GitBranch } from 'lucide-react';
 import { CATEGORIES } from '@/data';
 import type { Lesson } from '@/core/types';
-import { VERSION, VERSION_LABEL } from '@/version';
+import { BRANCH_LINKS, CURRENT_BRANCH } from '@/version';
 import { supportedLocales } from '@/i18n';
 import { useTranslationSafe, useLocale } from '@/hooks/useI18n';
 
@@ -26,7 +26,13 @@ export const Sidebar = ({
   const { t } = useTranslationSafe('layout');
   const { locale, setLocale } = useLocale();
   const [isLangOpen, setIsLangOpen] = useState(false);
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
   const translateLessons = locale !== 'en';
+  const branchOptions = [
+    { key: 'release' as const, label: t('branchRelease', 'Release'), url: BRANCH_LINKS.release.url, version: BRANCH_LINKS.release.version },
+    { key: 'alpha' as const, label: t('branchAlpha', 'Alpha'), url: BRANCH_LINKS.alpha.url, version: BRANCH_LINKS.alpha.version }
+  ];
+  const currentBranch = branchOptions.find(opt => opt.key === CURRENT_BRANCH) || branchOptions[0];
 
   return (
     <div
@@ -39,10 +45,13 @@ export const Sidebar = ({
       `}
     >
       {/* Header: hidden on mobile to save vertical space */}
-      <div className="px-4 py-3 border-b border-stone-800 flex items-center gap-4 hidden md:flex">
+      <button
+        onClick={onHomeClick}
+        className="px-4 py-3 border-b border-stone-800 flex items-center gap-4 hidden md:flex text-left hover:bg-stone-900 transition-colors"
+      >
         <img src="/favicon.png" alt="Vimprove" className="w-16 h-16 flex-shrink-0" />
-        <span className="font-bold text-4xl logo-text">Vimprove</span>
-      </div>
+        <span className="font-bold text-4xl logo-text text-stone-100">Vimprove</span>
+      </button>
 
       <div className="flex-1 p-4 overflow-y-auto flex flex-col">
         <div className="flex-1">
@@ -87,16 +96,48 @@ export const Sidebar = ({
         <div className="grid grid-cols-2 gap-2 items-center">
           <div className="relative">
             <button
-              onClick={onHomeClick}
-              className="w-full flex items-center justify-center gap-2 text-stone-300 bg-stone-900 border border-stone-800 rounded-lg px-3 py-2 text-sm hover:border-green-600 transition-colors"
+              onClick={() => setIsBranchOpen(open => !open)}
+              className="w-full flex items-center gap-2 justify-center bg-stone-900 border border-stone-800 rounded-lg px-3 py-2 text-sm text-stone-200 hover:border-green-600 transition-colors whitespace-nowrap"
             >
-              <HomeIcon size={16} /> {t('home')}
+              <GitBranch size={16} />
+              <span>{currentBranch.label}</span>
+              <ChevronDown size={16} className={isBranchOpen ? 'transform rotate-180' : ''} />
             </button>
+            {isBranchOpen && (
+              <div
+                className="absolute left-0 bottom-full mb-2 w-48 bg-stone-900 border border-stone-800 rounded-lg shadow-xl overflow-hidden"
+                onMouseLeave={() => setIsBranchOpen(false)}
+              >
+                {branchOptions.map(opt => (
+                  <button
+                    key={opt.key}
+                    onClick={() => {
+                      if (!opt.url) return;
+                      window.location.href = opt.url;
+                      setIsBranchOpen(false);
+                    }}
+                    disabled={!opt.url}
+                    className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                      CURRENT_BRANCH === opt.key
+                        ? 'bg-green-700/30 text-white'
+                        : opt.url
+                          ? 'text-stone-200 hover:bg-stone-800'
+                          : 'text-stone-500 cursor-not-allowed'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span>{opt.label}</span>
+                      <span className="font-mono text-xs text-stone-400">v{opt.version}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <div className="relative">
             <button
               onClick={() => setIsLangOpen(open => !open)}
-              className="w-full flex items-center gap-2 justify-center bg-stone-900 border border-stone-800 rounded-lg px-3 py-2 text-sm text-stone-200 hover:border-green-600 transition-colors"
+              className="w-full flex items-center gap-2 justify-center bg-stone-900 border border-stone-800 rounded-lg px-3 py-2 text-sm text-stone-200 hover:border-green-600 transition-colors whitespace-nowrap"
             >
               <Languages size={16} />
               {supportedLocales.find(l => l.code === locale)?.shortLabel || locale}
@@ -126,13 +167,6 @@ export const Sidebar = ({
               </div>
             )}
           </div>
-        </div>
-        <div className="flex items-center justify-between text-xs text-stone-600">
-          <div className="flex items-center gap-2">
-            <Code2 size={12} className="text-stone-700" />
-            <span className="font-mono">v{VERSION}</span>
-          </div>
-          <span className="text-stone-700">{VERSION_LABEL}</span>
         </div>
       </div>
     </div>

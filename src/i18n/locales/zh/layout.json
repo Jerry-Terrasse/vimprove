@@ -6,5 +6,7 @@
   "starOnGithub": "请给我一颗Star吧!",
   "menu": "菜单",
   "prevLesson": "上一课",
-  "nextLesson": "下一课"
+  "nextLesson": "下一课",
+  "branchRelease": "稳定版",
+  "branchAlpha": "预览版"
 }
