@@ -10,7 +10,7 @@ import { modesMovementMiniReview } from './lessons/chapter1/modes-movement-mini-
 // Chapter 2: Words & Small Edits
 import { motionsWords } from './lessons/chapter2/motions-words';
 import { wordsFixSmallThings } from './lessons/chapter2/words-fix-small-things';
-import { motionsWORDs } from './lessons/chapter2/motions-WORDs';
+import { motionsWORDs } from './lessons/chapter2/motions-words-big';
 import { smallEditsChars } from './lessons/chapter2/small-edits-chars';
 import { wordsMiniReview } from './lessons/chapter2/words-mini-review';
 
