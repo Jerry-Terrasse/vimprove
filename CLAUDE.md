@@ -43,6 +43,7 @@ npx vitest run --pool=threads # deprecated
 - 生成组合差异时优先跑 `bash utils/vitest-quickcheck.sh`（Tap + bail）或 `npx vitest run --pool=threads -t "<case>" 2>&1 | grep -EA20 "Failed Tests|Test Files"`，务必加上过滤，避免全量输出淹没上下文。
 - 若 Neovim 输出夹杂错误日志，可用 `utils/nvim-state-probe.cjs` 直接打印 stdout/stderr 以及解析后的 state：`node utils/nvim-state-probe.cjs --lines '["foo bar"]' --cursor 1,5 --keys 'p' --debug`；支持 `--file` 读取文本文件，`--cursor` 为 1-based。
 - Parity 排查时，先用 probe 得到 Neovim 游标/模式，再用 `runSimKeys` 对比，减少反复跑大测试集。
+- `utils/vimprove-debug.cjs`：输入 shard 与 label（用例名）对比模拟器与 Neovim 的缓冲区/光标/模式，并可加 `--trace` 打印逐键状态（需 `node -r sucrase/register utils/vimprove-debug.cjs <label> <shard> [--trace]`）。
 - 定位顺序：1) quickcheck 抽样锁定 case；2) probe 取 Neovim 真实游标/模式；3) `runSimKeys` 对比；避免直接跑全量。
 
 ## Architecture

@@ -1,6 +1,13 @@
 import type { VimState, VimAction, Motion, KeyPress, Operator, OperatorMotion, TextObject, Cursor } from './types';
 import { getMotionTarget, findCharOnLine } from './motions';
-import { applyOperatorWithMotion, applyOperatorWithFindMotion, buildRegisterText, deleteRange } from './operators';
+import {
+  applyOperatorWithMotion,
+  applyOperatorWithFindMotion,
+  applyOperatorWithTextObjectCount,
+  buildRegisterText,
+  deleteRange,
+  isTextObjectMotion
+} from './operators';
 import { isWhitespace, isWordChar } from './utils';
 import {
   clearPendingStates,
@@ -87,29 +94,25 @@ const getWordUnderCursor = (buffer: string[], cursor: { line: number; col: numbe
   if (!lineText.length) return null;
   const idx = Math.min(cursor.col, Math.max(0, lineText.length - 1));
 
-  if (isWhitespace(lineText[idx])) return null;
-
   let targetIdx = idx;
-  if (!isWordChar(lineText[idx])) {
-    let right = idx + 1;
-    while (right < lineText.length && !isWhitespace(lineText[right])) {
-      if (isWordChar(lineText[right])) {
-        targetIdx = right;
-        break;
-      }
+  if (!isWordChar(lineText[targetIdx])) {
+    let right = idx;
+    while (right < lineText.length && !isWordChar(lineText[right])) {
       right++;
     }
-    if (targetIdx === idx) {
+    if (right < lineText.length && isWordChar(lineText[right])) {
+      targetIdx = right;
+    } else {
       let left = idx - 1;
-      while (left >= 0 && !isWhitespace(lineText[left])) {
-        if (isWordChar(lineText[left])) {
-          targetIdx = left;
-          break;
-        }
+      while (left >= 0 && !isWordChar(lineText[left])) {
         left--;
       }
+      if (left >= 0 && isWordChar(lineText[left])) {
+        targetIdx = left;
+      } else {
+        return null;
+      }
     }
-    if (targetIdx === idx && !isWordChar(lineText[targetIdx])) return null;
   }
 
   const targetIsWord = isWordChar(lineText[targetIdx]);
@@ -264,7 +267,20 @@ const applyOperatorMotion = (state: VimState, operator: Operator, motion: Operat
       tempState = { ...tempState, cursor: tempCursor };
     }
 
-    const range = { start: state.cursor, end: tempCursor };
+    let rangeStart = state.cursor;
+    let rangeEnd = tempCursor;
+    if (rangeStart.line > rangeEnd.line || (rangeStart.line === rangeEnd.line && rangeStart.col > rangeEnd.col)) {
+      [rangeStart, rangeEnd] = [rangeEnd, rangeStart];
+    }
+    if (rangeStart.line !== rangeEnd.line && rangeStart.col === 0) {
+      const targetLineText = state.buffer[rangeEnd.line] ?? '';
+      const startsWithWhitespace = targetLineText.startsWith(' ') || targetLineText.startsWith('\t');
+      if (startsWithWhitespace) {
+        rangeEnd = { line: rangeEnd.line, col: 0 };
+      }
+    }
+
+    const range = { start: rangeStart, end: rangeEnd };
 
     const registerText = buildRegisterText(state.buffer, range);
     if (operator === 'y') {
@@ -301,6 +317,11 @@ const applyOperatorMotion = (state: VimState, operator: Operator, motion: Operat
     }
 
     return nextState;
+  }
+
+  if (isTextObjectMotion(motion) && count > 1) {
+    const combinedState = applyOperatorWithTextObjectCount(state, operator, motion as TextObject, count);
+    return { ...combinedState, count: '', pendingTextObject: null };
   }
 
   let resultState = state;
@@ -350,7 +371,8 @@ const applyPaste = (state: VimState, before: boolean): VimState => {
 
   const pasteOnce = (
     currentBuffer: string[],
-    currentCursor: { line: number; col: number }
+    currentCursor: { line: number; col: number },
+    placeCursorAfter: boolean
   ): { buffer: string[]; cursor: { line: number; col: number } } => {
     const isLinewise = register.endsWith('\n');
 
@@ -411,16 +433,21 @@ const applyPaste = (state: VimState, before: boolean): VimState => {
     const newLine = lineText.slice(0, insertCol) + register + lineText.slice(insertCol);
     const newBuffer = [...currentBuffer];
     newBuffer[currentCursor.line] = newLine;
+    const lastInsertedCol = insertCol + register.length - 1;
+    const nextCol = placeCursorAfter
+      ? Math.min(lastInsertedCol + 1, Math.max(0, newLine.length - 1))
+      : lastInsertedCol;
     return {
       buffer: newBuffer,
-      cursor: { ...currentCursor, col: insertCol + register.length - 1 }
+      cursor: { ...currentCursor, col: nextCol }
     };
   };
 
   let workingBuffer = stateWithRecording.buffer;
   let workingCursor = stateWithRecording.cursor;
+  const placeAfterFirst = count > 1;
   for (let i = 0; i < count; i++) {
-    const result = pasteOnce(workingBuffer, workingCursor);
+    const result = pasteOnce(workingBuffer, workingCursor, placeAfterFirst && i === 0);
     workingBuffer = result.buffer;
     workingCursor = result.cursor;
   }
@@ -450,18 +477,21 @@ const handleInsertKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
       ? recordKey(state, key, ctrlKey || false)
       : state;
     const repeatCount = state.recordingCount ?? 1;
+    const firstRecordingKey = state.changeRecording?.[0]?.key;
+    const startedWithOpen = firstRecordingKey === 'o' || firstRecordingKey === 'O';
+    const startedWithPureInsert = firstRecordingKey === 'i' || firstRecordingKey === 'I' || firstRecordingKey === 'a' || firstRecordingKey === 'A' || startedWithOpen;
+    const effectiveRepeat = startedWithPureInsert ? repeatCount : 1;
     const insertAnchor = state.insertStart ?? { line: cursor.line, col: state.insertCol ?? cursor.col };
     let workingBuffer = stateToFinish.buffer;
     let insertCursor = cursor;
     let insertCol = state.insertCol ?? cursor.col;
 
-    if (hasBufferChanged && repeatCount > 1) {
+    if (hasBufferChanged && effectiveRepeat > 1) {
       const insertedText = sliceText(workingBuffer, insertAnchor, insertCursor);
-      const startedWithOpen = state.changeRecording?.[0]?.key === 'o' || state.changeRecording?.[0]?.key === 'O';
       if (insertedText.length > 0) {
         if (startedWithOpen) {
           const baseLine = insertAnchor.line;
-          for (let i = 1; i < repeatCount; i++) {
+          for (let i = 1; i < effectiveRepeat; i++) {
             const targetLine = baseLine + i;
             if (targetLine < workingBuffer.length) {
               workingBuffer = [...workingBuffer];
@@ -472,10 +502,10 @@ const handleInsertKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
               workingBuffer = nextBuffer;
             }
           }
-          insertCursor = { line: baseLine + repeatCount - 1, col: insertedText.length };
+          insertCursor = { line: baseLine + effectiveRepeat - 1, col: insertedText.length };
           insertCol = insertedText.length;
         } else {
-          for (let i = 1; i < repeatCount; i++) {
+          for (let i = 1; i < effectiveRepeat; i++) {
             const result = insertTextAt(workingBuffer, insertCursor, insertedText);
             workingBuffer = result.buffer;
             insertCursor = result.cursor;
@@ -501,13 +531,16 @@ const handleInsertKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
     const stateAfterRecording = hasBufferChanged
       ? finishRecording({ ...stateWithCursors, mode: 'normal', cursor: exitCursor })
       : { ...state, changeRecording: null, recordingCount: null, recordingExitCursor: null, recordingInsertCursor: null };
+    const lastCommand = hasBufferChanged
+      ? stateAfterRecording.lastCommand ?? { type: 'mode-switch', to: 'normal' }
+      : { type: 'mode-switch', to: 'normal' };
     return {
       ...stateAfterRecording,
       mode: 'normal',
       cursor: exitCursor,
       insertCol: undefined,  // Clear insertCol when exiting Insert mode
       insertStart: null,
-      lastCommand: { type: 'mode-switch', to: 'normal' }
+      lastCommand
     };
   }
 
@@ -632,7 +665,7 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
     const lineText = state.buffer[replayCursor.line] ?? '';
 
     if (firstKey === 'c' && secondKey === '$' && lineText.length > 0) {
-      if (replayCursor.col >= lineText.length - 1) {
+      if (replayCursor.col >= lineText.length) {
         replayCursor = { ...replayCursor, col: findWordStart(lineText, replayCursor.col) };
       }
     }
@@ -746,9 +779,13 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
       }
       if (targetIndex < 0) return state;
       const targetState = state.history[targetIndex];
+      const useChangeCursor = (state.lastCommand?.type === 'mode-switch')
+        || state.lastCommand?.type === 'delete-char'
+        || (state.lastCommand && 'operator' in state.lastCommand && state.lastCommand.operator === 'c');
+      const undoCursor = useChangeCursor && state.lastChangeCursor ? { ...state.lastChangeCursor } : targetState.cursor;
       return {
         ...targetState,
-        cursor: targetState.cursor,
+        cursor: undoCursor,
         history: state.history,
         historyIndex: targetIndex,
         lastChange: state.lastChange,
@@ -964,7 +1001,10 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
 
   if (key === ';' && state.lastFind) {
     const lineText = buffer[cursor.line];
-    const newCol = findCharOnLine(lineText, cursor.col, state.lastFind.char, state.lastFind.type);
+    const startCol = state.lastFind.type === 'f' || state.lastFind.type === 't'
+      ? cursor.col + 1
+      : cursor.col - 1;
+    const newCol = findCharOnLine(lineText, startCol, state.lastFind.char, state.lastFind.type);
 
     if (newCol !== null) {
       return {
@@ -986,7 +1026,10 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
       'T': 't'
     };
     const reversedFindType = reverseType[state.lastFind.type];
-    const newCol = findCharOnLine(lineText, cursor.col, state.lastFind.char, reversedFindType);
+    const startCol = reversedFindType === 'f' || reversedFindType === 't'
+      ? cursor.col + 1
+      : cursor.col - 1;
+    const newCol = findCharOnLine(lineText, startCol, state.lastFind.char, reversedFindType);
 
     if (newCol !== null) {
       return {
@@ -1025,6 +1068,7 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
       const stateWithHistory = pushHistory(state);
       const stateWithRecording = startRecording(stateWithHistory, key, ctrlKey || false);
 
+      const deletedText = lineText.slice(cursor.col, cursor.col + deleteCount);
       const newLine = lineText.slice(0, cursor.col) + lineText.slice(cursor.col + deleteCount);
       const newBuffer = [...buffer];
       newBuffer[cursor.line] = newLine;
@@ -1034,7 +1078,8 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
       const finished = finishRecording({
         ...stateWithRecording,
         buffer: newBuffer,
-        cursor: { ...cursor, col: newCol }
+        cursor: { ...cursor, col: newCol },
+        register: deletedText
       });
 
       return {
@@ -1055,6 +1100,7 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
       const stateWithHistory = pushHistory(state);
       const stateWithRecording = startRecording(stateWithHistory, key, ctrlKey || false);
 
+      const deletedText = lineText.slice(startCol, cursor.col);
       const newLine = lineText.slice(0, startCol) + lineText.slice(cursor.col);
       const newBuffer = [...buffer];
       newBuffer[cursor.line] = newLine;
@@ -1063,7 +1109,8 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
       const finished = finishRecording({
         ...stateWithRecording,
         buffer: newBuffer,
-        cursor: { ...cursor, col: newCol }
+        cursor: { ...cursor, col: newCol },
+        register: deletedText
       });
 
       return {
@@ -1172,17 +1219,18 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
     const stateWithHistory = pushHistory(state);
     const stateWithRecording = startRecording(stateWithHistory, key, ctrlKey || false);
     const count = getCount(state);
+    const indent = (buffer[cursor.line] ?? '').match(/^\s*/)?.[0] ?? '';
+    const newLines = Array.from({ length: count }, () => indent);
+    const insertLine = cursor.line + 1;
     const newBuffer = [...buffer];
-    for (let i = 0; i < count; i++) {
-      newBuffer.splice(cursor.line + 1 + i, 0, '');
-    }
+    newBuffer.splice(insertLine, 0, ...newLines);
     return {
       ...stateWithRecording,
       mode: 'insert',
       buffer: newBuffer,
-      cursor: { line: cursor.line + 1, col: 0 },
-      insertCol: 0,  // Insert at start of new line
-      insertStart: { line: cursor.line + 1, col: 0 },
+      cursor: { line: insertLine, col: indent.length },
+      insertCol: indent.length,
+      insertStart: { line: insertLine, col: indent.length },
       lastCommand: { type: 'open-line' }
     };
   }
@@ -1190,17 +1238,18 @@ const handleNormalKey = (state: VimState, key: string, ctrlKey: boolean): VimSta
     const stateWithHistory = pushHistory(state);
     const stateWithRecording = startRecording(stateWithHistory, key, ctrlKey || false);
     const count = getCount(state);
+    const indent = (buffer[cursor.line] ?? '').match(/^\s*/)?.[0] ?? '';
+    const newLines = Array.from({ length: count }, () => indent);
+    const insertLine = cursor.line;
     const newBuffer = [...buffer];
-    for (let i = 0; i < count; i++) {
-      newBuffer.splice(cursor.line, 0, '');
-    }
+    newBuffer.splice(insertLine, 0, ...newLines);
     return {
       ...stateWithRecording,
       mode: 'insert',
       buffer: newBuffer,
-      cursor: { line: cursor.line, col: 0 },
-      insertCol: 0,  // Insert at start of new line
-      insertStart: { line: cursor.line, col: 0 },
+      cursor: { line: insertLine, col: indent.length },
+      insertCol: indent.length,
+      insertStart: { line: insertLine, col: indent.length },
       lastCommand: { type: 'open-line-above' }
     };
   }

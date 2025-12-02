@@ -14,7 +14,7 @@ type DelimitedPair = {
   close: Cursor;
 };
 
-const isTextObjectMotion = (motion: OperatorMotion): motion is TextObject => {
+export const isTextObjectMotion = (motion: OperatorMotion): motion is TextObject => {
   const motions: TextObject[] = [
     'iw', 'aw',
     'ip', 'ap',
@@ -124,6 +124,15 @@ const comparePos = (a: Cursor, b: Cursor) => {
   return a.col - b.col;
 };
 
+const combineRanges = (current: Range | null, next: Range): Range => {
+  if (!current) return { ...next };
+  return {
+    start: { ...current.start },
+    end: { ...next.end },
+    isLinewise: current.isLinewise || next.isLinewise
+  };
+};
+
 const cursorInPair = (cursor: Cursor, pair: DelimitedPair) =>
   comparePos(cursor, pair.open) >= 0 && comparePos(cursor, pair.close) <= 0;
 
@@ -206,9 +215,13 @@ const buildDelimitedRange = (
 ): Range | null => {
   const pair = findDelimitedPair(state, opening, closing);
   if (!pair) return null;
+  const spansMultipleLines = pair.open.line !== pair.close.line;
   return {
     start: { line: pair.open.line, col: includeDelimiters ? pair.open.col : pair.open.col + 1 },
-    end: { line: pair.close.line, col: includeDelimiters ? pair.close.col + 1 : pair.close.col }
+    end: {
+      line: pair.close.line,
+      col: !includeDelimiters && spansMultipleLines ? 0 : includeDelimiters ? pair.close.col + 1 : pair.close.col
+    }
   };
 };
 
@@ -400,6 +413,171 @@ export const applyOperatorWithFindMotion = (
   };
 };
 
+const applyOperatorOnRange = (
+  state: VimState,
+  operator: Operator,
+  range: Range,
+  motion?: OperatorMotion
+): VimState => {
+  const registerText = buildRegisterText(state.buffer, range);
+
+  if (operator === 'y') {
+    let cursor = state.cursor;
+    if (range.isLinewise) {
+      cursor = { line: range.start.line, col: 0 };
+    } else if (
+      range.start.line !== range.end.line &&
+      range.start.col >= (state.buffer[range.start.line]?.length ?? 0)
+    ) {
+      cursor = { line: Math.min(range.start.line + 1, state.buffer.length - 1), col: 0 };
+    } else {
+      cursor = { ...range.start };
+    }
+    return {
+      ...state,
+      register: registerText,
+      pendingOperator: null,
+      pendingTextObject: null,
+      lastCommand: { type: 'yank' },
+      cursor
+    };
+  }
+
+  const historyState = {
+    ...state,
+    cursor: range.isLinewise ? { line: range.start.line, col: 0 } : { ...range.start }
+  };
+  const stateWithHistory = pushHistory(historyState, true);
+  const { buffer: deletedBuffer, cursor } = deleteRange(stateWithHistory.buffer, range, true);
+  let buffer = deletedBuffer;
+  let nextCursor = cursor;
+  let recordingExitCursor: Cursor | null = null;
+
+  if (range.isLinewise) {
+    const lineText = buffer[nextCursor.line] ?? '';
+    const maxCol = Math.max(0, lineText.length - 1);
+    nextCursor = { line: nextCursor.line, col: Math.min(state.cursor.col, maxCol) };
+  }
+
+  const isMultiline = range.start.line !== range.end.line;
+  let insertCol: number | undefined;
+
+  if (operator === 'c' && range.isLinewise) {
+    const hasFollowingLine = buffer.length > range.start.line + 1;
+    const mutable = [...buffer];
+    const indentSource = stateWithHistory.buffer[range.start.line] ?? '';
+    const indentMatch = indentSource.match(/^\s*/);
+    const indent = indentMatch ? indentMatch[0] : '';
+    if (hasFollowingLine || mutable.length === 0) {
+      mutable.splice(range.start.line, 0, indent);
+    }
+    buffer = mutable;
+    nextCursor = { line: range.start.line, col: Math.max(0, indent.length - 1) };
+    insertCol = indent.length;
+  }
+
+  const isInnerDelimited = operator === 'c'
+    && isMultiline
+    && !range.isLinewise
+    && motion?.startsWith('i')
+    && ['(', '{', '['].includes(motion.charAt(1));
+
+  if (isInnerDelimited && buffer.length > range.start.line + 1) {
+    const indentSource = stateWithHistory.buffer[Math.min(range.start.line + 1, stateWithHistory.buffer.length - 1)] ?? '';
+    const indentMatch = indentSource.match(/^\s*/);
+    const indent = indentMatch ? indentMatch[0] : '';
+    buffer = [...buffer];
+    buffer.splice(range.start.line + 1, 0, indent);
+    nextCursor = { line: range.start.line + 1, col: Math.max(0, indent.length - 1) };
+    insertCol = indent.length;
+  }
+
+  if (operator === 'c' && insertCol === undefined) {
+    const targetCol = range.isLinewise ? state.cursor.col : range.start.col;
+    const lineText = buffer[nextCursor.line] ?? '';
+    const maxCursor = Math.max(0, lineText.length - 1);
+    nextCursor = { line: nextCursor.line, col: Math.min(targetCol, maxCursor) };
+    insertCol = Math.min(targetCol, lineText.length);
+  }
+
+  if (operator === 'd' && recordingExitCursor === null) {
+    recordingExitCursor = range.isLinewise
+      ? { line: range.start.line, col: 0 }
+      : { ...nextCursor };
+  }
+
+  const nextState: VimState = {
+    ...stateWithHistory,
+    buffer,
+    cursor: nextCursor,
+    pendingOperator: null,
+    pendingTextObject: null,
+    mode: operator === 'c' ? 'insert' : 'normal',
+    register: registerText,
+    insertCol,
+    insertStart: operator === 'c' ? { ...nextCursor } : state.insertStart,
+    recordingExitCursor: recordingExitCursor ?? stateWithHistory.recordingExitCursor,
+    lastCommand: { type: 'delete-range', operator, motion },
+    count: ''
+  };
+
+  if (operator === 'd') {
+    return finishRecording(nextState);
+  }
+
+  return nextState;
+};
+
+const buildTextObjectRangeWithCount = (
+  state: VimState,
+  motion: TextObject,
+  count: number
+): Range | null => {
+  let tempState = state;
+  let combined: Range | null = null;
+
+  for (let i = 0; i < count; i++) {
+    const range = getTextObjectRange(tempState, motion);
+    if (!range) break;
+    combined = combineRanges(combined, range);
+
+    const lineText = tempState.buffer[range.end.line] ?? '';
+    let nextCursor: Cursor;
+    if (range.end.col < lineText.length) {
+      nextCursor = clampCursor({ line: range.end.line, col: range.end.col }, tempState.buffer);
+    } else if (range.end.line < tempState.buffer.length - 1) {
+      nextCursor = { line: range.end.line + 1, col: 0 };
+    } else {
+      nextCursor = { line: range.end.line, col: Math.max(0, lineText.length - 1) };
+    }
+    tempState = { ...tempState, cursor: nextCursor };
+  }
+
+  return combined;
+};
+
+export const applyOperatorWithTextObjectCount = (
+  state: VimState,
+  operator: Operator,
+  motion: TextObject,
+  count: number
+): VimState => {
+  const range = buildTextObjectRangeWithCount(state, motion, count);
+  if (!range) {
+    return {
+      ...state,
+      pendingOperator: null,
+      pendingTextObject: null,
+      count: '',
+      changeRecording: null,
+      recordingCount: null,
+      recordingExitCursor: null,
+      recordingInsertCursor: null
+    };
+  }
+  return applyOperatorOnRange(state, operator, range, motion);
+};
+
 export const applyOperatorWithMotion = (
   state: VimState,
   operator: Operator,
@@ -419,111 +597,7 @@ export const applyOperatorWithMotion = (
         recordingInsertCursor: null
       };
     }
-
-    const registerText = buildRegisterText(state.buffer, range);
-
-    if (operator === 'y') {
-      let cursor = state.cursor;
-      if (range.isLinewise) {
-        cursor = { line: range.start.line, col: 0 };
-      } else if (
-        range.start.line !== range.end.line &&
-        range.start.col >= (state.buffer[range.start.line]?.length ?? 0)
-      ) {
-        cursor = { line: Math.min(range.start.line + 1, state.buffer.length - 1), col: 0 };
-      } else {
-        cursor = { ...range.start };
-      }
-      return {
-        ...state,
-        register: registerText,
-        pendingOperator: null,
-        pendingTextObject: null,
-        lastCommand: { type: 'yank' },
-        cursor
-      };
-    }
-
-    const historyState = {
-      ...state,
-      cursor: range.isLinewise ? { line: range.start.line, col: 0 } : { ...range.start }
-    };
-    const stateWithHistory = pushHistory(historyState, true);
-    const { buffer: deletedBuffer, cursor } = deleteRange(stateWithHistory.buffer, range, true);
-    let buffer = deletedBuffer;
-    let nextCursor = cursor;
-    let recordingExitCursor: Cursor | null = null;
-
-    if (range.isLinewise) {
-      const lineText = buffer[nextCursor.line] ?? '';
-      const maxCol = Math.max(0, lineText.length - 1);
-      nextCursor = { line: nextCursor.line, col: Math.min(state.cursor.col, maxCol) };
-    }
-
-    const isMultiline = range.start.line !== range.end.line;
-    let insertCol: number | undefined;
-
-    if (operator === 'c' && range.isLinewise) {
-      const hasFollowingLine = buffer.length > range.start.line + 1;
-      const mutable = [...buffer];
-      if (hasFollowingLine || mutable.length === 0) {
-        mutable.splice(range.start.line, 0, '');
-      }
-      buffer = mutable;
-      nextCursor = { line: range.start.line, col: 0 };
-      insertCol = 0;
-    }
-
-    const isInnerDelimited = operator === 'c'
-      && isMultiline
-      && !range.isLinewise
-      && motion.startsWith('i')
-      && ['(', '{', '['].includes(motion.charAt(1));
-
-    if (isInnerDelimited && buffer.length > range.start.line + 1) {
-      const indentSource = stateWithHistory.buffer[Math.min(range.start.line + 1, stateWithHistory.buffer.length - 1)] ?? '';
-      const indentMatch = indentSource.match(/^\s*/);
-      const indent = indentMatch ? indentMatch[0] : '';
-      buffer = [...buffer];
-      buffer.splice(range.start.line + 1, 0, indent);
-      nextCursor = { line: range.start.line + 1, col: Math.max(0, indent.length - 1) };
-      insertCol = indent.length;
-    }
-
-    if (operator === 'c' && insertCol === undefined) {
-      const targetCol = range.isLinewise ? state.cursor.col : range.start.col;
-      const lineText = buffer[nextCursor.line] ?? '';
-      const maxCursor = Math.max(0, lineText.length - 1);
-      nextCursor = { line: nextCursor.line, col: Math.min(targetCol, maxCursor) };
-      insertCol = Math.min(targetCol, lineText.length);
-    }
-
-    if (operator === 'd' && recordingExitCursor === null) {
-      recordingExitCursor = range.isLinewise
-        ? { line: range.start.line, col: 0 }
-        : { ...nextCursor };
-    }
-
-    const nextState: VimState = {
-      ...stateWithHistory,
-      buffer,
-      cursor: nextCursor,
-      pendingOperator: null,
-      pendingTextObject: null,
-      mode: operator === 'c' ? 'insert' : 'normal',
-      register: registerText,
-      insertCol,
-      insertStart: operator === 'c' ? { ...nextCursor } : state.insertStart,
-      recordingExitCursor: recordingExitCursor ?? stateWithHistory.recordingExitCursor,
-      lastCommand: { type: 'delete-range', operator, motion },
-      count: ''
-    };
-
-    if (operator === 'd') {
-      return finishRecording(nextState);
-    }
-
-    return nextState;
+    return applyOperatorOnRange(state, operator, range, motion);
   }
 
   const { buffer, cursor } = state;
@@ -582,9 +656,54 @@ export const applyOperatorWithMotion = (
     [start, end] = [end, start];
   }
 
-  // For dw/cw that would cross lines, truncate to EOL (Vim behavior)
   if (start.line !== end.line && (motion === 'w' || motion === 'W')) {
     end = { line: start.line, col: buffer[start.line].length };
+  }
+
+  if (start.line !== end.line) {
+    const inclusiveMotions: Motion[] = ['$', 'e', 'E'];
+    const endCol = inclusiveMotions.includes(actualMotion)
+      ? Math.min(end.col + 1, (buffer[end.line]?.length ?? 0))
+      : end.col;
+    const range = { start, end: { ...end, col: endCol } };
+    const registerText = buildRegisterText(buffer, range);
+
+    if (operator === 'y') {
+      return {
+        ...state,
+        register: registerText,
+        pendingOperator: null,
+        pendingTextObject: null,
+        lastCommand: { type: 'yank' },
+        count: '',
+        changeRecording: null,
+        recordingCount: null
+      };
+    }
+
+    const stateWithHistory = pushHistory(state);
+    const { buffer: newBuffer, cursor } = deleteRange(stateWithHistory.buffer, range);
+
+    let nextState: VimState = {
+      ...stateWithHistory,
+      buffer: newBuffer,
+      cursor,
+      pendingOperator: null,
+      pendingTextObject: null,
+      mode: operator === 'c' ? 'insert' : 'normal',
+      register: registerText,
+      insertCol: operator === 'c' ? cursor.col : undefined,
+      insertStart: operator === 'c' ? { ...cursor } : state.insertStart,
+      count: '',
+      recordingExitCursor: operator === 'd' ? cursor : stateWithHistory.recordingExitCursor,
+      lastCommand: { type: 'delete-range', operator, motion }
+    };
+
+    if (operator === 'd') {
+      nextState = finishRecording(nextState);
+    }
+
+    return nextState;
   }
 
   if (start.line === end.line) {

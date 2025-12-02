@@ -1,6 +1,113 @@
 import type { VimState, Cursor, Motion } from './types';
 import { isWhitespace, isWordChar } from './utils';
 
+type WordCategory = 'space' | 'word' | 'other';
+
+const getSmallWordCategory = (char: string | null): WordCategory => {
+  if (char === null || isWhitespace(char)) return 'space';
+  return isWordChar(char) ? 'word' : 'other';
+};
+
+const getBigWordCategory = (char: string | null): 'space' | 'word' => {
+  if (char === null || isWhitespace(char)) return 'space';
+  return 'word';
+};
+
+const clampCursor = (buffer: string[], cursor: Cursor): Cursor => {
+  if (buffer.length === 0) return { line: 0, col: 0 };
+  const line = Math.max(0, Math.min(cursor.line, buffer.length - 1));
+  const lineText = buffer[line] ?? '';
+  if (lineText.length === 0) return { line, col: 0 };
+  return { line, col: Math.max(0, Math.min(cursor.col, lineText.length - 1)) };
+};
+
+const moveToNextRunEnd = (
+  buffer: string[],
+  start: Cursor,
+  getCategory: (char: string | null) => WordCategory | 'space' | 'word',
+  advanceFromBoundary = true
+): Cursor => {
+  let { line, col } = clampCursor(buffer, start);
+
+  const stepForward = () => {
+    col++;
+    while (line < buffer.length && col >= (buffer[line]?.length ?? 0)) {
+      line++;
+      col = 0;
+    }
+  };
+
+  const currentChar = (): string | null => {
+    if (line >= buffer.length) return null;
+    const text = buffer[line] ?? '';
+    if (text.length === 0 || col >= text.length) return null;
+    return text[col];
+  };
+
+  const skipWhitespace = () => {
+    while (line < buffer.length) {
+      const text = buffer[line] ?? '';
+      if (text.length === 0 || col >= text.length) {
+        line++;
+        col = 0;
+        continue;
+      }
+      if (!isWhitespace(text[col])) break;
+      stepForward();
+    }
+  };
+
+  const walkToRunEnd = (category: ReturnType<typeof getCategory>) => {
+    while (line < buffer.length) {
+      const text = buffer[line] ?? '';
+      const nextLine = line;
+      const nextCol = col + 1;
+
+      if (nextCol < text.length) {
+        const nextChar = text[nextCol];
+        const nextCategory = getCategory(nextChar);
+        if (nextCategory !== category) break;
+        line = nextLine;
+        col = nextCol;
+        continue;
+      }
+
+      // End of line counts as whitespace for both word/WORD motions
+      break;
+    }
+  };
+
+  const moveToFallbackEnd = (): Cursor => {
+    const lastLine = Math.max(0, buffer.length - 1);
+    const lastText = buffer[lastLine] ?? '';
+    if (lastText.length === 0) return { line: lastLine, col: 0 };
+    return { line: lastLine, col: lastText.length - 1 };
+  };
+
+  let category = getCategory(currentChar());
+
+  if (category === 'space') {
+    skipWhitespace();
+    if (line >= buffer.length) return moveToFallbackEnd();
+    category = getCategory(currentChar());
+  } else {
+    // Already on a non-space char; if we're at the end of this run, optionally jump to the end of the next run.
+    const text = buffer[line] ?? '';
+    const nextChar = col + 1 < text.length ? text[col + 1] : null;
+    const nextCategory = getCategory(nextChar);
+    const atRunEnd = nextCategory !== category;
+    if (atRunEnd && advanceFromBoundary) {
+      stepForward();
+      skipWhitespace();
+      if (line >= buffer.length) return moveToFallbackEnd();
+      category = getCategory(currentChar());
+    }
+  }
+
+  walkToRunEnd(category);
+  return clampCursor(buffer, { line, col });
+};
+
 // Find character on current line
 export const findCharOnLine = (
   line: string,
@@ -83,10 +190,18 @@ export const getMotionTarget = (state: VimState, motion: Motion, forOperator = f
         col: forOperator ? lastLine.length : Math.max(0, lastLine.length - 1)
       };
 
-      if (r >= buffer.length || c >= buffer[r].length) return fallback;
+      if (r >= buffer.length) return fallback;
+      const currentLineText = buffer[r] ?? '';
+      const lineLen = currentLineText.length;
+      const startedOnWhitespace = lineLen === 0 || isWhitespace(currentLineText[c] ?? '');
+      if (lineLen === 0) {
+        c = 0;
+      } else if (c >= lineLen) {
+        return fallback;
+      }
 
-      const startChar = buffer[r][c];
-      const startIsWhite = isWhitespace(startChar);
+      const startChar = buffer[r][c] ?? '';
+      const startIsWhite = startedOnWhitespace;
       const startIsWord = isWordChar(startChar);
       const startCategory = startIsWord ? 'word' : 'other';
 
@@ -113,7 +228,16 @@ export const getMotionTarget = (state: VimState, motion: Motion, forOperator = f
       }
 
       // Skip whitespace
+      const stopOnEmptyLine = !startedOnWhitespace;
       while (r < buffer.length) {
+        const lineText = buffer[r] ?? '';
+        if (lineText.length === 0) {
+          if (stopOnEmptyLine) return { line: r, col: 0 };
+          r++;
+          c = 0;
+          if (r >= buffer.length) break;
+          continue;
+        }
         if (c >= buffer[r].length) {
           r++;
           c = 0;
@@ -121,7 +245,7 @@ export const getMotionTarget = (state: VimState, motion: Motion, forOperator = f
           continue;
         }
 
-        const char = buffer[r][c];
+        const char = lineText[c];
         if (!isWhitespace(char)) break;
 
         c++;
@@ -224,76 +348,8 @@ export const getMotionTarget = (state: VimState, motion: Motion, forOperator = f
       return { line: r, col: Math.max(0, c) };
     }
 
-    case 'e': {
-      let r = line, c = col;
-
-      if (r >= buffer.length) return cursor;
-      if (c >= buffer[r].length) {
-        c = buffer[r].length - 1;
-      }
-
-      // Move forward one position first
-      c++;
-      if (c >= buffer[r].length) {
-        r++;
-        c = 0;
-        if (r >= buffer.length) return cursor;
-      }
-
-      // Skip whitespace
-      while (r < buffer.length) {
-        if (c >= buffer[r].length) {
-          r++;
-          c = 0;
-          if (r >= buffer.length) return cursor;
-          continue;
-        }
-
-        const char = buffer[r][c];
-        if (!isWhitespace(char)) break;
-
-        c++;
-      }
-
-      if (r >= buffer.length) return cursor;
-
-      // Now find the end of the current word/punctuation
-      const targetChar = buffer[r][c];
-      const targetIsWord = isWordChar(targetChar);
-
-      while (r < buffer.length) {
-        if (c >= buffer[r].length) {
-          r++;
-          c = 0;
-          if (r >= buffer.length) break;
-          continue;
-        }
-
-        // Check next character
-        const nextC = c + 1;
-        if (nextC >= buffer[r].length) {
-          // At end of line, this is the end
-          return { line: r, col: c };
-        }
-
-        const nextChar = buffer[r][nextC];
-        if (isWhitespace(nextChar)) {
-          // Next char is whitespace, this is the end
-          return { line: r, col: c };
-        }
-
-        const nextIsWord = isWordChar(nextChar);
-        if (targetIsWord !== nextIsWord) {
-          // Next char is different type, this is the end
-          return { line: r, col: c };
-        }
-
-        c++;
-      }
-
-      if (r >= buffer.length) return cursor;
-      return { line: r, col: Math.max(0, Math.min(c, buffer[r].length - 1)) };
-    }
+    case 'e':
+      return moveToNextRunEnd(buffer, cursor, getSmallWordCategory, !forOperator);
 
     case 'W': {
       let r = line, c = col;
@@ -325,19 +381,30 @@ export const getMotionTarget = (state: VimState, motion: Motion, forOperator = f
         }
       }
 
-      // Skip whitespace
+      // Skip whitespace; stop at empty lines so WORD motion can land on blanks
       while (r < buffer.length) {
-        if (c >= buffer[r].length) {
+        const lineText = buffer[r] ?? '';
+        if (lineText.length === 0) {
+          return { line: r, col: 0 };
+        }
+
+        if (c >= lineText.length) {
           r++;
           c = 0;
-          if (r >= buffer.length) break;
           continue;
         }
 
-        const char = buffer[r][c];
-        if (!isWhitespace(char)) break;
+        if (!isWhitespace(lineText[c])) break;
 
-        c++;
+        while (c < lineText.length && isWhitespace(lineText[c])) {
+          c++;
+        }
+
+        if (c >= lineText.length) {
+          r++;
+          c = 0;
+          continue;
+        }
       }
 
       if (r >= buffer.length) {
@@ -360,8 +427,13 @@ export const getMotionTarget = (state: VimState, motion: Motion, forOperator = f
         c = buffer[r].length - 1;
       }
 
-      // Skip whitespace backwards
+      // Skip whitespace backwards; stop on empty lines so WORD motion can land on blanks
       while (r >= 0) {
+        const lineText = buffer[r] ?? '';
+        if (lineText.length === 0) {
+          return { line: r, col: 0 };
+        }
+
         if (c < 0) {
           r--;
           if (r < 0) return { line: 0, col: 0 };
@@ -369,7 +441,7 @@ export const getMotionTarget = (state: VimState, motion: Motion, forOperator = f
           continue;
         }
 
-        const char = buffer[r][c];
+        const char = lineText[c];
         if (!isWhitespace(char)) break;
 
         c--;
@@ -402,67 +474,8 @@ export const getMotionTarget = (state: VimState, motion: Motion, forOperator = f
       return { line: r, col: Math.max(0, c) };
     }
 
-    case 'E': {
-      let r = line, c = col;
-
-      if (r >= buffer.length) return cursor;
-      if (c >= buffer[r].length) {
-        c = buffer[r].length - 1;
-      }
-
-      // Move forward one position first
-      c++;
-      if (c >= buffer[r].length) {
-        r++;
-        c = 0;
-        if (r >= buffer.length) return cursor;
-      }
-
-      // Skip whitespace
-      while (r < buffer.length) {
-        if (c >= buffer[r].length) {
-          r++;
-          c = 0;
-          if (r >= buffer.length) return cursor;
-          continue;
-        }
-
-        const char = buffer[r][c];
-        if (!isWhitespace(char)) break;
-
-        c++;
-      }
-
-      if (r >= buffer.length) return cursor;
-
-      // Now find the end of the current WORD
-      while (r < buffer.length) {
-        if (c >= buffer[r].length) {
-          r++;
-          c = 0;
-          if (r >= buffer.length) break;
-          continue;
-        }
-
-        // Check next character
-        const nextC = c + 1;
-        if (nextC >= buffer[r].length) {
-          // At end of line, this is the end
-          return { line: r, col: c };
-        }
-
-        const nextChar = buffer[r][nextC];
-        if (isWhitespace(nextChar)) {
-          // Next char is whitespace, this is the end
-          return { line: r, col: c };
-        }
-
-        c++;
-      }
-
-      if (r >= buffer.length) return cursor;
-      return { line: r, col: Math.max(0, Math.min(c, buffer[r].length - 1)) };
-    }
+    case 'E':
+      return moveToNextRunEnd(buffer, cursor, getBigWordCategory, !forOperator);
 
     default:
       return cursor;

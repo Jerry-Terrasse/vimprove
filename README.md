@@ -123,6 +123,15 @@ src/
 <details>
 <summary><b>点击展开Alpha版本历史</b></summary>
 
+### Release v1.9.0
+- 🧪 增加长序列对拍测试
+- 
+
+### Release v1.8.0
+- 🐛 继续增强对拍测试覆盖率&修复bug
+- 🚀 将对拍测试并行化
+- 🌍 优化各地访问速度
+
 ### Release v1.7.0
 - ⚙️ Vim 引擎：dot 重放 count 覆盖、o/O 多行插入锚点、replace count 连续替换，dd/yy 越界 no-op, text-object 边界修正
 - 📌 粘贴修复：多行寄存器行内粘贴拆分插入，光标与 Neovim 对齐

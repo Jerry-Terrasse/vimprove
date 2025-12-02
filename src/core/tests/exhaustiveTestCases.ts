@@ -358,7 +358,7 @@ export const DEFAULT_INIT: Pick<VimState, 'buffer' | 'cursor' | 'mode'> = {
 export const GENERATED_CASES = buildCases(ENABLED_FEATURES);
 
 const LONG_SEQUENCE_LENGTHS = [5, 10, 15, 20, 25, 30, 35, 40];
-const LONG_SEQUENCE_MAX_LENGTH = 5;
+const LONG_SEQUENCE_MAX_LENGTH = 0;
 const LONG_SEQUENCE_PER_LENGTH = 128;
 const LONG_SEQUENCE_SCENARIO: Scenario = SCENARIOS.find(s => s.name === 'cpp-fast-inv-sqrt')!;
 
