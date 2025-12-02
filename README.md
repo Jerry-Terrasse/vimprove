@@ -106,6 +106,26 @@ src/
   - `src/core/vimParity.test.ts` - 与 Neovim 对拍测试
   - `vimParityExhaustive.test.ts` - 与 Neovim 对拍测试（详尽）
 
+## 🕊️ TODO
+
+### v2.0.0
+- [ ] hjkl贪吃蛇
+- [ ] alpha分支选择
+- [ ] 亮色模式
+
+### v2.1.0
+- [ ] 优化字体（i/l混淆问题）
+- [ ] 修复文案问题
+- [ ] 光标渲染问题
+
+### v2.2.0
+- [ ] VimEngine bug
+  - [ ] 撤销不识别
+  - [ ] s替换渲染
+- [ ] ESC焦点问题
+- [ ] 自动化排查run-example文案
+
+
 ## 📝 CHANGELOG
 
 ### Release v1.5.0
