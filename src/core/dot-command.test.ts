@@ -216,7 +216,7 @@ describe('Dot command (.) - repeat last change', () => {
       state = typeKeys(state, 'c$END<Esc>'); // change 'world' to 'END'
       expect(state.buffer[0]).toBe('hello END');
 
-      state = typeKeys(state, 'jw.'); // go to 'line' and repeat
+      state = typeKeys(state, 'j0w.'); // go to 'line' and repeat
       expect(state.buffer[1]).toBe('test END');
     });
 

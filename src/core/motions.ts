@@ -349,7 +349,12 @@ export const getMotionTarget = (state: VimState, motion: Motion, forOperator = f
     }
 
     case 'e':
-      return moveToNextRunEnd(buffer, cursor, getSmallWordCategory, !forOperator);
+      return moveToNextRunEnd(
+        buffer,
+        cursor,
+        getSmallWordCategory,
+        forOperator ? getSmallWordCategory(currentLine[col] ?? null) === 'other' : true
+      );
 
     case 'W': {
       let r = line, c = col;

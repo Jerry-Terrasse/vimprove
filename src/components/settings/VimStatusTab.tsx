@@ -41,6 +41,7 @@ const COMMAND_MATRIX: CommandCategory[] = [
       { cmd: 'dd yy', status: 'full' },
       { cmd: 'p P', status: 'full' },
       { cmd: 'x s r', status: 'full' },
+      { cmd: 'Count prefix (e.g. 3w, 5dd, 2.)', status: 'full' },
       { cmd: '. (dot)', status: 'full' },
       { cmd: 'u Ctrl-r', status: 'full' },
     ],
@@ -59,6 +60,7 @@ const COMMAND_MATRIX: CommandCategory[] = [
     commands: [
       { cmd: 'i a I A', status: 'full' },
       { cmd: 'o O', status: 'full' },
+      { cmd: 'Enter Backspace', status: 'full' },
       { cmd: 'Escape', status: 'full' },
     ],
   },
@@ -66,7 +68,7 @@ const COMMAND_MATRIX: CommandCategory[] = [
     name: 'Not Supported',
     commands: [
       { cmd: 'Visual mode', status: 'none' },
-      { cmd: 'Registers "a', status: 'none' },
+      { cmd: 'Named registers ("a)', status: 'none' },
       { cmd: 'Marks m\'', status: 'none' },
       { cmd: 'Macros q@', status: 'none' },
     ],
