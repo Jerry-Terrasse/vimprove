@@ -109,6 +109,8 @@ describe('i18n completeness vs baselines', () => {
               (block.config.goals || []).map(goal => [goal.id, ''])
             )
           };
+        } else if (block.type === 'hjkl-snake') {
+          content[key] = {};
         }
       });
 

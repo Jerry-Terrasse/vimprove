@@ -64,7 +64,7 @@ Watch how Insert changes the buffer immediately, while Esc drops you back to com
         initialCursor: { line: 3, col: 4 },
         autoPlaySpeed: 900,
         tracks: [
-          { label: 'Insert vs Normal', keys: [] }
+          { label: 'Insert vs Normal', keys: ['i', '/', 'Escape', '$', 'a', '/', 'Escape'] }
         ],
         steps: [
           { key: 'i', description: 'i: enter Insert mode before "int".', cursorIndex: 0 },
@@ -83,6 +83,7 @@ Watch how Insert changes the buffer immediately, while Esc drops you back to com
         { chars: ['Esc'], desc: 'Return to Normal mode' },
         { chars: ['i'], desc: 'Insert before cursor' },
         { chars: ['a'], desc: 'Insert after cursor' },
+        { chars: ['$'], desc: 'Jump to the end of the current line' },
         { chars: ['o'], desc: 'Open new line below and insert' },
         { chars: ['O'], desc: 'Open new line above and insert' }
       ]

@@ -40,19 +40,19 @@ Watch how word and WORD motions reach targets in far fewer keystrokes than singl
         initialCursor: { line: 0, col: 0 },
         autoPlaySpeed: 700,
         tracks: [
-          { label: 'Using h/l', keys: [], color: 'bg-track-red' },
-          { label: 'Using w (word)', keys: [], color: 'bg-track-blue' },
-          { label: 'Using W (WORD)', keys: [], color: 'bg-track-green' }
+          { label: 'Using h/l', keys: ['l', 'l', 'l', 'l'], color: 'bg-track-red' },
+          { label: 'Using w (word)', keys: ['w', 'w'], color: 'bg-track-blue' },
+          { label: 'Using W (WORD)', keys: ['W', 'W'], color: 'bg-track-green' }
         ],
         steps: [
           { key: 'l', description: 'h/l cursor: move right one character.', cursorIndex: 0 },
           { key: 'l', description: 'h/l cursor: move right again.', cursorIndex: 0 },
           { key: 'l', description: 'h/l cursor: move right again.', cursorIndex: 0 },
           { key: 'l', description: 'h/l cursor: still stepping through "std::vector<int>".', cursorIndex: 0 },
-          { key: 'w', description: 'w cursor: jump to "values".', cursorIndex: 1 },
-          { key: 'w', description: 'w cursor: jump to "=".', cursorIndex: 1 },
+          { key: 'w', description: 'w cursor: jump to "::".', cursorIndex: 1 },
+          { key: 'w', description: 'w cursor: jump to "vector".', cursorIndex: 1 },
           { key: 'W', description: 'W cursor: jump over "std::vector<int>" as one WORD.', cursorIndex: 2 },
-          { key: 'W', description: 'W cursor: jump to "{1," in a single step.', cursorIndex: 2 }
+          { key: 'W', description: 'W cursor: jump to "=" in a single step.', cursorIndex: 2 }
         ]
       }
     },

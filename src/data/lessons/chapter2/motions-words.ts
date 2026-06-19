@@ -41,11 +41,12 @@ This shows how word motions cover more ground than single-character moves.`
         initialCursor: { line: 3, col: 4 },
         autoPlaySpeed: 900,
         tracks: [
-          { label: 'Move by words', keys: [] }
+          { label: 'Move by words', keys: ['w', 'w', 'w', 'e', 'b'] }
         ],
         steps: [
-          { key: 'w', description: 'w: jump from indentation to "std::string".', cursorIndex: 0 },
-          { key: 'w', description: 'w: jump to "fullName".', cursorIndex: 0 },
+          { key: 'w', description: 'w: jump from "std::string" to "fullName".', cursorIndex: 0 },
+          { key: 'w', description: 'w: jump from "std::string" to "fullName".', cursorIndex: 0 },
+          { key: 'w', description: 'w: jump from "std::string" to "fullName".', cursorIndex: 0 },
           { key: 'e', description: 'e: jump to the end of "fullName".', cursorIndex: 0 },
           { key: 'b', description: 'b: jump back to the start of "fullName".', cursorIndex: 0 }
         ]

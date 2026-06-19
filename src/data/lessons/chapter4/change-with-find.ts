@@ -44,7 +44,7 @@ the closing quote, then type a new name while keeping the surrounding quotes int
           '}'
         ],
         // on 'A' in "Ada"
-        initialCursor: { line: 3, col: 26 },
+        initialCursor: { line: 3, col: 24 },
         autoPlaySpeed: 850,
         tracks: [
           { label: 'Change with c t"', keys: ['c', 't', '"', 'B', 'o', 'b', 'Escape'] }

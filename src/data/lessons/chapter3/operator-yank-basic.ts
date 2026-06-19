@@ -47,16 +47,17 @@ It highlights how y and p pair to move text without deleting the source.`
         initialCursor: { line: 4, col: 4 },
         autoPlaySpeed: 900,
         tracks: [
-          { label: 'Yank + paste', keys: [] }
+          { label: 'Yank + paste', keys: ['W', 'W', 'W', 'y', 'w', 'j', '$', 'h', 'h', 'd', 'w', 'p'] }
         ],
         steps: [
-          { key: 'w', description: 'w: jump to "name".', cursorIndex: 0 },
-          { key: 'w', description: 'w: jump to the string literal "\"Ada\"".', cursorIndex: 0 },
+          { key: 'W', description: 'W: jump to "name".', cursorIndex: 0 },
+          { key: 'W', description: 'W: jump to the string literal "\"Ada\"".', cursorIndex: 0 },
+          { key: 'W', description: 'W: jump to the string literal "\"Ada\"".', cursorIndex: 0 },
           { key: 'y', description: 'y: start the yank operator on the string.', cursorIndex: 0 },
           { key: 'w', description: 'w: yw – yank the word "\"Ada\"".', cursorIndex: 0 },
-
           { key: 'j', description: 'j: move down to the "copy" line.', cursorIndex: 0 },
           { key: '$', description: '$: jump to the end of the line (after ";").', cursorIndex: 0 },
+          { key: 'h', description: 'h: move left onto the empty string "".', cursorIndex: 0 },
           { key: 'h', description: 'h: move left onto the empty string "".', cursorIndex: 0 },
           { key: 'd', description: 'd: start delete.', cursorIndex: 0 },
           { key: 'w', description: 'w: dw – delete the empty string literal.', cursorIndex: 0 },

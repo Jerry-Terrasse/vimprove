@@ -2,6 +2,10 @@
   "title": "设置",
   "appearance": {
     "tab": "外观",
+    "theme": "主题",
+    "themeSystem": "跟随系统",
+    "themeDark": "暗色",
+    "themeLight": "亮色",
     "fontFamily": "字体",
     "fontSize": "字号",
     "preview": "预览",
