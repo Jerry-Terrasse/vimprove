@@ -51,6 +51,7 @@ and use \`ct)\` to replace the remaining arguments with a single \`42\`, without
         steps: [
           { key: 'f', description: 'f: move forward inside the call.', cursorIndex: 0 },
           { key: '(', description: '"f(" jumps to the opening parenthesis.', cursorIndex: 0 },
+          { key: 'l', description: 'l: jumps to the opening parenthesis.', cursorIndex: 0 },
 
           { key: 'd', description: 'd: start delete to remove the first argument.', cursorIndex: 0 },
           { key: 't', description: 't: till motion (stop before a character).', cursorIndex: 0 },
@@ -60,8 +61,8 @@ and use \`ct)\` to replace the remaining arguments with a single \`42\`, without
           { key: ')', description: '"f)" jumps to the closing parenthesis.', cursorIndex: 0 },
 
           { key: 'c', description: 'c: start a change to rewrite the remaining arguments.', cursorIndex: 0 },
-          { key: 't', description: 't: "ct)" will change up to but not including ")".', cursorIndex: 0 },
-          { key: ')', description: '"ct)" deletes the current arguments and enters Insert mode.', cursorIndex: 0 },
+          { key: 'T', description: 'T: "cT(" will change up to but not including "(".', cursorIndex: 0 },
+          { key: '(', description: '"cT(" deletes the current arguments and enters Insert mode.', cursorIndex: 0 },
           { key: '4', description: 'Type "4".', cursorIndex: 0 },
           { key: '2', description: 'Type "2" to make a single argument 42.', cursorIndex: 0 },
           { key: 'Escape', description: 'Escape: finish the change with add(42).', cursorIndex: 0 }

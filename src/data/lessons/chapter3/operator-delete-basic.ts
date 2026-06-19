@@ -56,8 +56,8 @@ It shows how the delete operator follows whatever motion you pair with it.`
           { key: 'w', description: 'w: jump to "debugValue".', cursorIndex: 0 },
           { key: 'd', description: 'd: start the delete operator.', cursorIndex: 0 },
           { key: 'w', description: 'w: dw – delete the word "debugValue".', cursorIndex: 0 },
-
-          { key: 'w', description: 'w: move to the comment start "//".', cursorIndex: 0 },
+          { key: 'W', description: 'W: move to the comment start "//".', cursorIndex: 0 },
+          { key: 'W', description: 'W: move to the comment start "//".', cursorIndex: 0 },
           { key: 'd', description: 'd: start another delete.', cursorIndex: 0 },
           { key: '$', description: '$: d$ – delete from here to end of line.', cursorIndex: 0 }
         ]

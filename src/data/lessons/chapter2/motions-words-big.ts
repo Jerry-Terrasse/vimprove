@@ -52,8 +52,10 @@ Then we'll press **W** to see how it jumps over entire chunks between spaces.`
           { key: 'w', description: 'w: move to "std" (stops at the word).', cursorIndex: 0 },
           { key: 'w', description: 'w: move to "::" (stops at punctuation).', cursorIndex: 0 },
           { key: 'w', description: 'w: move to "max" (still inside the function call).', cursorIndex: 0 },
-          { key: 'W', description: 'W: now using W, jump over "(x, 42)" as one WORD to "+".', cursorIndex: 0 },
-          { key: 'W', description: 'W: jump over the entire "std::min(y, 7);" as one WORD.', cursorIndex: 0 }
+          { key: 'W', description: 'W: now using W, jump over "(x, 42)" as two WORDs to "+".', cursorIndex: 0 },
+          { key: 'W', description: 'W: now using W, jump over "(x, 42)" as two WORDs to "+".', cursorIndex: 0 },
+          { key: 'W', description: 'W: jump over the entire "std::min(y, 7);" as two WORDs.', cursorIndex: 0 },
+          { key: 'W', description: 'W: jump over the entire "std::min(y, 7);" as two WORDs.', cursorIndex: 0 }
         ]
       }
     },

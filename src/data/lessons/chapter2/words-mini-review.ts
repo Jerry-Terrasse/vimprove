@@ -49,10 +49,10 @@ Watch how word and WORD motions reach targets in far fewer keystrokes than singl
           { key: 'l', description: 'h/l cursor: move right again.', cursorIndex: 0 },
           { key: 'l', description: 'h/l cursor: move right again.', cursorIndex: 0 },
           { key: 'l', description: 'h/l cursor: still stepping through "std::vector<int>".', cursorIndex: 0 },
-          { key: 'w', description: 'w cursor: jump to "values".', cursorIndex: 1 },
-          { key: 'w', description: 'w cursor: jump to "=".', cursorIndex: 1 },
+          { key: 'w', description: 'w cursor: jump to "::".', cursorIndex: 1 },
+          { key: 'w', description: 'w cursor: jump to "vector".', cursorIndex: 1 },
           { key: 'W', description: 'W cursor: jump over "std::vector<int>" as one WORD.', cursorIndex: 2 },
-          { key: 'W', description: 'W cursor: jump to "{1," in a single step.', cursorIndex: 2 }
+          { key: 'W', description: 'W cursor: jump to "=" in a single step.', cursorIndex: 2 }
         ]
       }
     },

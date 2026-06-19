@@ -48,7 +48,6 @@ then \`;\` and \`,\` to move forward and backward between commas without countin
           { key: 'f', description: 'f: start a forward character search on this line.', cursorIndex: 0 },
           { key: ',', description: '"f," jumps to the first comma inside the string.', cursorIndex: 0 },
           { key: ';', description: '";" repeats the last find, moving to the next comma.', cursorIndex: 0 },
-          { key: ';', description: '";" again: jump to the third comma.', cursorIndex: 0 },
           { key: ',', description: '"," goes back to the previous comma.', cursorIndex: 0 }
         ]
       }

@@ -53,7 +53,7 @@ It demonstrates how operator + motion pairs read like short sentences you can st
           '    std::cout << total << "\\n";',
           '}'
         ],
-        initialCursor: { line: 3, col: 4 },
+        initialCursor: { line: 3, col: 0 },
         autoPlaySpeed: 900,
         tracks: [
           { label: 'Operator mini workflow', keys: [] }
@@ -71,23 +71,25 @@ It demonstrates how operator + motion pairs read like short sentences you can st
           { key: 'Escape', description: 'Escape: back to Normal with renamed variable.', cursorIndex: 0 },
 
           { key: 'j', description: 'j: move down to the debugValue line.', cursorIndex: 0 },
+          { key: 'j', description: 'j: move down to the debugValue line.', cursorIndex: 0 },
           { key: 'd', description: 'd: first d for dd – delete line.', cursorIndex: 0 },
           { key: 'd', description: 'd: second d – whole debug line is gone.', cursorIndex: 0 },
 
-          { key: 'k', description: 'k: move back to "total = items * 2;" line.', cursorIndex: 0 },
+          { key: 'k', description: 'k: move back to "items = 3;" line.', cursorIndex: 0 },
           { key: 'y', description: 'y: first y for yy – yank the whole line.', cursorIndex: 0 },
           { key: 'y', description: 'y: second y – the line is copied.', cursorIndex: 0 },
           { key: 'p', description: 'p: paste the copied line below.', cursorIndex: 0 },
 
           { key: 'j', description: 'j: move to the new pasted line.', cursorIndex: 0 },
+          { key: 'j', description: 'j: move to the new pasted line.', cursorIndex: 0 },
           { key: '0', description: '0: jump to start of the line.', cursorIndex: 0 },
           { key: 'w', description: 'w: jump to "total".', cursorIndex: 0 },
-          { key: 'w', description: 'w: jump to "items".', cursorIndex: 0 },
-          { key: 'w', description: 'w: jump to the multiplier "2;".', cursorIndex: 0 },
+          { key: 'w', description: 'w: jump to "count".', cursorIndex: 0 },
+          { key: 'w', description: 'w: jump to "count".', cursorIndex: 0 },
+          { key: 'w', description: 'w: jump to the multiplier "2".', cursorIndex: 0 },
           { key: 'c', description: 'c: start changing the multiplier.', cursorIndex: 0 },
-          { key: 'w', description: 'w: cw – delete "2;".', cursorIndex: 0 },
+          { key: 'w', description: 'w: cw – delete "2".', cursorIndex: 0 },
           { key: '3', description: 'Type "3".', cursorIndex: 0 },
-          { key: ';', description: 'Type ";" to finish "3;".', cursorIndex: 0 },
           { key: 'Escape', description: 'Escape: back to Normal – new line uses 3.', cursorIndex: 0 }
         ]
       }

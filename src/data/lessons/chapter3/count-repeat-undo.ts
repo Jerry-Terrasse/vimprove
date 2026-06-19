@@ -61,13 +61,14 @@ and finally use **u** / **Ctrl-r** to demonstrate undo and redo on the repeated 
           { key: 'w', description: 'w: cw – delete "0;".', cursorIndex: 0 },
           { key: '4', description: 'Type "4" in Insert mode.', cursorIndex: 0 },
           { key: '2', description: 'Type "2" to make the value 42;', cursorIndex: 0 },
-          { key: ';', description: 'Type ";" to finish the statement.', cursorIndex: 0 },
           { key: 'Escape', description: 'Escape: back to Normal. One line is fixed.', cursorIndex: 0 },
 
-          { key: 'j', description: 'j: move down to value2.', cursorIndex: 0 },
+          { key: 'j', description: 'j: move to value2.', cursorIndex: 0 },
+          { key: 'h', description: 'h: move to value2.', cursorIndex: 0 },
           { key: '.', description: '.: repeat the last change – set initializer to 42 again.', cursorIndex: 0 },
 
-          { key: 'j', description: 'j: move down to value3.', cursorIndex: 0 },
+          { key: 'j', description: 'j: move to value3.', cursorIndex: 0 },
+          { key: 'h', description: 'h: move to value3.', cursorIndex: 0 },
           { key: '.', description: '.: repeat once more for value3.', cursorIndex: 0 },
 
           { key: 'u', description: 'u: undo – revert the last change on value3.', cursorIndex: 0 },

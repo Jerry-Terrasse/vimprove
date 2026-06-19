@@ -41,7 +41,6 @@ It highlights the rhythm of navigate first, then make a quick edit.`
           { label: 'Word + Insert', keys: [] }
         ],
         steps: [
-          { key: 'w', description: 'w: jump to "int".', cursorIndex: 0 },
           { key: 'w', description: 'w: jump to "count".', cursorIndex: 0 },
           { key: 'e', description: 'e: jump to the end of "count".', cursorIndex: 0 },
           { key: 'a', description: 'a: enter Insert mode just after "count".', cursorIndex: 0 },

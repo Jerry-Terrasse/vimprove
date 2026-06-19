@@ -67,6 +67,7 @@ This shows how x/r/s keep you in flow without a long insert session.`
           { key: 'i', description: 'Type "i" to fix "actuve" → "active".', cursorIndex: 0 },
           { key: 'j', description: 'j: move down to line 2.', cursorIndex: 0 },
           { key: '$', description: '$: jump to the end of line.', cursorIndex: 0 },
+          { key: 'h', description: 'h: move left to "0"', cursorIndex: 0},
           { key: 'x', description: 'x: delete the last "0".', cursorIndex: 0 },
           { key: 'x', description: 'x: delete another "0" to get count = 1.', cursorIndex: 0 }
         ]
