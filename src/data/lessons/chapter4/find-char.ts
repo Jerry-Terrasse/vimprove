@@ -42,7 +42,7 @@ then \`;\` and \`,\` to move forward and backward between commas without countin
         initialCursor: { line: 3, col: 4 }, // on 's' of "std::cout"
         autoPlaySpeed: 850,
         tracks: [
-          { label: 'Find commas with f and ; ,', keys: ['f', ',', ';', ';', ','] }
+          { label: 'Find commas with f and ; ,', keys: ['f', ',', ';', ','] }
         ],
         steps: [
           { key: 'f', description: 'f: start a forward character search on this line.', cursorIndex: 0 },

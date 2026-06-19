@@ -56,7 +56,7 @@ It demonstrates how operator + motion pairs read like short sentences you can st
         initialCursor: { line: 3, col: 0 },
         autoPlaySpeed: 900,
         tracks: [
-          { label: 'Operator mini workflow', keys: [] }
+          { label: 'Operator mini workflow', keys: ['w', 'w', 'c', 'w', 'i', 't', 'e', 'm', 's', 'Escape', 'j', 'j', 'd', 'd', 'k', 'y', 'y', 'p', 'j', '0', 'w', 'w', 'w', 'w', 'c', 'w', '3', 'Escape'] }
         ],
         steps: [
           { key: 'w', description: 'w: jump to "int".', cursorIndex: 0 },
@@ -79,8 +79,6 @@ It demonstrates how operator + motion pairs read like short sentences you can st
           { key: 'y', description: 'y: first y for yy – yank the whole line.', cursorIndex: 0 },
           { key: 'y', description: 'y: second y – the line is copied.', cursorIndex: 0 },
           { key: 'p', description: 'p: paste the copied line below.', cursorIndex: 0 },
-
-          { key: 'j', description: 'j: move to the new pasted line.', cursorIndex: 0 },
           { key: 'j', description: 'j: move to the new pasted line.', cursorIndex: 0 },
           { key: '0', description: '0: jump to start of the line.', cursorIndex: 0 },
           { key: 'w', description: 'w: jump to "total".', cursorIndex: 0 },

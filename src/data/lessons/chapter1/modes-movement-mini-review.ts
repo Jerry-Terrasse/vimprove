@@ -44,7 +44,7 @@ then drop another comment below. It highlights the Normal → Insert → Normal 
         initialCursor: { line: 2, col: 0 },
         autoPlaySpeed: 900,
         tracks: [
-          { label: 'Move + Insert review', keys: [] }
+          { label: 'Move + Insert review', keys: ['O', '/', '/', 'Escape', 'j', 'j', '$', 'h', 'i', '!', 'Escape', 'o', '/', '/', ' ', 'd', 'o', 'n', 'e', 'Escape'] }
         ],
         steps: [
           { key: 'O', description: 'O: open a new line above and enter Insert mode.', cursorIndex: 0 },

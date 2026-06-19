@@ -51,7 +51,7 @@ and finally use **u** / **Ctrl-r** to demonstrate undo and redo on the repeated 
         initialCursor: { line: 1, col: 4 },
         autoPlaySpeed: 900,
         tracks: [
-          { label: 'Counts + dot + undo', keys: [] }
+          { label: 'Counts + dot + undo', keys: ['w', 'w', 'w', 'c', 'w', '4', '2', 'Escape', 'j', 'h', '.', 'j', 'h', '.', 'u', 'Ctrl-r'] }
         ],
         steps: [
           { key: 'w', description: 'w: jump to "int".', cursorIndex: 0 },

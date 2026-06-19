@@ -30,7 +30,7 @@ Together they let you do surgical edits like:
 
 The example focuses on the call \`add(10, 20, 30)\` inside a small C++ program.
 We first use \`dt,\` to delete the leading \`10,\`, then move to the end of the argument list
-and use \`ct)\` to replace the remaining arguments with a single \`42\`, without disturbing the rest of the line.`
+and use \`cT(\` to replace the remaining arguments with a single \`42\`, without disturbing the rest of the line.`
     },
     {
       type: 'run-example',
@@ -46,7 +46,7 @@ and use \`ct)\` to replace the remaining arguments with a single \`42\`, without
         initialCursor: { line: 3, col: 15 },
         autoPlaySpeed: 900,
         tracks: [
-          { label: 'Precise in-line edits', keys: ['f', '(', 'd', 't', ',', 'f', ')', 'c', 't', ')', '4', '2', 'Escape'] }
+          { label: 'Precise in-line edits', keys: ['f', '(', 'l', 'd', 't', ',', 'f', ')', 'h', 'c', 'T', '(', '4', '2', 'Escape'] }
         ],
         steps: [
           { key: 'f', description: 'f: move forward inside the call.', cursorIndex: 0 },
@@ -59,6 +59,7 @@ and use \`ct)\` to replace the remaining arguments with a single \`42\`, without
 
           { key: 'f', description: 'f: move again towards the end of the argument list.', cursorIndex: 0 },
           { key: ')', description: '"f)" jumps to the closing parenthesis.', cursorIndex: 0 },
+          { key: 'h', description: 'h: move into the parenthesis.', cursorIndex: 0 },
 
           { key: 'c', description: 'c: start a change to rewrite the remaining arguments.', cursorIndex: 0 },
           { key: 'T', description: 'T: "cT(" will change up to but not including "(".', cursorIndex: 0 },
@@ -75,7 +76,7 @@ and use \`ct)\` to replace the remaining arguments with a single \`42\`, without
         { chars: ['f', '('], desc: 'Jump to the next "(" in the line' },
         { chars: ['t', ','], desc: 'Move just before the next comma' },
         { chars: ['d', 't', ','], desc: 'Delete until (but not including) the next comma' },
-        { chars: ['c', 't', ')'], desc: 'Change until (but not including) the closing parenthesis' },
+        { chars: ['c', 'T', '('], desc: 'Change backward until just after the previous "("' },
         { chars: [';'], desc: 'Repeat last in-line search forward' },
         { chars: [','], desc: 'Repeat last in-line search backward' }
       ]

@@ -45,7 +45,7 @@ and **$** to jump straight to the semicolon at the end of the line.`
         initialCursor: { line: 3, col: 16 },
         autoPlaySpeed: 900,
         tracks: [
-          { label: 'Line bounds', keys: [] }
+          { label: 'Line bounds', keys: ['0', '^', '$'] }
         ],
         steps: [
           { key: '0', description: '0: jump to column 0 (very start of the line).', cursorIndex: 0 },

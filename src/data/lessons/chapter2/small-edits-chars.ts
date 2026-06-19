@@ -57,7 +57,7 @@ This shows how x/r/s keep you in flow without a long insert session.`
         initialCursor: { line: 0, col: 14 },
         autoPlaySpeed: 900,
         tracks: [
-          { label: 'Fix with r and x', keys: [] }
+          { label: 'Fix with r and x', keys: ['l', 'l', 'l', 'r', 'i', 'j', '$', 'h', 'x', 'h', 'x'] }
         ],
         steps: [
           { key: 'l', description: 'l: move to the wrong letter "u".', cursorIndex: 0 },
@@ -69,6 +69,7 @@ This shows how x/r/s keep you in flow without a long insert session.`
           { key: '$', description: '$: jump to the end of line.', cursorIndex: 0 },
           { key: 'h', description: 'h: move left to "0"', cursorIndex: 0},
           { key: 'x', description: 'x: delete the last "0".', cursorIndex: 0 },
+          { key: 'h', description: 'h: move left to "0"', cursorIndex: 0},
           { key: 'x', description: 'x: delete another "0" to get count = 1.', cursorIndex: 0 }
         ]
       }

@@ -40,9 +40,9 @@ Watch how word and WORD motions reach targets in far fewer keystrokes than singl
         initialCursor: { line: 0, col: 0 },
         autoPlaySpeed: 700,
         tracks: [
-          { label: 'Using h/l', keys: [], color: 'bg-track-red' },
-          { label: 'Using w (word)', keys: [], color: 'bg-track-blue' },
-          { label: 'Using W (WORD)', keys: [], color: 'bg-track-green' }
+          { label: 'Using h/l', keys: ['l', 'l', 'l', 'l'], color: 'bg-track-red' },
+          { label: 'Using w (word)', keys: ['w', 'w'], color: 'bg-track-blue' },
+          { label: 'Using W (WORD)', keys: ['W', 'W'], color: 'bg-track-green' }
         ],
         steps: [
           { key: 'l', description: 'h/l cursor: move right one character.', cursorIndex: 0 },

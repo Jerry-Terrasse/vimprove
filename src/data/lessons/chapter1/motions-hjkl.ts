@@ -39,7 +39,7 @@ Notice how every move is a single keypress, keeping your hands on the home row t
         initialCursor: { line: 0, col: 0 },
         autoPlaySpeed: 800,
         tracks: [
-          { label: 'Move with HJKL', keys: [] }
+          { label: 'Move with HJKL', keys: ['j', 'k', 'j', 'l', 'l', 'h'] }
         ],
         steps: [
           { key: 'j', description: 'j: move down from the function header to the variable line.', cursorIndex: 0 },

@@ -41,7 +41,7 @@ This shows how word motions cover more ground than single-character moves.`
         initialCursor: { line: 3, col: 4 },
         autoPlaySpeed: 900,
         tracks: [
-          { label: 'Move by words', keys: [] }
+          { label: 'Move by words', keys: ['w', 'w', 'w', 'e', 'b'] }
         ],
         steps: [
           { key: 'w', description: 'w: jump from "std::string" to "fullName".', cursorIndex: 0 },

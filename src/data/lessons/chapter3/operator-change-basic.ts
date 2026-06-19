@@ -45,7 +45,7 @@ right into typing at the same spot.`
         initialCursor: { line: 3, col: 8 },
         autoPlaySpeed: 900,
         tracks: [
-          { label: 'Change with c + motion', keys: [] }
+          { label: 'Change with c + motion', keys: ['c', 'w', 't', 'o', 't', 'a', 'l', 'U', 's', 'e', 'r', 's', 'Escape'] }
         ],
         steps: [
           { key: 'c', description: 'c: start the change operator on "userCount".', cursorIndex: 0 },

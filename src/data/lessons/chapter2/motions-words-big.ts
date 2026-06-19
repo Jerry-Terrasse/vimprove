@@ -44,7 +44,7 @@ Then we'll press **W** to see how it jumps over entire chunks between spaces.`
         initialCursor: { line: 0, col: 0 },
         autoPlaySpeed: 800,
         tracks: [
-          { label: 'Comparing w and W', keys: [] }
+          { label: 'Comparing w and W', keys: ['w', 'w', 'w', 'w', 'w', 'W', 'W', 'W', 'W'] }
         ],
         steps: [
           { key: 'w', description: 'w: move from "auto" to "result" (both w and W do the same here).', cursorIndex: 0 },

@@ -38,7 +38,7 @@ It highlights the rhythm of navigate first, then make a quick edit.`
         initialCursor: { line: 1, col: 4 },
         autoPlaySpeed: 900,
         tracks: [
-          { label: 'Word + Insert', keys: [] }
+          { label: 'Word + Insert', keys: ['w', 'e', 'a', 'e', 'r', 'Escape'] }
         ],
         steps: [
           { key: 'w', description: 'w: jump to "count".', cursorIndex: 0 },

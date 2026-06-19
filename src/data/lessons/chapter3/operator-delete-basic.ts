@@ -50,7 +50,7 @@ It shows how the delete operator follows whatever motion you pair with it.`
         initialCursor: { line: 3, col: 4 },
         autoPlaySpeed: 900,
         tracks: [
-          { label: 'Delete with d + motion', keys: [] }
+          { label: 'Delete with d + motion', keys: ['w', 'd', 'w', 'W', 'W', 'd', '$'] }
         ],
         steps: [
           { key: 'w', description: 'w: jump to "debugValue".', cursorIndex: 0 },
@@ -68,6 +68,7 @@ It shows how the delete operator follows whatever motion you pair with it.`
       keys: [
         { chars: ['d'], desc: 'Delete operator (combine with a motion)' },
         { chars: ['w'], desc: 'Jump to next word start' },
+        { chars: ['W'], desc: 'Jump to next WORD start (skip symbol-heavy chunks)' },
         { chars: ['0'], desc: 'Jump to column 0' },
         { chars: ['^'], desc: 'Jump to first non-blank character' },
         { chars: ['$'], desc: 'Jump to end of line' }
